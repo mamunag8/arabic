@@ -92,12 +92,18 @@ function lexEntry(key) {
       pron: '',
       bn: '',
       en: '',
+      bns: new Set(),    // every distinct Bangla gloss this word is given
+      ens: new Set(),    // every distinct English gloss (170 words are context-dependent)
       hook: meta.WORD_HOOKS[key] || '',
       count: 0,
       ayat: [],          // ayah keys
       classes: new Set(),
       stories: [],       // {cls, section, snippet}
       families: [],      // {cls, title}
+      before: new Map(),  // key -> times this word follows it
+      after: new Map(),   // key -> times this word precedes it
+      sibs: [],           // similar-looking words in the book
+      near: [],           // one-letter-apart words -- the confusable ones
     };
     lexById[lex[key].id] = lex[key];
   }
@@ -105,14 +111,20 @@ function lexEntry(key) {
 }
 
 // 1. from the verified ayah data
-content.forEach((p) => p.ayat.forEach((a) => a.words.forEach((w) => {
+const bump = (m, k) => m.set(k, (m.get(k) || 0) + 1);
+content.forEach((p) => p.ayat.forEach((a) => a.words.forEach((w, i) => {
   const e = lexEntry(strip(w.arabic));
   e.forms.add(w.arabic);
   if (!e.pron) e.pron = w.pron;
   if (!e.bn) e.bn = w.bn || '';
   if (!e.en) e.en = w.en || '';
+  if (w.bn && w.bn.trim()) e.bns.add(w.bn.trim());
+  if (w.en && w.en.trim()) e.ens.add(w.en.trim());
   e.count += 1;
   if (!e.ayat.includes(a.key)) e.ayat.push(a.key);
+  // which words sit either side of it -- chunks are how you actually memorise
+  if (a.words[i - 1]) bump(e.before, strip(a.words[i - 1].arabic));
+  if (a.words[i + 1]) bump(e.after, strip(a.words[i + 1].arabic));
 })));
 
 // 2. first class each word is taught in
@@ -135,6 +147,72 @@ Object.entries(meta.GRAMMAR).forEach(([cls, g]) => {
     });
   });
 });
+
+// 4. spelling-similarity links --------------------------------------------
+// NOTE: this is deliberately a SPELLING observation, not a claim about Arabic
+// morphology. The real root families are the authored GRAMMAR tables above and
+// are shown separately; these are labelled "চেহারায় মিল" so a child is never
+// taught a made-up pattern. Arabic letters are built from escape strings --
+// literal Arabic in a character class gets mangled on write (see strip()).
+const AR = {
+  alef: '\\u0627', lam: '\\u0644', waw: '\\u0648', fa: '\\u0641', ba: '\\u0628',
+  kaf: '\\u0643', sin: '\\u0633', ha: '\\u0647', mim: '\\u0645', nun: '\\u0646',
+  ya: '\\u064A', ta: '\\u062A', tam: '\\u0629',
+};
+const RE_PREFIX = new RegExp(
+  `^(?:${AR.waw}|${AR.fa})?(?:${AR.ba}|${AR.kaf}|${AR.lam}|${AR.sin})?(?:${AR.alef}${AR.lam})?`);
+const RE_SUFFIX = new RegExp(
+  `(?:${AR.ha}${AR.mim}|${AR.ha}${AR.alef}|${AR.kaf}${AR.mim}|${AR.nun}${AR.alef}` +
+  `|${AR.waw}${AR.nun}|${AR.ya}${AR.nun}|${AR.alef}${AR.ta}|${AR.tam})$`);
+
+function skeleton(k) {
+  const s = k.replace(RE_PREFIX, '').replace(RE_SUFFIX, '');
+  return s.length >= 3 ? s : k;
+}
+
+/** true when a and b differ by exactly one insert, delete or substitution */
+function within1(a, b) {
+  if (a === b) return false;
+  const [s, t] = a.length <= b.length ? [a, b] : [b, a];
+  if (t.length - s.length > 1) return false;
+  let i = 0, j = 0, diff = 0;
+  while (i < s.length && j < t.length) {
+    if (s[i] === t[j]) { i += 1; j += 1; continue; }
+    diff += 1;
+    if (diff > 1) return false;
+    if (s.length === t.length) { i += 1; j += 1; } else j += 1;
+  }
+  return diff + (t.length - j) + (s.length - i) === 1;
+}
+
+{
+  const all = Object.values(lex);
+  const bySkel = new Map();
+  const byLen = new Map();
+  all.forEach((e) => {
+    e.skel = skeleton(e.key);
+    if (!bySkel.has(e.skel)) bySkel.set(e.skel, []);
+    bySkel.get(e.skel).push(e);
+    if (!byLen.has(e.key.length)) byLen.set(e.key.length, []);
+    byLen.get(e.key.length).push(e);
+  });
+  const rank = (a, b) => b.count - a.count || a.key.localeCompare(b.key);
+  all.forEach((e) => {
+    if (e.key.length >= 3) {
+      const seen = new Set();
+      for (const l of [e.key.length - 1, e.key.length, e.key.length + 1]) {
+        (byLen.get(l) || []).forEach((o) => {
+          if (o !== e && !seen.has(o.id) && within1(e.key, o.key)) { seen.add(o.id); e.near.push(o); }
+        });
+      }
+      e.near.sort(rank);
+      e.near = e.near.slice(0, 6);
+    }
+    const nearIds = new Set(e.near.map((o) => o.id));
+    e.sibs = (bySkel.get(e.skel) || [])
+      .filter((o) => o !== e && !nearIds.has(o.id)).sort(rank).slice(0, 10);
+  });
+}
 
 const firstClass = (e) => (e.classes.size ? Math.min(...e.classes) : null);
 
@@ -184,7 +262,7 @@ function page({ title, desc, body, rel, cls = '', active = '' }) {
     ['words', 'words.html', '🧺', 'শব্দ'],
     ['threads', 'threads.html', '🧵', 'সুতো'],
     ['search', 'search.html', '🔍', 'খোঁজো'],
-    ['about', 'about.html', 'ℹ️', 'পরিচয়'],
+    ['refs', 'refs.html', '📚', 'সূত্র'],
   ].map(([k, href, icon, label]) =>
     `<a href="${rel}${href}"${active === k ? ' class="on" aria-current="page"' : ''}>` +
     `<span class="ic" aria-hidden="true">${icon}</span><span class="lb">${label}</span></a>`).join('');
@@ -221,7 +299,7 @@ function page({ title, desc, body, rel, cls = '', active = '' }) {
 <footer class="foot">
   <p><strong>${SITE_TITLE}</strong> — ${SITE_TAG}</p>
   <p class="muted">আরবি, শব্দে শব্দে অর্থ ও বাংলা অনুবাদ যাচাই করা উৎস থেকে নেওয়া। কোনো অনুবাদ অনুমান করে বসানো হয়নি।</p>
-  <p class="muted"><a href="${rel}about.html">পরিচয় ও সূত্র</a></p>
+  <p class="muted"><a href="${rel}refs.html">📚 সব সূত্র</a> · <a href="${rel}about.html">ℹ️ পরিচয়</a></p>
 </footer>
 <nav class="tabbar" aria-label="প্রধান মেনু">${nav}</nav>
 <script src="${rel}assets/app.js"></script>
@@ -244,14 +322,14 @@ function wordTable(words, rel) {
       ? `<a class="ar lk" href="${rel}word/${e.id}.html">${w.arabic}</a>`
       : `<span class="ar">${w.arabic}</span>`;
     return `<tr>
-<td class="c-ar">${ar}</td>
-<td class="c-pr"><strong>${w.pron}</strong></td>
-<td>${w.bn || '—'}</td>
-<td class="c-en">${w.en || '—'}</td>
-<td class="c-hk">${hook ? inline(hook, rel) : '—'}</td>
+<td class="c-ar" data-label="আরবি">${ar}</td>
+<td class="c-pr" data-label="উচ্চারণ"><strong>${w.pron}</strong></td>
+<td data-label="বাংলা">${w.bn || '—'}</td>
+<td class="c-en" data-label="English">${w.en || '—'}</td>
+<td class="c-hk" data-label="চেনা শব্দ 💡">${hook ? inline(hook, rel) : ''}</td>
 </tr>`;
   }).join('\n');
-  return `<div class="tbl-wrap"><table class="words">
+  return `<div class="tbl-wrap has-stack"><table class="words stack">
 <thead><tr><th>আরবি</th><th>উচ্চারণ</th><th>বাংলা অর্থ</th><th>English</th><th>চেনা শব্দ 💡</th></tr></thead>
 <tbody>${rows}</tbody></table></div>`;
 }
@@ -379,11 +457,11 @@ function buildClass(c) {
       const tok = String(ar).match(ARABIC_RUN)?.[0];
       const e = tok ? lex[strip(tok)] : null;
       const link = e ? `<a class="ar lk" href="${rel}word/${e.id}.html">${ar}</a>` : `<span class="ar">${ar}</span>`;
-      return `<tr><td class="c-ar">${link}</td><td><strong>${pron}</strong></td><td>${inline(mean, rel)}</td></tr>`;
+      return `<tr><td class="c-ar" data-label="আরবি">${link}</td><td data-label="উচ্চারণ"><strong>${pron}</strong></td><td data-label="মানে">${inline(mean, rel)}</td></tr>`;
     }).join('');
     out.push(`<section class="gram"><h2>🧩 ব্যাকরণের গল্প: ${inline(gram.title, rel, ctx)}</h2>
       ${gram.story.map((s) => `<p>${inline(s, rel, ctx)}</p>`).join('')}
-      ${fam ? `<div class="tbl-wrap"><table class="fam"><thead><tr><th>আরবি</th><th>উচ্চারণ</th><th>মানে</th></tr></thead><tbody>${fam}</tbody></table></div>` : ''}
+      ${fam ? `<div class="tbl-wrap has-stack"><table class="fam stack"><thead><tr><th>আরবি</th><th>উচ্চারণ</th><th>মানে</th></tr></thead><tbody>${fam}</tbody></table></div>` : ''}
       <p class="punch">💡 ${inline(gram.punch, rel, ctx)}</p>
     </section>`);
   }
@@ -524,11 +602,50 @@ Object.values(lex).forEach((e) => {
   const famRows = [...new Map(e.families.map((f) => [f.cls, f])).values()]
     .map((f) => `<a class="chip xref" href="${rel}class/${f.cls}.html">ক্লাস ${bn(f.cls)} · ${f.title}</a>`).join('');
 
+  const classChips = [...e.classes].sort((a, b) => a - b)
+    .map((n) => `<a class="chip xref" href="${rel}class/${n}.html">ক্লাস ${bn(n)}</a>`).join('');
+
+  // every distinct English gloss -- 170 words are translated differently
+  // depending on the ayah, and seeing the spread is itself the lesson
+  const ens = [...e.ens];
+  const bns = [...e.bns];
+  const enBlock = ens.length
+    ? `<p class="en-line"><span class="lbl">English</span> ${ens.map((s) => `<span class="en">${s}</span>`).join('<span class="sep">·</span>')}</p>`
+    : '';
+  const bnExtra = bns.length > 1
+    ? `<p class="muted sm">এই শব্দটা আয়াত ভেদে একটু অন্যভাবেও অনুবাদ হয়: ${bns.slice(1).join(' · ')}</p>` : '';
+
+  // --- memorisation aids, all derived from the verified data ---------------
+  const chip = (o) => `<a class="chip" href="${rel}word/${o.id}.html"><span class="ar">${[...o.forms][0]}</span><span class="gl">${o.bn || o.pron}</span></a>`;
+  const pair = (m, order) => [...m.entries()].sort((a, b) => b[1] - a[1]).slice(0, 3)
+    .map(([k, n]) => {
+      const o = lex[k];
+      if (!o) return '';
+      const a = order === 'before' ? [o, e] : [e, o];
+      return `<li><span class="ar">${[...a[0].forms][0]} ${[...a[1].forms][0]}</span>
+        <span class="gl">${a[0].bn || a[0].pron} ${a[1].bn || a[1].pron}</span>
+        ${n > 1 ? `<span class="tag">${bn(n)} বার</span>` : ''}
+        <a class="xref" href="${rel}word/${o.id}.html">${[...o.forms][0]} দেখো</a></li>`;
+    }).join('');
+  const chunks = pair(e.before, 'before') + pair(e.after, 'after');
+
+  const tips = [];
+  if (e.count >= 8) {
+    tips.push(`এটা এই বইয়ের সবচেয়ে বেশি ব্যবহৃত শব্দগুলোর একটা — <strong>${bn(e.count)} বার</strong> এসেছে। একবার ধরে ফেললে অনেকগুলো আয়াত সহজ হয়ে যাবে।`);
+  } else if (e.count >= 3) {
+    tips.push(`এই শব্দটা <strong>${bn(e.count)} বার</strong> ফিরে আসে। যতবার দেখবে, ততবার থেমে মানেটা মনে করো — মুখস্থ করার দরকার হবে না, নিজেই বসে যাবে।`);
+  }
+  if (fc) tips.push(`প্রথম শিখেছ <a class="xref" href="${rel}class/${fc}.html">ক্লাস ${bn(fc)}</a>-এ। ভুলে গেলে ওখানে ফিরে যাও — গল্পটা মনে পড়লে শব্দটাও মনে পড়বে।`);
+  if (chunks) tips.push('একা একটা শব্দ মুখস্থ কোরো না। নিচের <strong>জোড়াগুলো</strong> একসাথে পড়ো — কুরআন এভাবেই মাথায় বসে।');
+  if (e.near.length) tips.push('নিচে <strong>প্রায় একরকম</strong> শব্দগুলো দেখে নাও। একটা অক্ষরের হেরফেরে মানে বদলে যায় — এখানেই বেশিরভাগ ভুল হয়।');
+
   const body = `
 <div class="crumb"><a href="${rel}index.html">মানচিত্র</a> › <a href="${rel}words.html">শব্দের ঝুড়ি</a> › <span>${forms[0]}</span></div>
 <header class="word-head">
   <div class="ar huge">${forms[0]}</div>
-  <p class="gloss"><strong>${e.pron || ''}</strong>${e.bn ? ` · ${e.bn}` : ''}${e.en ? ` · <span class="en">${e.en}</span>` : ''}</p>
+  <p class="gloss"><strong>${e.pron || ''}</strong>${e.bn ? ` · ${e.bn}` : ''}</p>
+  ${enBlock}
+  ${bnExtra}
   ${forms.length > 1 ? `<p class="forms">অন্য রূপ: ${forms.slice(1).map((f) => `<span class="ar">${f}</span>`).join(' · ')}</p>` : ''}
 </header>
 ${e.hook ? `<section class="hook"><h2>💡 চেনা শব্দ</h2><p>${inline(e.hook, rel)}</p></section>` : ''}
@@ -537,8 +654,17 @@ ${e.hook ? `<section class="hook"><h2>💡 চেনা শব্দ</h2><p>${in
   <div><span class="k">এই বইয়ে</span><span class="v">${e.count ? `${bn(e.count)} বার` : '—'}</span></div>
   <div><span class="k">যে ক্লাসগুলোতে</span><span class="v">${e.classes.size ? bn(e.classes.size) : '—'}</span></div>
 </section>
+${tips.length ? `<section class="memo"><h2>🧠 মনে রাখার কৌশল</h2><ul>${tips.map((t) => `<li>${t}</li>`).join('')}</ul></section>` : ''}
+${chunks ? `<section><h2>🔗 পাশাপাশি যেভাবে আসে</h2><ul class="chunk-list">${chunks}</ul></section>` : ''}
+${e.near.length ? `<section class="warn"><h2>⚠️ প্রায় একরকম — গুলিয়ে ফেলো না</h2>
+  <p class="muted sm">এক অক্ষরের পার্থক্য, অথচ মানে আলাদা। জোরে জোরে দুটো পড়ে পার্থক্যটা কানে বসাও।</p>
+  <div class="chips">${e.near.map(chip).join('')}</div></section>` : ''}
 ${famRows ? `<section><h2>👨‍👩‍👦 ব্যাকরণের পরিবারে</h2><div class="chips">${famRows}</div></section>` : ''}
+${e.sibs.length ? `<section><h2>🧩 চেহারায় মিল আছে</h2>
+  <p class="muted sm">দেখতে কাছাকাছি শব্দ। সবগুলো একই পরিবারের নাও হতে পারে — আসল পরিবার শেখাবে ব্যাকরণের ক্লাস।</p>
+  <div class="chips">${e.sibs.map(chip).join('')}</div></section>` : ''}
 ${ayatRows ? `<section><h2>📖 যেসব আয়াতে আছে (${bn(e.ayat.length)})</h2><ul class="ayah-list">${ayatRows}</ul></section>` : ''}
+${classChips ? `<section><h2>🎯 যেসব ক্লাসে পড়ানো হয়</h2><div class="chips">${classChips}</div></section>` : ''}
 ${proseRows ? `<section><h2>📚 যেসব গল্পে এসেছে (${bn(e.stories.length)})</h2><ul class="prose-list">${proseRows}</ul></section>` : ''}
 `;
   write(`word/${e.id}.html`, page({
@@ -637,12 +763,13 @@ ${story ? `<section class="shan"><h2>📜 ${inline(story.title, rel)}</h2>${stor
   const rows = all.map((e) => {
     const fc = firstClass(e);
     return `<tr data-k="${e.key} ${e.pron} ${e.bn} ${e.en}">
-      <td class="c-ar"><a class="ar lk" href="word/${e.id}.html">${[...e.forms][0]}</a></td>
-      <td><strong>${e.pron || ''}</strong></td>
-      <td>${e.bn || '—'}</td>
-      <td class="c-num">${e.count ? bn(e.count) : '—'}</td>
-      <td class="c-num">${fc ? `<a href="class/${fc}.html">${bn(fc)}</a>` : '—'}</td>
-      <td class="c-hk">${e.hook ? '💡' : ''}</td></tr>`;
+      <td class="c-ar" data-label="আরবি"><a class="ar lk" href="word/${e.id}.html">${[...e.forms][0]}</a></td>
+      <td data-label="উচ্চারণ"><strong>${e.pron || ''}</strong></td>
+      <td data-label="বাংলা">${e.bn || '—'}</td>
+      <td class="c-en" data-label="English">${e.en || '—'}</td>
+      <td class="c-num" data-label="কতবার">${e.count ? bn(e.count) : '—'}</td>
+      <td class="c-num" data-label="প্রথম ক্লাস">${fc ? `<a href="class/${fc}.html">${bn(fc)}</a>` : '—'}</td>
+      <td class="c-hk" data-label="চেনা শব্দ">${e.hook ? '💡' : ''}</td></tr>`;
   }).join('');
   const body = `
 <header class="page-head"><h1>🧺 শব্দের ঝুড়ি</h1>
@@ -650,8 +777,8 @@ ${story ? `<section class="shan"><h2>📜 ${inline(story.title, rel)}</h2>${stor
 <p class="muted">${bn(hooked)}টি শব্দে <strong>চেনা শব্দ 💡</strong> যোগ করা আছে — বাংলায় তুমি যে শব্দটা আগে থেকেই বলো।</p>
 </header>
 <input id="wfilter" class="filter" type="search" placeholder="আরবি, উচ্চারণ বা বাংলা লিখে খোঁজো…" autocomplete="off">
-<div class="tbl-wrap"><table class="index" id="windex">
-<thead><tr><th>আরবি</th><th>উচ্চারণ</th><th>অর্থ</th><th>কতবার</th><th>প্রথম ক্লাস</th><th></th></tr></thead>
+<div class="tbl-wrap has-stack"><table class="index stack" id="windex">
+<thead><tr><th>আরবি</th><th>উচ্চারণ</th><th>অর্থ</th><th>English</th><th>কতবার</th><th>প্রথম ক্লাস</th><th></th></tr></thead>
 <tbody>${rows}</tbody></table></div>`;
   write('words.html', page({ title: 'শব্দের ঝুড়ি', body, rel, cls: 'page-words', active: 'words' }));
 }
@@ -684,6 +811,111 @@ ${THREADS.map((th) => `<section class="thread">
     return `<li><a href="class/${n}.html"><span class="dot"></span><b>ক্লাস ${bn(n)}</b><span>${ex.title || ''}</span></a></li>`;
   }).join('')}</ol></section>`).join('')}`;
   write('threads.html', page({ title: 'সুতো', body, rel, cls: 'page-threads', active: 'threads' }));
+}
+
+// ---------------------------------------------------------------------------
+// REFERENCES  -- every Quran ayah and every hadith citation in the book
+// ---------------------------------------------------------------------------
+// Citations are EXTRACTED from the authored text, never composed here. If a
+// citation is missing its number in course_meta.js it shows up incomplete,
+// which is the point: the gap stays visible instead of being papered over.
+const HADITH_COLLECTIONS = [
+  'সহীহ বুখারী', 'সহীহ মুসলিম', 'বুখারী', 'মুসলিম', 'তিরমিযী', 'তিরমিজী',
+  'আবু দাউদ', 'নাসাঈ', 'ইবনে মাজাহ', 'ইবনু মাজাহ', 'মুয়াত্তা',
+  'মুসনাদে আহমাদ', 'আহমাদ', 'মিশকাত', 'রিয়াদুস সালেহীন', 'বায়হাকী', 'হাকিম', 'দারিমী',
+];
+const RE_HADITH = new RegExp(`(?:${HADITH_COLLECTIONS.join('|')})[\\s\\u09E6-\\u09EF0-9,\\u0964:/-]*`, 'g');
+
+{
+  const rel = '';
+
+  // passage id -> the classes that teach it
+  const passageClasses = {};
+  plan.classes.forEach((c) => (c.ayat || []).forEach((k) => {
+    const a = ayahByKey[k];
+    if (!a) return;
+    (passageClasses[a.passage.id] = passageClasses[a.passage.id] || new Set()).add(c.index);
+  }));
+
+  // --- Quran -------------------------------------------------------------
+  const surahRows = [...content].sort((a, b) => a.chapter - b.chapter).map((p) => {
+    const cls = [...(passageClasses[p.id] || [])].sort((a, b) => a - b);
+    const verses = p.ayat.map((a) => `<a class="vref" href="${rel}surah/${p.id}.html#a${a.key.replace(':', '-')}"
+      title="${a.bn.replace(/"/g, '')}">${bn(a.n)}</a>`).join('');
+    return `<tr>
+      <td data-label="সূরা"><a href="${rel}surah/${p.id}.html">${p.name}</a>
+        <span class="muted sm">${bn(p.chapter)}</span></td>
+      <td data-label="আয়াত"><span class="vrefs">${verses}</span>
+        <span class="muted sm">${bn(p.ayat.length)}টি</span></td>
+      <td data-label="ক্লাস">${cls.map((n) => `<a class="xref" href="${rel}class/${n}.html">${bn(n)}</a>`).join(' ') || '—'}</td>
+    </tr>`;
+  }).join('');
+
+  // --- Hadith ------------------------------------------------------------
+  const cites = new Map();            // citation -> Set(class numbers)
+  const walk = (obj, cls) => {
+    if (obj == null) return;
+    if (typeof obj === 'string') {
+      (obj.match(RE_HADITH) || []).forEach((s) => {
+        const c = s.trim().replace(/[।,\s]+$/, '');
+        if (!cites.has(c)) cites.set(c, new Set());
+        if (cls) cites.get(c).add(cls);
+      });
+      return;
+    }
+    if (Array.isArray(obj)) { obj.forEach((o) => walk(o, cls)); return; }
+    if (typeof obj === 'object') Object.values(obj).forEach((o) => walk(o, cls));
+  };
+  Object.entries(meta.CLASS_EXTRAS).forEach(([n, v]) => walk(v, Number(n)));
+  Object.entries(meta.TAJWEED).forEach(([n, v]) => walk(v, Number(n)));
+  Object.entries(meta.GRAMMAR).forEach(([n, v]) => walk(v, Number(n)));
+  Object.entries(meta.PASSAGE_STORY).forEach(([id, v]) => {
+    const first = [...(passageClasses[id] || [])].sort((a, b) => a - b)[0];
+    walk(v, first || 0);
+  });
+
+  const hasNumber = (c) => /[০-৯0-9]/.test(c);
+  const sortedCites = [...cites.entries()].sort((a, b) => a[0].localeCompare(b[0], 'bn'));
+  const hadithRows = sortedCites.map(([c, set]) => {
+    const cls = [...set].filter(Boolean).sort((a, b) => a - b);
+    return `<tr${hasNumber(c) ? '' : ' class="incomplete"'}>
+      <td data-label="সূত্র">${c}${hasNumber(c) ? '' : ' <span class="tag">নম্বর নেই</span>'}</td>
+      <td data-label="যেসব ক্লাসে">${cls.map((n) => `<a class="xref" href="${rel}class/${n}.html">ক্লাস ${bn(n)}</a>`).join(' ') || '—'}</td>
+    </tr>`;
+  }).join('');
+  const missing = sortedCites.filter(([c]) => !hasNumber(c)).length;
+
+  const body = `
+<header class="page-head"><h1>📚 সূত্র</h1>
+<p class="lead">এই বইয়ে যত আয়াত আর যত হাদীস এসেছে — সব এক জায়গায়। যেকোনোটায় চাপ দিলে সোজা সেই আয়াত বা সেই ক্লাসে চলে যাবে।</p>
+</header>
+
+<section>
+  <h2>📖 কুরআনের আয়াত</h2>
+  <p class="muted">${bn(content.length)}টি সূরা/অংশ · মোট <strong>${bn(Object.keys(ayahByKey).length)}</strong>টি আয়াত। নম্বরে চাপ দিলে আয়াতটা খুলবে।</p>
+  <div class="tbl-wrap has-stack"><table class="stack refs">
+    <thead><tr><th>সূরা</th><th>আয়াত</th><th>ক্লাস</th></tr></thead>
+    <tbody>${surahRows}</tbody></table></div>
+</section>
+
+<section>
+  <h2>🕌 হাদীসের সূত্র</h2>
+  <p class="muted">গল্পে, তাজবীদে আর ব্যাকরণের অংশে ব্যবহৃত <strong>${bn(sortedCites.length)}</strong>টি হাদীস-সূত্র।${missing ? ` এর মধ্যে ${bn(missing)}টিতে এখনো নম্বর বসানো হয়নি — সেগুলো নিচে চিহ্ন দেওয়া আছে।` : ''}</p>
+  <div class="tbl-wrap has-stack"><table class="stack refs">
+    <thead><tr><th>সূত্র</th><th>যেসব ক্লাসে</th></tr></thead>
+    <tbody>${hadithRows}</tbody></table></div>
+  <p class="muted sm">হাদীসের অনুবাদ ও ব্যাখ্যা গল্পের ভেতরে দেওয়া আছে; এখানে শুধু সূত্রগুলো এক জায়গায় রাখা হলো যাতে যাচাই করা সহজ হয়।</p>
+</section>
+`;
+  write('refs.html', page({
+    title: 'সূত্র', body, rel, cls: 'page-refs', active: 'refs',
+    desc: `${bn(Object.keys(ayahByKey).length)}টি আয়াত ও ${bn(sortedCites.length)}টি হাদীস-সূত্র, সব এক জায়গায়`,
+  }));
+  searchDocs.push({
+    t: 'ref', u: 'refs.html', ti: '📚 সূত্র',
+    s: 'সব আয়াত ও হাদীসের সূত্র',
+    b: sortedCites.map(([c]) => c).join(' '),
+  });
 }
 
 // ---------------------------------------------------------------------------
@@ -975,6 +1207,30 @@ a.xref{white-space:nowrap}
   border-radius:var(--rad);padding:.6rem .8rem}
 .stats .k{display:block;font-size:.76rem;color:var(--mut)}
 .stats .v{font-weight:700}
+.en-line{margin:.35em 0;font-size:1rem}
+.en-line .lbl{display:inline-block;font-size:.7rem;letter-spacing:.06em;text-transform:uppercase;
+  color:var(--mut);border:1px solid var(--line);border-radius:6px;padding:.05rem .4rem;margin-inline-end:.45rem}
+.en-line .en{color:var(--fg)}
+.en-line .sep{color:var(--mut);margin:0 .4rem}
+.sm{font-size:.85em}
+.memo{background:var(--card);border:1px solid var(--line);border-radius:var(--rad);padding:.9rem 1.1rem;margin:1.2rem 0}
+.memo h2{margin:0 0 .4rem;border:0;padding:0;font-size:1rem}
+.memo ul{margin:0;padding-inline-start:1.1rem}
+.memo li{margin:.4em 0}
+.warn{background:color-mix(in srgb,var(--acc2) 10%,var(--card));border:1px solid var(--acc2);
+  border-radius:var(--rad);padding:.9rem 1.1rem;margin:1.2rem 0}
+.warn h2{margin:0 0 .2rem;border:0;padding:0;font-size:1rem}
+.chunk-list{list-style:none;padding:0;margin:.6rem 0}
+.chunk-list li{display:flex;flex-wrap:wrap;align-items:baseline;gap:.5rem;padding:.6rem 0;border-bottom:1px solid var(--line)}
+.chunk-list .ar{font-size:1.35em}
+.chunk-list .gl{color:var(--mut);font-size:.88rem}
+.vrefs{display:flex;flex-wrap:wrap;gap:.25rem;min-width:0}
+.vref{display:inline-flex;align-items:center;justify-content:center;min-width:2rem;min-height:2rem;
+  padding:0 .35rem;border:1px solid var(--line);border-radius:8px;background:var(--bg);
+  text-decoration:none;font-size:.82rem}
+.vref:hover{border-color:var(--acc);background:var(--chip)}
+table.refs td{vertical-align:top}
+tr.incomplete td:first-child{color:var(--acc2)}
 .ayah-list,.prose-list{list-style:none;padding:0}
 .ayah-list li{border-bottom:1px solid var(--line);padding:.6rem 0}
 .ayah-list a{text-decoration:none;display:block}
@@ -1056,7 +1312,30 @@ table.index td{padding:.4em .6em}
   .timeline a{min-width:0;flex:1 1 46%}
   .pager{flex-direction:column}
   .pager .next{text-align:start}
-  .c-en{display:none}
+
+  /* Tables become stacked cards -- a 5-column word table cannot be read by
+     side-scrolling on a phone. Each row turns into a labelled card, so the
+     English gloss can finally be shown instead of hidden. */
+  .tbl-wrap.has-stack{overflow:visible;border:0;border-radius:0;background:none}
+  /* the <table> box itself must stop being a table, or it keeps sizing to
+     content and overflows however block-y the rows are */
+  table.stack,table.stack tbody{display:block;width:100%;max-width:100%}
+  table.stack{background:none;font-size:1rem}
+  table.stack thead{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
+  table.stack tr{display:block;margin:0 0 .55rem;padding:.6rem .8rem;background:var(--card);
+    border:1px solid var(--line);border-radius:var(--rad)}
+  table.stack td{display:flex;gap:.6rem;align-items:baseline;padding:.18rem 0;border:0;text-align:start}
+  table.stack td::before{content:attr(data-label);flex:none;width:5.2rem;color:var(--mut);
+    font-size:.74rem;line-height:1.7}
+  table.stack td:empty{display:none}
+  /* flex children default to min-width:auto -- without this the 30 verse
+     chips of Surah al-Mulk refuse to wrap and push the page wide */
+  table.stack td>*{min-width:0;max-width:100%}
+  table.stack td.c-ar{display:block;text-align:center;margin-bottom:.2rem}
+  table.stack td.c-ar::before{display:none}
+  table.stack td.c-ar .ar{font-size:1.7em}
+  table.stack td.c-num,table.stack td.c-hk{font-size:.9rem}
+  table.stack .vrefs{flex:1}
   .c-hk{min-width:9rem}
   blockquote{padding:.5em .8em}
   .foot{padding:1.5rem .85rem 2rem;text-align:center}
