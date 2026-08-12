@@ -1,0 +1,10 @@
+# Book content is UTF-8 Bangla + Arabic — never let git mangle it.
+* text=auto
+
+# These are read by Linux tooling; force LF regardless of the editing platform.
+Dockerfile      text eol=lf
+.dockerignore   text eol=lf
+*.conf          text eol=lf
+*.js            text eol=lf
+
+*.pdf           binary

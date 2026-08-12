@@ -1,0 +1,9 @@
+site/
+Book/
+Student_Book/
+Student_Book_Detailed/
+Quran_App/
+.claude/
+.git/
+*.pdf
+*.md
