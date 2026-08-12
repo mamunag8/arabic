@@ -177,14 +177,17 @@ function inline(text, rel, ctx) {
 // page chrome
 // ---------------------------------------------------------------------------
 function page({ title, desc, body, rel, cls = '', active = '' }) {
+  // One nav definition, rendered twice: inline in the header on desktop, and as
+  // a fixed bottom tab bar on phones (thumbs reach the bottom, not the top).
   const nav = [
-    ['', 'index.html', '🗺️ মানচিত্র'],
-    ['words', 'words.html', '🧺 শব্দ'],
-    ['threads', 'threads.html', '🧵 সুতো'],
-    ['search', 'search.html', '🔍 খোঁজো'],
-    ['about', 'about.html', 'ℹ️ পরিচয়'],
-  ].map(([k, href, label]) =>
-    `<a href="${rel}${href}"${active === k ? ' class="on"' : ''}>${label}</a>`).join('');
+    ['', 'index.html', '🗺️', 'মানচিত্র'],
+    ['words', 'words.html', '🧺', 'শব্দ'],
+    ['threads', 'threads.html', '🧵', 'সুতো'],
+    ['search', 'search.html', '🔍', 'খোঁজো'],
+    ['about', 'about.html', 'ℹ️', 'পরিচয়'],
+  ].map(([k, href, icon, label]) =>
+    `<a href="${rel}${href}"${active === k ? ' class="on" aria-current="page"' : ''}>` +
+    `<span class="ic" aria-hidden="true">${icon}</span><span class="lb">${label}</span></a>`).join('');
 
   return `<!doctype html>
 <html lang="bn">
@@ -193,7 +196,12 @@ function page({ title, desc, body, rel, cls = '', active = '' }) {
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>${title} · ${SITE_TITLE}</title>
 <meta name="description" content="${desc || SITE_TAG}">
-<meta name="theme-color" content="#0d1b2a">
+<meta name="theme-color" content="#fbf9f4" media="(prefers-color-scheme:light)">
+<meta name="theme-color" content="#12100e" media="(prefers-color-scheme:dark)">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="format-detection" content="telephone=no">
 <meta property="og:title" content="${title} · ${SITE_TITLE}">
 <meta property="og:description" content="${desc || SITE_TAG}">
 <meta property="og:type" content="book">
@@ -205,8 +213,8 @@ function page({ title, desc, body, rel, cls = '', active = '' }) {
 <body class="${cls}">
 <a class="skip" href="#main">মূল অংশে যাও</a>
 <header class="top">
-  <a class="brand" href="${rel}index.html"><span class="mark">🌙</span> ${SITE_TITLE}</a>
-  <nav class="nav">${nav}</nav>
+  <a class="brand" href="${rel}index.html"><span class="mark">🌙</span> <span class="bt">${SITE_TITLE}</span></a>
+  <nav class="nav nav-top" aria-label="প্রধান মেনু">${nav}</nav>
   <button class="theme" id="themeBtn" aria-label="থিম বদলাও">🌗</button>
 </header>
 <main id="main">${body}</main>
@@ -215,6 +223,7 @@ function page({ title, desc, body, rel, cls = '', active = '' }) {
   <p class="muted">আরবি, শব্দে শব্দে অর্থ ও বাংলা অনুবাদ যাচাই করা উৎস থেকে নেওয়া। কোনো অনুবাদ অনুমান করে বসানো হয়নি।</p>
   <p class="muted"><a href="${rel}about.html">পরিচয় ও সূত্র</a></p>
 </footer>
+<nav class="tabbar" aria-label="প্রধান মেনু">${nav}</nav>
 <script src="${rel}assets/app.js"></script>
 </body>
 </html>`;
@@ -639,8 +648,8 @@ ${story ? `<section class="shan"><h2>📜 ${inline(story.title, rel)}</h2>${stor
 <header class="page-head"><h1>🧺 শব্দের ঝুড়ি</h1>
 <p class="lead">এই বইয়ের <strong>${bn(all.length)}</strong>টি আলাদা শব্দ। সবচেয়ে বেশি ব্যবহৃত ৩০০টি শব্দ গোটা বইয়ের <strong>৬০%</strong>-এরও বেশি জায়গা জুড়ে আছে — তাই শুরুটা উপর থেকে করো।</p>
 <p class="muted">${bn(hooked)}টি শব্দে <strong>চেনা শব্দ 💡</strong> যোগ করা আছে — বাংলায় তুমি যে শব্দটা আগে থেকেই বলো।</p>
-<input id="wfilter" class="filter" type="search" placeholder="আরবি, উচ্চারণ বা বাংলা লিখে খোঁজো…" autocomplete="off">
 </header>
+<input id="wfilter" class="filter" type="search" placeholder="আরবি, উচ্চারণ বা বাংলা লিখে খোঁজো…" autocomplete="off">
 <div class="tbl-wrap"><table class="index" id="windex">
 <thead><tr><th>আরবি</th><th>উচ্চারণ</th><th>অর্থ</th><th>কতবার</th><th>প্রথম ক্লাস</th><th></th></tr></thead>
 <tbody>${rows}</tbody></table></div>`;
@@ -686,8 +695,9 @@ ${THREADS.map((th) => `<section class="thread">
     title: 'খোঁজো',
     body: `<header class="page-head"><h1>🔍 খোঁজো</h1>
 <p class="lead">আরবি (হরকত ছাড়াও চলবে), বাংলা অর্থ, উচ্চারণ, English, গল্পের লাইন, তাজবীদ, ব্যাকরণ — সব একসাথে।</p>
-<input id="q" class="filter big" type="search" placeholder="যেমন: রহমত · আক্কেল · رحمن · সিরাত · ক্ষমা" autocomplete="off" autofocus>
-<p class="muted" id="qhint">অন্তত ২টি অক্ষর লিখুন</p></header>
+</header>
+<input id="q" class="filter big" type="search" placeholder="যেমন: রহমত · আক্কেল · رحمن · সিরাত · ক্ষমা" autocomplete="off">
+<p class="muted" id="qhint">অন্তত ২টি অক্ষর লিখুন</p>
 <div id="results" class="results"></div>`,
     rel,
     cls: 'page-search',
@@ -750,6 +760,8 @@ fs.writeFileSync(path.join(OUT, 'assets', 'style.css'), `
   --acc:#0f6b52; --acc2:#c2831a; --ar:#12312a; --chip:#f1ede2;
   --i1:#e0a42e; --i2:#3f7d8c; --i3:#5b6bbf; --i4:#4d8a63; --i5:#b8862b; --i6:#7a5c8f;
   --rad:14px; --maxw:56rem;
+  --hdr:56px;   /* fixed header height */
+  --tab:0px;    /* bottom tab bar height — 0 on desktop, set at the breakpoint */
 }
 :root[data-theme=dark]{
   --bg:#12100e; --fg:#eceae5; --mut:#a19b90; --line:#2b2723; --card:#1a1714;
@@ -760,11 +772,21 @@ fs.writeFileSync(path.join(OUT, 'assets', 'style.css'), `
   --acc:#4fd1a5; --acc2:#e2b455; --ar:#dff3ec; --chip:#231f1b;
 }}
 *{box-sizing:border-box}
-html{-webkit-text-size-adjust:100%}
+html{-webkit-text-size-adjust:100%;scroll-behavior:smooth}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
 body{margin:0;background:var(--bg);color:var(--fg);
   font-family:'Noto Serif Bengali',system-ui,'Nirmala UI','Kalpurush',sans-serif;
-  font-size:17.5px;line-height:1.85;text-rendering:optimizeLegibility}
-main{max-width:var(--maxw);margin:0 auto;padding:1rem 1.1rem 4rem}
+  font-size:17.5px;line-height:1.85;text-rendering:optimizeLegibility;
+  overflow-wrap:break-word;
+  -webkit-tap-highlight-color:color-mix(in srgb,var(--acc) 20%,transparent);
+  /* clear the fixed header and (on phones) the fixed tab bar */
+  padding-top:calc(var(--hdr) + env(safe-area-inset-top));
+  padding-bottom:calc(var(--tab) + env(safe-area-inset-bottom))}
+main{max-width:var(--maxw);margin:0 auto;
+  padding:1rem max(1.1rem,env(safe-area-inset-left)) 4rem max(1.1rem,env(safe-area-inset-right))}
+/* any in-page anchor must clear the fixed header when jumped to */
+[id]{scroll-margin-top:calc(var(--hdr) + env(safe-area-inset-top) + .7rem)}
+:focus-visible{outline:2px solid var(--acc);outline-offset:2px;border-radius:4px}
 .skip{position:absolute;left:-9999px}.skip:focus{left:1rem;top:1rem;background:var(--acc);color:#fff;padding:.5rem 1rem;border-radius:8px;z-index:99}
 a{color:var(--acc);text-decoration-thickness:.08em;text-underline-offset:.18em}
 a:hover{text-decoration-thickness:.14em}
@@ -789,19 +811,47 @@ hr{border:0;border-top:1px solid var(--line);margin:2em 0}
   padding:1rem;background:var(--card);border:1px solid var(--line);border-radius:var(--rad)}
 .ar-mix{direction:ltr}
 
-/* ---- chrome ---- */
-.top{position:sticky;top:0;z-index:20;display:flex;gap:.75rem;align-items:center;
-  padding:.5rem 1rem;background:color-mix(in srgb,var(--bg) 88%,transparent);
-  backdrop-filter:blur(10px);border-bottom:1px solid var(--line);flex-wrap:wrap}
-.brand{font-weight:700;text-decoration:none;color:var(--fg);white-space:nowrap}
-.brand .mark{filter:saturate(1.2)}
-.nav{display:flex;gap:.15rem;flex:1;flex-wrap:wrap;font-size:.87rem}
-.nav a{padding:.3rem .55rem;border-radius:8px;text-decoration:none;color:var(--mut);white-space:nowrap}
-.nav a:hover,.nav a.on{background:var(--chip);color:var(--fg)}
-.theme{background:none;border:1px solid var(--line);border-radius:8px;cursor:pointer;font-size:1rem;padding:.25rem .5rem;color:var(--fg)}
+/* ---- chrome: fixed header, and a bottom tab bar on phones ----------------
+   --hdr / --tab are the single source of truth for how much space the fixed
+   chrome occupies. Body padding, anchor scroll-margin and the sticky filter
+   are all derived from them, so changing a height here fixes every page. */
+.top{position:fixed;inset-inline:0;top:0;z-index:30;
+  display:flex;gap:.6rem;align-items:center;
+  height:calc(var(--hdr) + env(safe-area-inset-top));
+  padding:0 max(.9rem,env(safe-area-inset-left)) 0 max(.9rem,env(safe-area-inset-right));
+  padding-top:env(safe-area-inset-top);
+  background:color-mix(in srgb,var(--bg) 86%,transparent);
+  backdrop-filter:saturate(1.5) blur(12px);-webkit-backdrop-filter:saturate(1.5) blur(12px);
+  border-bottom:1px solid var(--line)}
+.brand{display:flex;align-items:center;gap:.4rem;min-width:0;height:100%;font-weight:700;
+  text-decoration:none;color:var(--fg);white-space:nowrap}
+.brand .bt{overflow:hidden;text-overflow:ellipsis}
+.brand .mark{filter:saturate(1.2);flex:none}
+.nav-top{display:flex;gap:.15rem;flex:1;justify-content:flex-end;font-size:.87rem;min-width:0}
+.nav-top a{display:inline-flex;align-items:center;gap:.32rem;padding:.45rem .6rem;border-radius:9px;
+  text-decoration:none;color:var(--mut);white-space:nowrap}
+.nav-top a:hover,.nav-top a.on{background:var(--chip);color:var(--fg)}
+.theme{flex:none;background:none;border:1px solid var(--line);border-radius:9px;cursor:pointer;
+  font-size:1rem;min-width:40px;height:36px;color:var(--fg)}
+
+/* bottom tab bar — hidden on desktop, shown at the mobile breakpoint */
+/* Height is exactly --tab (border included, box-sizing:border-box) so that
+   body's matching padding-bottom clears it to the pixel — no overlap. */
+.tabbar{display:none;position:fixed;inset-inline:0;bottom:0;z-index:30;
+  height:calc(var(--tab) + env(safe-area-inset-bottom));
+  background:color-mix(in srgb,var(--bg) 92%,transparent);
+  backdrop-filter:saturate(1.5) blur(12px);-webkit-backdrop-filter:saturate(1.5) blur(12px);
+  border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom)}
+.tabbar a{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.12rem;
+  height:100%;text-decoration:none;color:var(--mut);font-size:.68rem;line-height:1.25}
+.tabbar a .ic{font-size:1.2rem;line-height:1}
+.tabbar a.on{color:var(--acc);font-weight:600}
+.tabbar a:active{background:var(--chip)}
+
 .foot{max-width:var(--maxw);margin:0 auto;padding:2rem 1.1rem 3rem;border-top:1px solid var(--line);color:var(--mut);font-size:.87rem}
+.foot a{display:inline-block;padding:.4rem .1rem}
 .crumb{font-size:.83rem;color:var(--mut);margin:.6rem 0 1.2rem}
-.crumb a{color:var(--mut)}
+.crumb a{color:var(--mut);display:inline-block;padding:.35rem .1rem}
 
 /* ---- home ---- */
 .hero{text-align:center;padding:1.5rem 0 1rem}
@@ -823,11 +873,14 @@ hr{border:0;border-top:1px solid var(--line);margin:2em 0}
 .week{margin:1rem 0}
 .wk-n{font-size:.8rem;color:var(--mut);margin-bottom:.3rem}
 .nodes{display:grid;grid-template-columns:repeat(auto-fill,minmax(9.5rem,1fr));gap:.4rem}
-.node{display:flex;gap:.5rem;align-items:center;padding:.45rem .6rem;background:var(--bg);
+/* min-width:0 on both the grid item and the flex child — without it the
+   nowrap title sets the track's min size and blows the grid past the
+   viewport on narrow phones (grid/flex children default to min-width:auto). */
+.node{display:flex;gap:.5rem;align-items:center;min-width:0;padding:.45rem .6rem;background:var(--bg);
   border:1px solid var(--line);border-radius:10px;text-decoration:none;color:var(--fg);font-size:.82rem;line-height:1.35}
 .node:hover{border-color:var(--acc);background:var(--chip)}
-.node .n{font-weight:700;color:var(--acc);min-width:1.6em;text-align:center}
-.node .t{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.node .n{flex:none;font-weight:700;color:var(--acc);min-width:1.6em;text-align:center}
+.node .t{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .node.revision{border-style:dashed}
 .i1 .node .n{color:var(--i1)} .i2 .node .n{color:var(--i2)} .i3 .node .n{color:var(--i3)}
 .i4 .node .n{color:var(--i4)} .i5 .node .n{color:var(--i5)} .i6 .node .n{color:var(--i6)}
@@ -858,7 +911,8 @@ ul.check li::before{content:"☐ ";color:var(--mut)}
 .ayah-meta p{margin:.3em 0;font-size:.95em}
 
 /* ---- tables ---- */
-.tbl-wrap{overflow-x:auto;margin:.8em 0;border:1px solid var(--line);border-radius:var(--rad)}
+.tbl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain;
+  margin:.8em 0;border:1px solid var(--line);border-radius:var(--rad)}
 table{border-collapse:collapse;width:100%;font-size:.92rem;background:var(--card)}
 th,td{padding:.55em .7em;text-align:start;border-bottom:1px solid var(--line);vertical-align:top}
 th{background:var(--chip);font-size:.8rem;color:var(--mut);font-weight:600;white-space:nowrap}
@@ -931,9 +985,14 @@ a.xref{white-space:nowrap}
 
 /* ---- index / search ---- */
 .page-head{margin-bottom:1rem}
-.filter{width:100%;font:inherit;font-size:1rem;padding:.7rem 1rem;border-radius:999px;
-  border:1px solid var(--line);background:var(--card);color:var(--fg);margin:.6rem 0}
-.filter.big{font-size:1.15rem;padding:.85rem 1.2rem}
+/* 16px minimum, or iOS Safari zooms the whole page on focus.
+   Sticky so the box stays reachable while scrolling 1315 word rows; the
+   box-shadow paints a solid slab of --bg over the gap under the header. */
+.filter{width:100%;font:inherit;font-size:max(1rem,16px);padding:.7rem 1rem;border-radius:999px;
+  border:1px solid var(--line);background:var(--card);color:var(--fg);margin:.6rem 0;
+  position:sticky;top:calc(var(--hdr) + env(safe-area-inset-top) + .6rem);z-index:12;
+  box-shadow:0 0 0 .6rem var(--bg)}
+.filter.big{font-size:max(1.15rem,16px);padding:.85rem 1.2rem}
 .filter:focus{outline:2px solid var(--acc);outline-offset:1px}
 table.index td{padding:.4em .6em}
 .results{margin-top:1rem}
@@ -957,17 +1016,71 @@ table.index td{padding:.4em .6em}
 .timeline span:last-child{color:var(--mut);font-size:.78rem}
 .prose ol,.prose ul{padding-inline-start:1.3rem}
 
-@media(max-width:520px){
-  body{font-size:16.5px}
-  .ar.quran{font-size:1.55rem;padding:.7rem}
-  .ar.huge{font-size:2.4rem}
-  main{padding:.6rem .8rem 3rem}
-  .c-en{display:none}
-  .nav{font-size:.8rem}
+/* ---- tablet ---- */
+@media(max-width:900px){
+  .nav-top a .lb{display:none}          /* icons only — keeps one row, never wraps */
+  .nav-top a{padding:.45rem .5rem;font-size:1.05rem}
 }
+
+/* ---- phone: header shrinks, nav moves to a fixed bottom bar ---- */
+@media(max-width:760px){
+  :root{--hdr:52px; --tab:58px}
+  .nav-top{display:none}
+  .tabbar{display:flex}
+  body{font-size:16.5px;line-height:1.8}
+  main{padding:.75rem max(.85rem,env(safe-area-inset-left)) 2.5rem max(.85rem,env(safe-area-inset-right))}
+  h1{font-size:1.5rem}
+  h2{font-size:1.16rem;margin:1.8em 0 .5em}
+  h3{font-size:1.04rem}
+  .hero{padding:1rem 0 .5rem}
+  .hero h1{font-size:1.85rem}
+  .lead{font-size:1rem}
+
+  /* Arabic has to stay large enough to read the harakat, but must not overflow */
+  .ar.quran{font-size:1.5rem;line-height:2.15;padding:.75rem .6rem}
+  .ar.huge{font-size:2.3rem}
+  .ar.big{font-size:1.45em}
+
+  /* roomier tap targets — a 9-year-old's thumb, not a mouse pointer */
+  .node{min-height:46px;font-size:.85rem}
+  .chip{min-height:38px}
+  .drill button{min-height:40px;padding:.45rem .95rem}
+  .btn{padding:.7rem 1.4rem}
+  .tick{display:inline-block;padding:.3rem 0;min-height:34px}
+
+  .nodes{grid-template-columns:repeat(auto-fill,minmax(8.2rem,1fr))}
+  .island,.links,.thread,.ladder{padding:.85rem .7rem}
+  .stat-row div{flex:1 1 27%;min-width:4.2rem;padding:.5rem .6rem}
+  .stat-row b{font-size:1.2rem}
+  .stats div{min-width:6.5rem}
+  .timeline a{min-width:0;flex:1 1 46%}
+  .pager{flex-direction:column}
+  .pager .next{text-align:start}
+  .c-en{display:none}
+  .c-hk{min-width:9rem}
+  blockquote{padding:.5em .8em}
+  .foot{padding:1.5rem .85rem 2rem;text-align:center}
+}
+
+/* ---- very narrow (360px and below) ---- */
+@media(max-width:380px){
+  .brand{font-size:.95rem}              /* title stays — the header only holds brand + theme here */
+  .ar.quran{font-size:1.35rem}
+  .nodes{grid-template-columns:1fr 1fr}
+  .tabbar a{font-size:.63rem}
+}
+
+/* ---- landscape phone: reclaim vertical space ---- */
+@media(max-height:480px) and (orientation:landscape){
+  :root{--hdr:46px; --tab:46px}
+  .tabbar a .lb{display:none}
+  .tabbar a .ic{font-size:1.3rem}
+}
+
 @media print{
-  .top,.foot,.pager,.drill,.nav,.theme,.links{display:none}
-  body{background:#fff;font-size:11pt}
+  .top,.foot,.pager,.drill,.nav-top,.tabbar,.theme,.links{display:none}
+  body{background:#fff;font-size:11pt;padding:0}
+  .filter{position:static;box-shadow:none}
   .ar.quran{border:0;background:none}
   a{color:#000;text-decoration:none}
 }
