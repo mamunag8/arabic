@@ -26,6 +26,18 @@ const duasVerified = require('./dua_data.js').map((d) => ({ ...d, src: 'verified
 const duasExtra = require('./dua_extra.js').map((d) => ({ ...d, src: 'extra' }));
 const DUAS = [...duasVerified, ...duasExtra];
 
+// Duas are stored split into fragments sharing one `ref`. duaFor() takes the
+// first fragment's Arabic and gives the whole narration back, in order.
+const normAr = (s) => String(s).replace(/[ً-ْٰـ]/g, '').replace(/\s+/g, ' ').trim();
+function duaFor(ar) {
+  const start = DUAS.findIndex((d) => normAr(d.arabic) === normAr(ar));
+  if (start < 0) throw new Error(`DUA anchor not found in dua data: ${ar}`);
+  const ref = DUAS[start].ref;
+  const parts = [DUAS[start]];
+  for (let i = start + 1; i < DUAS.length && DUAS[i].ref === ref; i += 1) parts.push(DUAS[i]);
+  return parts;
+}
+
 const OUT = path.join(__dirname, '..', 'site');
 const SITE_TITLE = 'নূর দ্বীপ অভিযান';
 const SITE_TAG = 'কুরআন বুঝে বুঝে পড়া ও মুখস্থ করার ২৪ সপ্তাহের অভিযান';
@@ -498,6 +510,31 @@ function buildClass(c) {
       <p class="why"><strong>কেন এত গুরুত্বপূর্ণ?</strong> ${inline(story.why, rel, ctx)}</p>
       <h3>🕌 কোথায় কাজে লাগাব</h3>
       <ul>${story.where.map((w) => `<li>${inline(w, rel, ctx)}</li>`).join('')}</ul>
+    </section>`);
+  }
+
+  const dRef = meta.DUA && meta.DUA[c.index];
+  if (dRef) {
+    const parts = duaFor(dRef.ar);
+    const idx = DUAS.indexOf(parts[0]);
+    const words = parts.flatMap((p) => p.words || []);
+    const seen = words.filter((w) => { const e = lex[strip(w.arabic)]; return e && e.count > 0; }).length;
+    out.push(`<section class="todaydua">
+      <h2>🤲 আজকের দুআ</h2>
+      <p class="why">${inline(dRef.why, rel, ctx)}</p>
+      <p class="ar quran">${parts.map((p) => p.arabic).join(' ')}</p>
+      <p class="pron">🗣️ ${parts.map((p) => p.pron).join(' · ')}</p>
+      <p class="mean">💬 ${parts.map((p) => p.meaning).join(' ')}</p>
+      ${seen ? `<p class="already">✨ এর <strong>${bn(seen)}</strong>টি শব্দ তুমি এই বইয়েই শিখেছ।</p>` : ''}
+      <div class="dwords">${words.map((w) => {
+        const e = lex[strip(w.arabic)];
+        const hit = e && e.count > 0;
+        return e
+          ? `<a class="dw${hit ? ' seen' : ''}" href="${rel}word/${e.id}.html"><span class="ar">${w.arabic}</span><span class="gl">${w.meaning}</span></a>`
+          : `<span class="dw"><span class="ar">${w.arabic}</span><span class="gl">${w.meaning}</span></span>`;
+      }).join('')}</div>
+      ${parts[0].note ? `<p class="dnote">⚖️ ${parts[0].note}</p>` : ''}
+      <p class="src">📚 ${parts[0].ref} · <a href="${rel}duas.html#d${idx}">দুআর ঝুলিতে দেখো</a></p>
     </section>`);
   }
 

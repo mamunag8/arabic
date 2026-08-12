@@ -3,6 +3,7 @@
  *   course_content.js  (verified Arabic + meanings + pronunciation)
  *   course_plan.js     (which ayat in which class)
  *   course_meta.js     (story world, tajweed sutras, word-hooks, tips, games)
+ *   dua_data.js + dua_extra.js  (the duas, looked up by Arabic text)
  *
  * Output: Book/Week_NN/Class_N.md  -- written TO THE CHILD, not to a teacher.
  *
@@ -16,6 +17,20 @@ const path = require('path');
 const content = require('./course_content.js');
 const plan = require('./course_plan.js');
 const meta = require('./course_meta.js');
+
+// Duas are stored split into fragments that share one `ref`. duaFor() takes the
+// first fragment's Arabic and returns the whole narration back in order, so a
+// class can point at a dua with one line and still render it complete.
+const ALL_DUAS = [...require('./dua_data.js'), ...require('./dua_extra.js')];
+const normAr = (s) => String(s).replace(/[ً-ْٰـ]/g, '').replace(/\s+/g, ' ').trim();
+function duaFor(ar) {
+  const start = ALL_DUAS.findIndex((d) => normAr(d.arabic) === normAr(ar));
+  if (start < 0) throw new Error(`DUA anchor not found in dua data: ${ar}`);
+  const ref = ALL_DUAS[start].ref;
+  const parts = [ALL_DUAS[start]];
+  for (let i = start + 1; i < ALL_DUAS.length && ALL_DUAS[i].ref === ref; i += 1) parts.push(ALL_DUAS[i]);
+  return parts;
+}
 
 const OUT = path.join(__dirname, '..', 'Book');
 
@@ -192,6 +207,33 @@ function lessonChapter(cls) {
     out.push('');
     story.where.forEach((w) => out.push(`- ${w}`));
     out.push('');
+  }
+
+  const duaRef = meta.DUA && meta.DUA[cls.index];
+  if (duaRef) {
+    const parts = duaFor(duaRef.ar);
+    if (parts.length) {
+      out.push('## 🤲 আজকের দুআ');
+      out.push('');
+      out.push(`> ${duaRef.why}`);
+      out.push('');
+      out.push(`### ${parts.map((p) => p.arabic).join(' ')}`);
+      out.push('');
+      out.push(`🗣️ **${parts.map((p) => p.pron).join(' · ')}**`);
+      out.push('');
+      out.push(`💬 ${parts.map((p) => p.meaning).join(' ')}`);
+      out.push('');
+      const words = parts.flatMap((p) => p.words || []);
+      if (words.length) {
+        out.push('| আরবি | উচ্চারণ | মানে |');
+        out.push('|---|---|---|');
+        words.forEach((w) => out.push(`| ${w.arabic} | ${w.pron} | ${w.meaning} |`));
+        out.push('');
+      }
+      if (parts[0].note) { out.push(`> ⚖️ ${parts[0].note}`); out.push(''); }
+      out.push(`📚 ${parts[0].ref}`);
+      out.push('');
+    }
   }
 
   if (extras.tip) {
