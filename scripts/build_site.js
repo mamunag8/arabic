@@ -19,6 +19,12 @@ const path = require('path');
 const content = require('./course_content.js');
 const plan = require('./course_plan.js');
 const meta = require('./course_meta.js');
+// dua_data.js is the pre-verified set; dua_extra.js is the compiled set that
+// still needs an alim review (see PLAN_APP.md §13). Kept separate on purpose,
+// and the site labels the second group so the distinction survives publishing.
+const duasVerified = require('./dua_data.js').map((d) => ({ ...d, src: 'verified' }));
+const duasExtra = require('./dua_extra.js').map((d) => ({ ...d, src: 'extra' }));
+const DUAS = [...duasVerified, ...duasExtra];
 
 const OUT = path.join(__dirname, '..', 'site');
 const SITE_TITLE = 'নূর দ্বীপ অভিযান';
@@ -104,6 +110,7 @@ function lexEntry(key) {
       after: new Map(),   // key -> times this word precedes it
       sibs: [],           // similar-looking words in the book
       near: [],           // one-letter-apart words -- the confusable ones
+      duas: [],           // {i, slot, ref} of every dua this word appears in
     };
     lexById[lex[key].id] = lex[key];
   }
@@ -145,6 +152,18 @@ Object.entries(meta.GRAMMAR).forEach(([cls, g]) => {
       if (!e.bn) e.bn = String(mean).replace(/\*\*/g, '');
       e.families.push({ cls: Number(cls), title: g.title });
     });
+  });
+});
+
+// 3b. from the duas -- this is what makes a dua feel already-known: most of
+//     its words are ones the child has already met in the ayat.
+DUAS.forEach((d, i) => {
+  (d.words || []).forEach((w) => {
+    const e = lexEntry(strip(w.arabic));
+    e.forms.add(w.arabic);
+    if (!e.pron) e.pron = w.pron || '';
+    if (!e.bn) e.bn = w.meaning || '';
+    if (!e.duas.some((x) => x.i === i)) e.duas.push({ i, slot: d.slot || '', ref: d.ref });
   });
 });
 
@@ -260,7 +279,7 @@ function page({ title, desc, body, rel, cls = '', active = '' }) {
   const nav = [
     ['', 'index.html', '🗺️', 'মানচিত্র'],
     ['words', 'words.html', '🧺', 'শব্দ'],
-    ['threads', 'threads.html', '🧵', 'সুতো'],
+    ['duas', 'duas.html', '🤲', 'দুআ'],
     ['search', 'search.html', '🔍', 'খোঁজো'],
     ['refs', 'refs.html', '📚', 'সূত্র'],
   ].map(([k, href, icon, label]) =>
@@ -299,7 +318,7 @@ function page({ title, desc, body, rel, cls = '', active = '' }) {
 <footer class="foot">
   <p><strong>${SITE_TITLE}</strong> — ${SITE_TAG}</p>
   <p class="muted">আরবি, শব্দে শব্দে অর্থ ও বাংলা অনুবাদ যাচাই করা উৎস থেকে নেওয়া। কোনো অনুবাদ অনুমান করে বসানো হয়নি।</p>
-  <p class="muted"><a href="${rel}refs.html">📚 সব সূত্র</a> · <a href="${rel}about.html">ℹ️ পরিচয়</a></p>
+  <p class="muted"><a href="${rel}threads.html">🧵 সুতো</a> · <a href="${rel}refs.html">📚 সব সূত্র</a> · <a href="${rel}about.html">ℹ️ পরিচয়</a></p>
 </footer>
 <nav class="tabbar" aria-label="প্রধান মেনু">${nav}</nav>
 <script src="${rel}assets/app.js"></script>
@@ -663,6 +682,9 @@ ${famRows ? `<section><h2>👨‍👩‍👦 ব্যাকরণের পর�
 ${e.sibs.length ? `<section><h2>🧩 চেহারায় মিল আছে</h2>
   <p class="muted sm">দেখতে কাছাকাছি শব্দ। সবগুলো একই পরিবারের নাও হতে পারে — আসল পরিবার শেখাবে ব্যাকরণের ক্লাস।</p>
   <div class="chips">${e.sibs.map(chip).join('')}</div></section>` : ''}
+${e.duas.length ? `<section class="duahit"><h2>🤲 যেসব দুআয় আছে (${bn(e.duas.length)})</h2>
+  <p class="muted sm">এই শব্দটা জানা মানে এই দুআগুলোও তোমার অর্ধেক শেখা হয়ে আছে।</p>
+  <ul class="prose-list">${e.duas.slice(0, 8).map((d) => `<li><a href="${rel}duas.html#d${d.i}">${d.slot || 'দুআ'}</a> <span class="tag">${d.ref}</span></li>`).join('')}</ul></section>` : ''}
 ${ayatRows ? `<section><h2>📖 যেসব আয়াতে আছে (${bn(e.ayat.length)})</h2><ul class="ayah-list">${ayatRows}</ul></section>` : ''}
 ${classChips ? `<section><h2>🎯 যেসব ক্লাসে পড়ানো হয়</h2><div class="chips">${classChips}</div></section>` : ''}
 ${proseRows ? `<section><h2>📚 যেসব গল্পে এসেছে (${bn(e.stories.length)})</h2><ul class="prose-list">${proseRows}</ul></section>` : ''}
@@ -811,6 +833,72 @@ ${THREADS.map((th) => `<section class="thread">
     return `<li><a href="class/${n}.html"><span class="dot"></span><b>ক্লাস ${bn(n)}</b><span>${ex.title || ''}</span></a></li>`;
   }).join('')}</ol></section>`).join('')}`;
   write('threads.html', page({ title: 'সুতো', body, rel, cls: 'page-threads', active: 'threads' }));
+}
+
+// ---------------------------------------------------------------------------
+// DUAS  -- the whole basket, grouped, every word linked to its word page
+// ---------------------------------------------------------------------------
+{
+  const rel = '';
+  const GROUPS = [
+    { k: 'salah', t: '🕌 নামাজের ভেতরে', d: 'শুরু থেকে সালাম পর্যন্ত — প্রতিটা শব্দ।' },
+    { k: 'quran', t: '📖 কুরআনের দুআ', d: 'যে দুআগুলো আল্লাহ নিজেই কুরআনে শিখিয়ে দিয়েছেন।' },
+    { k: 'daily', t: '🌤️ রোজকার জীবনে', d: 'ঘুম, খাওয়া, বৃষ্টি, হাঁচি — সারাদিনের ছোট ছোট মুহূর্ত।' },
+    { k: 'roza', t: '🌙 রোজা ও চাঁদ', d: 'ইফতার, লাইলাতুল কদর, নতুন চাঁদ।' },
+    { k: 'life', t: '💐 বিশেষ মুহূর্ত', d: 'অসুস্থতা, পরীক্ষা, খুশির খবর, রাগ।' },
+    { k: 'janaza', t: '🤍 জানাজা ও শোক', d: 'যে দুআ আমরা সবচেয়ে কম শিখি, অথচ একদিন সবারই লাগে।' },
+  ];
+  const catOf = (d) => (d.cat ? d.cat : /সূরা/.test(d.ref) ? 'quran' : 'daily');
+
+  let known = 0; let totalWords = 0;
+  const card = (d, i) => {
+    const ws = (d.words || []).map((w) => {
+      const e = lex[strip(w.arabic)];
+      totalWords += 1;
+      const seen = e && e.count > 0;
+      if (seen) known += 1;
+      return e
+        ? `<a class="dw${seen ? ' seen' : ''}" href="${rel}word/${e.id}.html" title="${w.meaning || ''}">
+             <span class="ar">${w.arabic}</span><span class="gl">${w.meaning || w.pron || ''}</span></a>`
+        : `<span class="dw"><span class="ar">${w.arabic}</span><span class="gl">${w.meaning || ''}</span></span>`;
+    }).join('');
+    const seenCount = (d.words || []).filter((w) => { const e = lex[strip(w.arabic)]; return e && e.count > 0; }).length;
+    return `<article class="dua" id="d${i}">
+      ${d.slot ? `<h3>${d.slot}</h3>` : ''}
+      <p class="ar quran">${d.arabic}</p>
+      <p class="pron">🗣️ ${d.pron}</p>
+      <p class="mean">💬 ${d.meaning}</p>
+      ${seenCount ? `<p class="already">✨ এর <strong>${bn(seenCount)}</strong>টি শব্দ তুমি বইয়েই শিখেছ — চাপ দিয়ে দেখো।</p>` : ''}
+      ${d.words && d.words.length ? `<div class="dwords">${ws}</div>` : ''}
+      ${d.note ? `<p class="dnote">⚖️ ${d.note}</p>` : ''}
+      <p class="src">📚 ${d.ref}${d.src === 'extra' ? ' <span class="tag">রিভিউ বাকি</span>' : ''}</p>
+    </article>`;
+  };
+
+  const sections = GROUPS.map((g) => {
+    const items = DUAS.map((d, i) => [d, i]).filter(([d]) => catOf(d) === g.k);
+    if (!items.length) return '';
+    return `<section class="dgroup"><h2>${g.t} <span class="cnt">${bn(items.length)}</span></h2>
+      <p class="muted">${g.d}</p>
+      ${items.map(([d, i]) => card(d, i)).join('')}</section>`;
+  }).join('');
+
+  const body = `
+<header class="page-head"><h1>🤲 দুআর ঝুলি</h1>
+<p class="lead">নামাজের ভেতরের প্রতিটা শব্দ, কুরআনের দুআ, আর রোজকার জীবনের ছোট ছোট দুআ — সব এক জায়গায়। যেকোনো আরবি শব্দে চাপ দিলে সেই শব্দের পাতা খুলবে।</p>
+<p class="muted">মোট <strong>${bn(DUAS.length)}</strong>টি দুআ। এগুলোর <strong>${Math.round((known / Math.max(totalWords, 1)) * 100)}%</strong> শব্দ তুমি এই বইয়ের আয়াতেই আগে দেখেছ — তাই বেশিরভাগ দুআ তোমার কাছে নতুন নয়, শুধু নতুন করে সাজানো।</p>
+</header>
+${sections}
+<p class="muted sm">যেসব দুআয় <span class="tag">রিভিউ বাকি</span> লেখা, সেগুলো সুপরিচিত বর্ণনা থেকে সংকলিত — প্রকাশের আগে আলিমের যাচাই বাকি আছে। যা জানি না, তা জানি বলে চালিয়ে দেওয়া হয়নি।</p>
+`;
+  write('duas.html', page({
+    title: 'দুআর ঝুলি', body, rel, cls: 'page-duas', active: 'duas',
+    desc: `${bn(DUAS.length)}টি দুআ — নামাজ, কুরআন, রোজকার জীবন, সব শব্দে শব্দে অর্থসহ`,
+  }));
+  DUAS.forEach((d, i) => searchDocs.push({
+    t: 'dua', u: `duas.html#d${i}`, ti: d.slot || d.meaning.slice(0, 40),
+    s: d.pron, b: `${d.meaning} ${d.arabic} ${d.ref}`,
+  }));
 }
 
 // ---------------------------------------------------------------------------
@@ -1207,6 +1295,26 @@ a.xref{white-space:nowrap}
   border-radius:var(--rad);padding:.6rem .8rem}
 .stats .k{display:block;font-size:.76rem;color:var(--mut)}
 .stats .v{font-weight:700}
+/* ---- duas ---- */
+.dgroup{margin:2.2rem 0}
+.dgroup h2 .cnt{font-size:.75rem;color:var(--mut);border:1px solid var(--line);border-radius:999px;padding:.1rem .5rem;vertical-align:middle}
+.dua{background:var(--card);border:1px solid var(--line);border-radius:var(--rad);padding:1rem 1.1rem;margin:1rem 0}
+.dua h3{margin:0 0 .5rem;font-size:1rem;color:var(--acc)}
+.dua .ar.quran{margin:.2em 0;font-size:1.75rem}
+.dua .pron{font-size:.95rem;margin:.5em 0 .2em}
+.dua .mean{margin:.2em 0 .6em}
+.dua .already{font-size:.88rem;color:var(--acc);margin:.4em 0}
+.dua .dnote{font-size:.86rem;color:var(--mut);background:var(--chip);border-radius:10px;padding:.6em .8em;margin:.6em 0}
+.dwords{display:flex;flex-wrap:wrap;gap:.35rem;margin:.6rem 0}
+.dw{display:inline-flex;flex-direction:column;align-items:center;gap:.1rem;min-height:44px;
+  padding:.3rem .6rem;border:1px solid var(--line);border-radius:10px;background:var(--bg);
+  text-decoration:none;color:var(--fg)}
+a.dw:hover{border-color:var(--acc);background:var(--chip)}
+.dw.seen{border-color:color-mix(in srgb,var(--acc) 45%,var(--line));
+  background:color-mix(in srgb,var(--acc) 8%,var(--bg))}
+.dw .ar{font-size:1.25em}
+.dw .gl{font-size:.72rem;color:var(--mut)}
+
 .en-line{margin:.35em 0;font-size:1rem}
 .en-line .lbl{display:inline-block;font-size:.7rem;letter-spacing:.06em;text-transform:uppercase;
   color:var(--mut);border:1px solid var(--line);border-radius:6px;padding:.05rem .4rem;margin-inline-end:.45rem}
