@@ -897,11 +897,30 @@ const ISLAND_GIFTS = [
     <div class="shelf">${ISLAND_GIFTS.map((g, i) => `<span class="gi" data-gi="${i + 1}" title="${g.n} — ${g.d}">${g.e}</span>`).join('')}</div>
   </div>
 
-  <div class="q-stats">
+  <div class="q-stats" data-tally='${JSON.stringify(plan.classes.reduce((o, c) => {
+    o[c.index] = [(c.ayat || []).length, (classWordsIntroduced[c.index] || []).length];
+    return o;
+  }, {}))}'>
     <div><b id="statDone">০</b><span>ক্লাস শেষ</span></div>
     <div><b id="statAyat">০</b><span>আয়াত পেরিয়েছ</span></div>
     <div><b id="statWords">০</b><span>শব্দ চিনেছ</span></div>
-    <div><b>${bn(Object.keys(lex).length)}</b><span>মোট শব্দ</span></div>
+    <div><b id="statBadge">০</b><span>ব্যাজ খুলেছ</span></div>
+  </div>
+
+  <div class="q-links">
+    <a class="ql" href="practice.html"><span class="ql-e">🧠</span><b>অনুশীলনের ঘর</b><small>ফ্ল্যাশ কার্ড · জোড়া · চ্যালেঞ্জ</small></a>
+    <a class="ql" href="badges.html"><span class="ql-e">🏅</span><b>ব্যাজের দেয়াল</b><small><span id="qlBadge">০</span>/১২০ খোলা</small></a>
+    <a class="ql" href="duas.html"><span class="ql-e">🤲</span><b>দুআর ঝুলি</b><small>১০৬টি দুআ</small></a>
+    <a class="ql" href="threads.html"><span class="ql-e">🧵</span><b>সুতো</b><small>গল্পের ১০টি সংযোগ</small></a>
+  </div>
+
+  <div class="q-cert" id="certBox" hidden>
+    <div class="cert">
+      <p class="c-top">🏁 ছয় দ্বীপ · ১২০ ক্লাস · সম্পূর্ণ</p>
+      <p class="c-name">নূর-অভিযাত্রী</p>
+      <p class="c-line">"তুমি পড়তে শিখেছ। এবার শিখেছ বুঝতে। <strong>এখন শেখাও।</strong>"</p>
+      <button class="btn ghost mini" type="button" onclick="window.print()">🖨️ ছাপাও</button>
+    </div>
   </div>
 
   <p class="q-note">তোমার অগ্রগতি এই ফোনেই থাকে — কেউ দেখে না, কারো সাথে মেলানো হয় না।
@@ -972,6 +991,82 @@ ${THREADS.map((th) => `<section class="thread">
     return `<li><a href="class/${n}.html"><span class="dot"></span><b>ক্লাস ${bn(n)}</b><span>${ex.title || ''}</span></a></li>`;
   }).join('')}</ol></section>`).join('')}`;
   write('threads.html', page({ title: 'সুতো', body, rel, cls: 'page-threads', active: 'threads' }));
+}
+
+// ---------------------------------------------------------------------------
+// BADGES  -- the trophy room. 120 badges already existed in the data and were
+// only ever shown one at a time at the bottom of a class. Seeing the whole
+// wall, most of it still locked, is the point.
+// ---------------------------------------------------------------------------
+{
+  const rel = '';
+  const rows = meta.ISLANDS.map((isl) => {
+    const cls = plan.classes.filter((c) => c.week >= isl.weeks[0] && c.week <= isl.weeks[1]);
+    const cards = cls.map((c) => {
+      const ex = meta.CLASS_EXTRAS[c.index] || {};
+      const line = String(ex.badge || '').split('\n')[0].replace(/^🏅\s*/, '');
+      return `<a class="bdg" data-cls="${c.index}" href="${rel}class/${c.index}.html">
+        <span class="b-n">${bn(c.index)}</span>
+        <span class="b-t">${line}</span>
+        <span class="b-lock">🔒</span></a>`;
+    }).join('');
+    return `<section class="bdg-isl i${isl.n}" data-from="${cls[0].index}" data-to="${cls[cls.length - 1].index}">
+      <h2>${isl.emoji} দ্বীপ ${bn(isl.n)} — ${isl.name} <span class="cnt" data-cnt="${isl.n}">০/${bn(cls.length)}</span></h2>
+      <div class="bdg-grid">${cards}</div></section>`;
+  }).join('');
+
+  const body = `
+<header class="page-head"><h1>🏅 ব্যাজের দেয়াল</h1>
+<p class="lead">১২০টা ক্লাস, ১২০টা ব্যাজ। যেটা এখনো তালাবদ্ধ, সেটা তোমার জন্য অপেক্ষা করছে।</p>
+<p class="muted" id="bdgTotal">০/১২০ খোলা</p>
+</header>
+${rows}
+<p class="muted sm">ব্যাজ কেনা যায় না, হারানোও যায় না। ক্লাস শেষ করলেই খুলে যায় — আর একবার খুললে চিরকালের জন্য তোমার।</p>`;
+  write('badges.html', page({
+    title: 'ব্যাজের দেয়াল', body, rel, cls: 'page-badges', active: 'badges',
+    desc: '১২০টি ক্লাসের ১২০টি ব্যাজ — কোনটা খুলেছ, কোনটা বাকি',
+  }));
+}
+
+// ---------------------------------------------------------------------------
+// PRACTICE HUB  -- flash cards / pairs / quiz over EVERY word learned so far,
+// not just one class. The pool is filtered client-side by which classes the
+// child has finished, so it grows as they do.
+// ---------------------------------------------------------------------------
+{
+  const rel = '';
+  const pool = [];
+  plan.classes.forEach((c) => {
+    (classWordsIntroduced[c.index] || []).forEach((id) => {
+      const e = lexById[id];
+      if (!e || !e.bn) return;
+      pool.push({ ar: [...e.forms][0], bn: e.bn.replace(/\s+/g, ' ').trim(), c: c.index });
+    });
+  });
+  fs.writeFileSync(path.join(OUT, 'assets', 'words.json'), JSON.stringify(pool));
+
+  const body = `
+<header class="page-head"><h1>🧠 অনুশীলনের ঘর</h1>
+<p class="lead">তুমি এ পর্যন্ত যত শব্দ শিখেছ, সব এখানে। যত ক্লাস শেষ করবে, ঝুড়ি তত বড় হবে।</p>
+</header>
+<section class="practice" id="hub" data-src="assets/words.json">
+  <p class="pr-count muted" id="hubCount">শব্দ গোনা হচ্ছে…</p>
+  <div class="pr-tabs" role="tablist">
+    <button class="pr-tab on" type="button" data-tool="cards" role="tab">🃏 ফ্ল্যাশ কার্ড</button>
+    <button class="pr-tab" type="button" data-tool="pairs" role="tab">🧩 জোড়া মেলাও</button>
+    <button class="pr-tab" type="button" data-tool="quiz" role="tab">🎯 চ্যালেঞ্জ</button>
+  </div>
+  <div class="pr-scope">
+    <label><input type="radio" name="scope" value="all" checked> সব শেখা শব্দ</label>
+    <label><input type="radio" name="scope" value="recent"> শেষ ৫ ক্লাস</label>
+  </div>
+  <div class="pr-body"></div>
+</section>
+<p class="muted sm">কিছুই সময় মেপে নয়, কিছুই হারানোর নয়। ভুল হলে শব্দটা আবার ঘুরে আসবে — ব্যস।</p>`;
+  write('practice.html', page({
+    title: 'অনুশীলনের ঘর', body, rel, cls: 'page-practice', active: 'practice',
+    desc: 'শেখা সব শব্দ নিয়ে ফ্ল্যাশ কার্ড, জোড়া মেলানো আর চ্যালেঞ্জ',
+  }));
 }
 
 // ---------------------------------------------------------------------------
@@ -1386,7 +1481,43 @@ hr{border:0;border-top:1px solid var(--line);margin:2em 0}
 @keyframes pop{0%{transform:scale(1)}35%{transform:scale(1.08)}100%{transform:scale(1)}}
 .done-msg{font-size:.9rem;color:var(--mut);margin:.5em 0 0}
 
+/* ---- home: quick links + certificate ---- */
+.q-links{display:grid;grid-template-columns:repeat(auto-fit,minmax(9rem,1fr));gap:.5rem;margin-top:1.1rem}
+.ql{display:flex;flex-direction:column;gap:.1rem;padding:.7rem .8rem;min-height:64px;
+  background:var(--bg);border:1px solid var(--line);border-radius:12px;text-decoration:none;color:var(--fg)}
+.ql:hover{border-color:var(--acc);background:var(--chip)}
+.ql-e{font-size:1.3rem;line-height:1}
+.ql b{font-size:.92rem}
+.ql small{font-size:.74rem;color:var(--mut)}
+.q-cert{margin-top:1.1rem}
+.cert{text-align:center;padding:1.3rem 1rem;border:2px solid var(--acc2);border-radius:var(--rad);
+  background:linear-gradient(180deg,color-mix(in srgb,var(--acc2) 12%,transparent),transparent)}
+.cert .c-top{font-size:.8rem;color:var(--mut);letter-spacing:.05em;margin:0}
+.cert .c-name{font-size:1.6rem;font-weight:700;color:var(--acc2);margin:.3em 0}
+.cert .c-line{font-size:.95rem;margin:.4em 0 .8em}
+
+/* ---- badge wall ---- */
+.bdg-isl{margin:1.8rem 0}
+.bdg-isl h2{display:flex;justify-content:space-between;align-items:center;gap:.5rem;font-size:1.1rem}
+.bdg-isl h2 .cnt{font-size:.75rem;color:var(--mut);border:1px solid var(--line);border-radius:999px;padding:.1rem .55rem;white-space:nowrap}
+.bdg-isl.cleared h2 .cnt{border-color:var(--acc2);color:var(--acc2)}
+.bdg-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(10rem,1fr));gap:.45rem}
+.bdg{position:relative;display:flex;flex-direction:column;gap:.15rem;padding:.6rem .7rem;min-height:62px;
+  background:var(--bg);border:1px dashed var(--line);border-radius:11px;text-decoration:none;color:var(--mut);
+  font-size:.82rem;line-height:1.35;opacity:.55}
+.bdg .b-n{font-size:.7rem;font-weight:700}
+.bdg .b-t{overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.bdg .b-lock{position:absolute;top:.4rem;inset-inline-end:.5rem;font-size:.8rem}
+.bdg.won{opacity:1;color:var(--fg);border-style:solid;border-color:var(--acc2);
+  background:color-mix(in srgb,var(--acc2) 10%,var(--bg))}
+.bdg.won .b-n{color:var(--acc2)}
+.bdg.won .b-lock{display:none}
+.bdg:hover{border-color:var(--acc)}
+
 /* ---- practice room ---- */
+.pr-scope{display:flex;gap:.9rem;flex-wrap:wrap;margin:.2rem 0 .8rem;font-size:.85rem;color:var(--mut)}
+.pr-scope label{display:inline-flex;align-items:center;gap:.3rem;min-height:34px;cursor:pointer}
+.pr-count{font-size:.88rem;margin:.2rem 0 .6rem}
 .practice{background:var(--card);border:1px solid var(--acc2);border-radius:var(--rad);
   padding:1rem 1.1rem;margin:1.5rem 0}
 .practice h2{margin:0 0 .2rem;border:0;padding:0;font-size:1.05rem}
@@ -1835,13 +1966,56 @@ if(db){
   });
 }
 
-// ---- class page: practice room (cards / pairs / quiz) ----
+// ---- badge wall ----
+var bw=document.querySelector('.bdg-isl');
+if(bw){
+  var bp=loadP().done, opened=0;
+  [].forEach.call(document.querySelectorAll('.bdg[data-cls]'),function(a){
+    if(bp.indexOf(+a.getAttribute('data-cls'))>-1){ a.classList.add('won'); opened++; }
+  });
+  [].forEach.call(document.querySelectorAll('.bdg-isl'),function(sec){
+    var from=+sec.getAttribute('data-from'), to=+sec.getAttribute('data-to'), n=0;
+    for(var i=from;i<=to;i++) if(bp.indexOf(i)>-1) n++;
+    var c=sec.querySelector('.cnt'); if(c) c.textContent=bn(n)+'/'+bn(to-from+1);
+    if(n===to-from+1) sec.classList.add('cleared');
+  });
+  document.getElementById('bdgTotal').textContent=bn(opened)+'/১২০ খোলা';
+}
+
+// ---- home: derived stats ----
+var tally=document.querySelector('.q-stats[data-tally]');
+if(tally){
+  var T={}; try{ T=JSON.parse(tally.getAttribute('data-tally')); }catch(e){}
+  var dn=loadP().done, ay=0, wd=0;
+  dn.forEach(function(n){ var t=T[n]; if(t){ ay+=t[0]; wd+=t[1]; } });
+  document.getElementById('statAyat').textContent=bn(ay);
+  document.getElementById('statWords').textContent=bn(wd);
+  document.getElementById('statBadge').textContent=bn(dn.length);
+  var qb=document.getElementById('qlBadge'); if(qb) qb.textContent=bn(dn.length);
+  if(dn.length>=120){ var cb2=document.getElementById('certBox'); if(cb2) cb2.hidden=false; }
+}
+
+// ---- practice room (class page: inline data · hub: fetched + filtered) ----
 var pr=document.querySelector('.practice');
 if(pr){
   var qs=[]; var deck=[];
-  try{ qs=JSON.parse(pr.getAttribute('data-quiz')); }catch(e){}
-  try{ deck=JSON.parse(pr.getAttribute('data-deck')); }catch(e){}
+  try{ qs=JSON.parse(pr.getAttribute('data-quiz')||'[]'); }catch(e){}
+  try{ deck=JSON.parse(pr.getAttribute('data-deck')||'[]'); }catch(e){}
   var body=pr.querySelector('.pr-body');
+
+  // build a quiz from a deck: every distractor is a real meaning from the pool
+  function makeQuiz(src){
+    var out=[], n=Math.min(8,src.length);
+    for(var i=0;i<n;i++){
+      var item=src[i], picks=[];
+      for(var j=0;j<src.length && picks.length<3;j++){
+        var o=src[(i*5+j+1)%src.length];
+        if(o.bn!==item.bn && picks.indexOf(o.bn)<0) picks.push(o.bn);
+      }
+      if(picks.length===3) out.push({q:item.ar,a:item.bn,o:[item.bn].concat(picks)});
+    }
+    return out;
+  }
 
   // ---- tool 1: flash cards ----
   // Self-marked, both directions, and the "আবার" pile simply comes round
@@ -1963,6 +2137,7 @@ if(pr){
   }
 
   var TOOLS={cards:cards,pairs:pairs,quiz:quiz};
+  function current(){ var t=pr.querySelector('.pr-tab.on'); return t?t.getAttribute('data-tool'):'cards'; }
   [].forEach.call(pr.querySelectorAll('.pr-tab'),function(t){
     t.addEventListener('click',function(){
       [].forEach.call(pr.querySelectorAll('.pr-tab'),function(x){x.classList.remove('on');});
@@ -1970,7 +2145,35 @@ if(pr){
       TOOLS[t.getAttribute('data-tool')]();
     });
   });
-  cards();
+
+  var src=pr.getAttribute('data-src');
+  if(src){
+    // hub: pull every word, keep only those from finished classes
+    body.innerHTML='<p class="muted">শব্দ আনা হচ্ছে…</p>';
+    fetch(src).then(function(r){return r.json();}).then(function(all){
+      var done=loadP().done;
+      function apply(){
+        var scope=(pr.querySelector('input[name=scope]:checked')||{}).value||'all';
+        var use=done;
+        if(scope==='recent') use=done.slice(-5);
+        var set={}; use.forEach(function(n){set[n]=1;});
+        var picked=all.filter(function(w){return set[w.c];});
+        // deterministic spread so the deck is not just the first classes
+        picked.sort(function(a,b){ return ((a.c*7)%97)-((b.c*7)%97) || a.ar.localeCompare(b.ar); });
+        deck=picked.slice(0,20); qs=makeQuiz(deck);
+        var hc=document.getElementById('hubCount');
+        if(hc) hc.textContent = done.length===0
+          ? 'এখনো কোনো ক্লাস শেষ করোনি। একটা ক্লাস শেষ করলেই এখানে শব্দ জমতে শুরু করবে।'
+          : bn(picked.length)+'টি শব্দ জমেছে '+bn(use.length)+'টি ক্লাস থেকে। আজকের ডেকে '+bn(deck.length)+'টি।';
+        if(!deck.length){ body.innerHTML='<p class="big-note">🌱 ঝুড়ি এখনো খালি।</p><p class="muted">প্রথম ক্লাসটা শেষ করে এসো — তারপর এখানে খেলা যাবে।</p>'; return; }
+        TOOLS[current()]();
+      }
+      [].forEach.call(pr.querySelectorAll('input[name=scope]'),function(r){ r.addEventListener('change',apply); });
+      apply();
+    }).catch(function(){ body.innerHTML='<p class="muted">শব্দগুলো আনা গেল না। পাতাটা রিফ্রেশ করে দেখো।</p>'; });
+  } else {
+    cards();
+  }
 }
 
 // ---- theme ----
