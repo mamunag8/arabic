@@ -559,13 +559,62 @@ function buildClass(c) {
     </section>`);
   }
 
+  // ---- quiz, built ONLY from this class's verified words --------------------
+  // No invented Arabic and no invented meanings: every question and every wrong
+  // option is a real (word, meaning) pair from course_content.js. Distractors
+  // come from the same class first so the choices are genuinely confusable.
+  {
+    const pool = [];
+    const seenQ = new Set();
+    ayat.forEach((a) => a.words.forEach((w) => {
+      const k = strip(w.arabic);
+      if (seenQ.has(k) || !w.bn) return;
+      seenQ.add(k);
+      pool.push({ ar: w.arabic, bn: w.bn.replace(/\s+/g, ' ').trim() });
+    }));
+    if (pool.length >= 4) {
+      const qs = pool.slice(0, 6).map((item, i) => {
+        const others = pool.filter((p) => p.bn !== item.bn);
+        // rotate the distractor window by index — deterministic, no Math.random
+        const picks = [];
+        for (let j = 0; j < others.length && picks.length < 3; j += 1) {
+          picks.push(others[(i * 3 + j) % others.length]);
+        }
+        const uniq = [...new Map(picks.map((p) => [p.bn, p])).values()].slice(0, 3);
+        const opts = [item, ...uniq].map((p) => p.bn);
+        return { q: item.ar, a: item.bn, o: opts };
+      }).filter((q) => q.o.length === 4);
+      if (qs.length) {
+        // One data attribute, three tools. Cards, pairs and quiz all read the
+        // same verified (arabic, bangla) pairs — nothing new is invented.
+        const deck = pool.slice(0, 10);
+        out.push(`<section class="practice"
+            data-quiz='${JSON.stringify(qs).replace(/'/g, '&#39;')}'
+            data-deck='${JSON.stringify(deck).replace(/'/g, '&#39;')}'>
+          <h2>🧠 অনুশীলনের ঘর</h2>
+          <p class="muted sm">একই শব্দগুলো, তিনভাবে। যেটা ভালো লাগে সেটা দিয়ে শুরু করো — ভুল হলে কিছুই হারায় না।</p>
+          <div class="pr-tabs" role="tablist">
+            <button class="pr-tab on" type="button" data-tool="cards" role="tab">🃏 ফ্ল্যাশ কার্ড</button>
+            <button class="pr-tab" type="button" data-tool="pairs" role="tab">🧩 জোড়া মেলাও</button>
+            <button class="pr-tab" type="button" data-tool="quiz" role="tab">🎯 চ্যালেঞ্জ</button>
+          </div>
+          <div class="pr-body"></div>
+        </section>`);
+      }
+    }
+  }
+
   out.push(`<section class="mission"><h2>⭐ আজকের মিশন</h2><ul class="check">
     <li>আয়াতগুলো <strong>৫ বার</strong> জোরে পড়েছি</li>
     <li>প্রতিটা শব্দের অর্থ বলতে পেরেছি</li>
     <li>বাসায় কাউকে আজকের গল্পটা শুনিয়েছি</li>
     <li>ঘুমানোর আগে একবার পড়েছি</li>
   </ul>
-  ${ex.badge ? `<div class="badge">${inline(ex.badge, rel, ctx)}</div>` : ''}</section>`);
+  ${ex.badge ? `<div class="badge">${inline(ex.badge, rel, ctx)}</div>` : ''}
+  <div class="done-box" data-cls="${c.index}" data-total="${plan.classes.length}">
+    <button class="btn done-btn" type="button">✅ ক্লাস ${bn(c.index)} শেষ করলাম</button>
+    <p class="done-msg" hidden></p>
+  </div></section>`);
 
   // ---- the link panel: what this class connects to -------------------------
   const introduced = (classWordsIntroduced[c.index] || []).map((id) => lexById[id]);
@@ -769,11 +818,27 @@ ${story ? `<section class="shan"><h2>📜 ${inline(story.title, rel)}</h2>${stor
 });
 
 // ---------------------------------------------------------------------------
-// HOME (the map)
+// HOME — the quest map
 // ---------------------------------------------------------------------------
+// Deliberately NOT a game with leaderboards, lives, timers or streak shaming
+// (PLAN_APP §11). Class 27 of the book attacks exactly that instinct — "তুমি
+// সূরা মুখস্থ করোনি, তুমি গুনছিলে" — so every number here compares the child
+// only to himself, and nothing is ever lost, only earned.
+const ISLAND_GIFTS = [
+  { e: '👓', n: 'নূরের চশমা', d: 'তাকাতে শেখায়', cls: 20 },
+  { e: '⚖️', n: 'ছোট্ট পাল্লা', d: 'থামতে শেখায়', cls: 40 },
+  { e: '🖋️', n: 'দাদার কলম', d: 'রেখে যেতে শেখায়', cls: 60 },
+  { e: '🔔', n: 'পাহারার ঘণ্টা', d: 'মনে করিয়ে দেয়', cls: 80 },
+  { e: '🌍', n: 'মাটির গোলা', d: 'রাজত্ব কার, মনে রাখায়', cls: 100 },
+  { e: '💧', n: 'এক ফোঁটা কালি', d: 'এক ফোঁটাও যথেষ্ট', cls: 119 },
+];
+
 {
   const rel = '';
   const islands = meta.ISLANDS.map((isl) => {
+    const first = plan.classes.find((c) => c.week === isl.weeks[0]).index;
+    const last = plan.classes.filter((c) => c.week === isl.weeks[1]).slice(-1)[0].index;
+    const gift = ISLAND_GIFTS[isl.n - 1];
     const weeks = [];
     for (let w = isl.weeks[0]; w <= isl.weeks[1]; w += 1) {
       const cls = plan.classes.filter((c) => c.week === w);
@@ -781,33 +846,70 @@ ${story ? `<section class="shan"><h2>📜 ${inline(story.title, rel)}</h2>${stor
         <div class="wk-n">সপ্তাহ ${bn(w)}</div>
         <div class="nodes">${cls.map((c) => {
     const ex = meta.CLASS_EXTRAS[c.index] || {};
-    return `<a class="node ${c.type}" href="class/${c.index}.html" title="${ex.title || ''}">
-            <span class="n">${bn(c.index)}</span><span class="t">${ex.title || 'রিভিশন'}</span></a>`;
+    return `<a class="node ${c.type}" data-cls="${c.index}" href="class/${c.index}.html" title="${ex.title || ''}">
+            <span class="n">${bn(c.index)}</span><span class="t">${ex.title || 'রিভিশন'}</span>
+            <span class="tick" aria-hidden="true">✓</span></a>`;
   }).join('')}</div></div>`);
     }
-    return `<section class="island i${isl.n}">
-      <header><h2>${isl.emoji} দ্বীপ ${bn(isl.n)} — ${isl.name}</h2>
-      <p>${isl.blurb}</p>
-      <p class="shield">🛡️ ${meta.STORY_ARC.shield[isl.n]}</p></header>
+    return `<section class="island i${isl.n}" data-from="${first}" data-to="${last}">
+      <header class="isl-head">
+        <div class="isl-badge">${isl.emoji}</div>
+        <div class="isl-txt">
+          <h2>দ্বীপ ${bn(isl.n)} — ${isl.name}</h2>
+          <p>${isl.blurb}</p>
+        </div>
+      </header>
+      <div class="isl-bar"><i></i><b>০/${bn(last - first + 1)}</b></div>
+      <p class="shield">🛡️ ${meta.STORY_ARC.shield[isl.n]}</p>
+      <div class="isl-gift" data-gift="${isl.n}">
+        <span class="g-e">${gift.e}</span>
+        <span class="g-t"><b>${gift.n}</b><small>${gift.d} · ক্লাস ${bn(gift.cls)}-এ</small></span>
+        <span class="g-lock">🔒</span>
+      </div>
       <div class="weeks">${weeks.join('')}</div></section>`;
   }).join('');
 
   const body = `
-<section class="hero">
-  <h1>${SITE_TITLE}</h1>
-  <p class="lead">${SITE_TAG}</p>
-  <p class="intro">সাতক্ষীরার নয় বছরের <strong>মাহদী বিন মামুন</strong> দুই বছর ধরে রোজ আরবি পড়ে — অথচ একটা শব্দেরও মানে জানে না। এক রাতে তার ছোট বোন এমন একটা প্রশ্ন করে যার উত্তর সে দিতে পারে না…</p>
-  <div class="stat-row">
-    <div><b>${bn(120)}</b><span>ক্লাস</span></div>
-    <div><b>${bn(24)}</b><span>সপ্তাহ</span></div>
-    <div><b>${bn(6)}</b><span>দ্বীপ</span></div>
-    <div><b>${bn(301)}</b><span>আয়াত</span></div>
-    <div><b>${bn(Object.keys(lex).length)}</b><span>শব্দ</span></div>
+<section class="quest">
+  <div class="q-top">
+    <div class="q-ring">
+      <svg viewBox="0 0 120 120" aria-hidden="true">
+        <circle class="rbg" cx="60" cy="60" r="52"></circle>
+        <circle class="rfg" id="ringFg" cx="60" cy="60" r="52"></circle>
+      </svg>
+      <div class="q-num"><b id="ringPct">০</b><small>%</small></div>
+    </div>
+    <div class="q-info">
+      <h1>${SITE_TITLE}</h1>
+      <p class="lead">${SITE_TAG}</p>
+      <p class="q-line" id="questLine">১২০টি ক্লাসের অভিযান। এক এক করে এগোও — কেউ তোমার সাথে দৌড় দিচ্ছে না।</p>
+      <a class="btn big" id="continueBtn" href="class/1.html">🚩 শুরু করো — ক্লাস ১</a>
+    </div>
   </div>
-  <div class="cta"><a class="btn" href="class/1.html">শুরু করো — ক্লাস ১</a>
-  <a class="btn ghost" href="words.html">🧺 শব্দের ঝুড়ি</a>
-  <a class="btn ghost" href="threads.html">🧵 সুতো</a></div>
+
+  <div class="q-shield">
+    <div class="qs-head">🛡️ ঢালের টুকরো <span id="shieldCount">০/৬</span></div>
+    <div class="qs-row">${meta.ISLANDS.map((i) => `<span class="sp" data-sp="${i.n}">${bn(i.n)}</span>`).join('')}</div>
+  </div>
+
+  <div class="q-shelf">
+    <div class="qs-head">🎁 অভিযানের জিনিস <span id="giftCount">০/৬</span></div>
+    <div class="shelf">${ISLAND_GIFTS.map((g, i) => `<span class="gi" data-gi="${i + 1}" title="${g.n} — ${g.d}">${g.e}</span>`).join('')}</div>
+  </div>
+
+  <div class="q-stats">
+    <div><b id="statDone">০</b><span>ক্লাস শেষ</span></div>
+    <div><b id="statAyat">০</b><span>আয়াত পেরিয়েছ</span></div>
+    <div><b id="statWords">০</b><span>শব্দ চিনেছ</span></div>
+    <div><b>${bn(Object.keys(lex).length)}</b><span>মোট শব্দ</span></div>
+  </div>
+
+  <p class="q-note">তোমার অগ্রগতি এই ফোনেই থাকে — কেউ দেখে না, কারো সাথে মেলানো হয় না।
+  <button class="mini" id="resetProg" type="button">নতুন করে শুরু</button></p>
 </section>
+
+<p class="intro">সাতক্ষীরার নয় বছরের <strong>মাহদী বিন মামুন</strong> দুই বছর ধরে রোজ আরবি পড়ে — অথচ একটা শব্দেরও মানে জানে না। এক রাতে তার ছোট বোন এমন একটা প্রশ্ন করে যার উত্তর সে দিতে পারে না…</p>
+
 <div class="map">${islands}</div>`;
   write('index.html', page({ title: 'মানচিত্র', body, rel, cls: 'page-home' }));
 }
@@ -1210,6 +1312,129 @@ hr{border:0;border-top:1px solid var(--line);margin:2em 0}
 .crumb{font-size:.83rem;color:var(--mut);margin:.6rem 0 1.2rem}
 .crumb a{color:var(--mut);display:inline-block;padding:.35rem .1rem}
 
+/* ---- quest dashboard ---- */
+.quest{background:var(--card);border:1px solid var(--line);border-radius:var(--rad);
+  padding:1.2rem 1.1rem;margin:1rem 0 1.5rem}
+.q-top{display:flex;gap:1.1rem;align-items:center;flex-wrap:wrap}
+.q-ring{position:relative;flex:none;width:104px;height:104px}
+.q-ring svg{width:100%;height:100%;transform:rotate(-90deg)}
+.q-ring circle{fill:none;stroke-width:9;stroke-linecap:round}
+.q-ring .rbg{stroke:var(--line)}
+.q-ring .rfg{stroke:var(--acc);transition:stroke-dashoffset .8s cubic-bezier(.3,1,.4,1)}
+.q-num{position:absolute;inset:0;display:flex;align-items:baseline;justify-content:center;gap:.05rem}
+.q-num b{font-size:1.7rem;color:var(--acc);line-height:2.6}
+.q-num small{font-size:.75rem;color:var(--mut)}
+.q-info{flex:1;min-width:12rem}
+.q-info h1{font-size:1.5rem;margin:0}
+.q-info .lead{margin:.1em 0 .4em}
+.q-line{font-size:.92rem;color:var(--mut);margin:.3em 0 .8em}
+.btn.big{font-size:1.05rem;padding:.75rem 1.5rem}
+.qs-head{display:flex;justify-content:space-between;align-items:center;
+  font-size:.82rem;color:var(--mut);margin:.3rem 0}
+.q-shield,.q-shelf{margin-top:1.1rem}
+.qs-row,.shelf{display:flex;gap:.4rem;flex-wrap:wrap}
+.sp{display:flex;align-items:center;justify-content:center;width:2.4rem;height:2.4rem;
+  border:2px dashed var(--line);border-radius:9px;color:var(--mut);font-size:.85rem}
+.sp.won{border:2px solid var(--acc2);border-style:solid;color:var(--fg);
+  background:color-mix(in srgb,var(--acc2) 18%,transparent)}
+.gi{display:flex;align-items:center;justify-content:center;width:2.6rem;height:2.6rem;
+  border:1px dashed var(--line);border-radius:10px;font-size:1.3rem;filter:grayscale(1);opacity:.35}
+.gi.won{border-style:solid;border-color:var(--acc);filter:none;opacity:1;
+  background:color-mix(in srgb,var(--acc) 10%,transparent)}
+.q-stats{display:flex;gap:.5rem;flex-wrap:wrap;margin-top:1.1rem}
+.q-stats div{flex:1 1 6rem;background:var(--bg);border:1px solid var(--line);
+  border-radius:10px;padding:.5rem .7rem;text-align:center}
+.q-stats b{display:block;font-size:1.25rem;color:var(--acc)}
+.q-stats span{font-size:.72rem;color:var(--mut)}
+.q-note{font-size:.8rem;color:var(--mut);margin:1rem 0 0}
+.mini{font:inherit;font-size:.78rem;background:none;border:1px solid var(--line);
+  border-radius:999px;padding:.2rem .7rem;color:var(--mut);cursor:pointer}
+.mini:hover{border-color:var(--acc);color:var(--fg)}
+
+/* island cards */
+.isl-head{display:flex;gap:.7rem;align-items:flex-start}
+.isl-badge{flex:none;width:2.8rem;height:2.8rem;display:flex;align-items:center;justify-content:center;
+  font-size:1.5rem;background:var(--chip);border-radius:12px}
+.isl-txt h2{margin:0 0 .2em;border:0;padding:0;font-size:1.15rem}
+.isl-txt p{margin:0;font-size:.9rem;color:var(--mut)}
+.isl-bar{position:relative;height:1.35rem;background:var(--bg);border:1px solid var(--line);
+  border-radius:999px;margin:.7rem 0 .4rem;overflow:hidden}
+.isl-bar i{position:absolute;inset:0 auto 0 0;width:0;background:var(--acc);
+  transition:width .7s cubic-bezier(.3,1,.4,1)}
+.isl-bar b{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  font-size:.72rem;color:var(--fg);mix-blend-mode:difference;filter:invert(1) grayscale(1) contrast(9)}
+.island.cleared{border-color:var(--acc2)}
+.isl-gift{display:flex;align-items:center;gap:.6rem;margin:.6rem 0;padding:.5rem .7rem;
+  background:var(--bg);border:1px dashed var(--line);border-radius:10px}
+.isl-gift .g-e{font-size:1.4rem;filter:grayscale(1);opacity:.4}
+.isl-gift .g-t{flex:1;min-width:0;display:flex;flex-direction:column;font-size:.85rem}
+.isl-gift .g-t small{color:var(--mut);font-size:.75rem}
+.isl-gift.won{border-style:solid;border-color:var(--acc)}
+.isl-gift.won .g-e{filter:none;opacity:1}
+.isl-gift.won .g-lock{display:none}
+
+/* class node states */
+.node .tick{display:none;margin-inline-start:auto;color:var(--acc);font-weight:700}
+.node.is-done{border-color:var(--acc);background:color-mix(in srgb,var(--acc) 8%,var(--bg))}
+.node.is-done .tick{display:inline}
+.node.is-next{border-color:var(--acc2);box-shadow:0 0 0 2px color-mix(in srgb,var(--acc2) 30%,transparent)}
+
+/* finish button */
+.done-box{margin-top:1rem}
+.done-btn.is-done{background:var(--chip);color:var(--fg);cursor:default}
+.done-btn.pop{animation:pop .6s ease}
+@keyframes pop{0%{transform:scale(1)}35%{transform:scale(1.08)}100%{transform:scale(1)}}
+.done-msg{font-size:.9rem;color:var(--mut);margin:.5em 0 0}
+
+/* ---- practice room ---- */
+.practice{background:var(--card);border:1px solid var(--acc2);border-radius:var(--rad);
+  padding:1rem 1.1rem;margin:1.5rem 0}
+.practice h2{margin:0 0 .2rem;border:0;padding:0;font-size:1.05rem}
+.pr-tabs{display:flex;gap:.35rem;flex-wrap:wrap;margin:.8rem 0}
+.pr-tab{font:inherit;font-size:.85rem;padding:.5rem .9rem;min-height:40px;cursor:pointer;
+  background:var(--bg);border:1px solid var(--line);border-radius:999px;color:var(--mut)}
+.pr-tab:hover{border-color:var(--acc)}
+.pr-tab.on{background:var(--acc);border-color:var(--acc);color:#fff}
+.pr-body{min-height:11rem}
+
+/* flash cards */
+.fc-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:.6rem}
+.fcard{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.5rem;
+  width:100%;min-height:9rem;padding:1.2rem;cursor:pointer;font:inherit;color:var(--fg);
+  background:var(--bg);border:2px solid var(--line);border-radius:var(--rad)}
+.fcard:hover{border-color:var(--acc)}
+.fcard.flipped{border-color:var(--acc);background:color-mix(in srgb,var(--acc) 7%,var(--bg))}
+.fcard .fc-bn{font-size:1.35rem;text-align:center}
+.fcard .fc-hint{font-size:.72rem;color:var(--mut)}
+.fcard.flipped .fc-hint{display:none}
+.fc-acts{display:flex;gap:.5rem;margin-top:.7rem}
+.fc-acts .btn{flex:1;text-align:center;padding:.7rem 1rem}
+
+/* matching pairs */
+.pair-grid{display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin:.7rem 0}
+.pcol{display:grid;gap:.45rem;align-content:start}
+.pbtn{font:inherit;font-size:.9rem;padding:.6rem .7rem;min-height:48px;cursor:pointer;
+  background:var(--bg);border:1px solid var(--line);border-radius:10px;color:var(--fg)}
+.pbtn .ar{font-size:1.25em}
+.pbtn:hover:not(:disabled){border-color:var(--acc)}
+.pbtn.sel{border-color:var(--acc2);background:color-mix(in srgb,var(--acc2) 15%,transparent)}
+.pbtn.done{border-color:var(--acc);background:color-mix(in srgb,var(--acc) 14%,transparent);opacity:.7;cursor:default}
+.pbtn.no{border-color:#c0503f;background:color-mix(in srgb,#c0503f 12%,transparent)}
+.qz-q{text-align:center;margin:.8rem 0}
+.qz-n{font-size:.75rem;color:var(--mut);border:1px solid var(--line);border-radius:999px;padding:.1rem .55rem}
+.qz-q .ar.huge{font-size:2.4rem;margin:.3em 0 .1em}
+.qz-opts{display:grid;gap:.45rem}
+.qz-o{font:inherit;text-align:start;padding:.75rem 1rem;min-height:48px;
+  background:var(--bg);border:1px solid var(--line);border-radius:12px;color:var(--fg);cursor:pointer}
+.qz-o:hover:not(:disabled){border-color:var(--acc)}
+.qz-o:disabled{cursor:default;opacity:.75}
+.qz-o.ok{border-color:var(--acc);background:color-mix(in srgb,var(--acc) 16%,transparent);opacity:1}
+.qz-o.no{border-color:#c0503f;background:color-mix(in srgb,#c0503f 12%,transparent)}
+.qz-fb{margin:.6rem 0 0;font-size:.9rem}
+.qz-fb.ok{color:var(--acc)}
+.qz-fb.no{color:var(--acc2)}
+.qz-end{text-align:center}
+
 /* ---- home ---- */
 .hero{text-align:center;padding:1.5rem 0 1rem}
 .hero h1{font-size:2.3rem;margin-bottom:.1em}
@@ -1516,6 +1741,238 @@ table.index td{padding:.4em .6em}
 fs.writeFileSync(path.join(OUT, 'assets', 'app.js'), `
 (function(){
 'use strict';
+
+// ===== progress =====================================================
+// Everything lives in this browser only. Nothing is uploaded, nothing is
+// compared to anyone. Marks are additive: a class can be completed, never
+// "lost", and there is no streak to break.
+var PKEY='nd-progress';
+function loadP(){ try{ return JSON.parse(localStorage.getItem(PKEY))||{done:[]}; }catch(e){ return {done:[]}; } }
+function saveP(p){ try{ localStorage.setItem(PKEY, JSON.stringify(p)); }catch(e){} }
+function isDone(n){ return loadP().done.indexOf(n)>-1; }
+function markDone(n){ var p=loadP(); if(p.done.indexOf(n)<0){ p.done.push(n); p.done.sort(function(a,b){return a-b;}); saveP(p);} return p; }
+var BN='০১২৩৪৫৬৭৮৯';
+function bn(x){ return String(x).replace(/[0-9]/g,function(d){return BN[+d];}); }
+
+// ---- home: quest dashboard ----
+var ring=document.getElementById('ringFg');
+if(ring){
+  var p=loadP(), done=p.done, total=120;
+  var C=2*Math.PI*52;
+  ring.style.strokeDasharray=C;
+  ring.style.strokeDashoffset=C*(1-done.length/total);
+  document.getElementById('ringPct').textContent=bn(Math.round(done.length/total*100));
+  document.getElementById('statDone').textContent=bn(done.length);
+
+  // continue = first class not yet marked done
+  var nextN=1; while(nextN<=total && done.indexOf(nextN)>-1) nextN++;
+  var cb=document.getElementById('continueBtn');
+  if(nextN>total){ cb.textContent='🏁 পুরো অভিযান শেষ! আবার পড়ো →'; cb.href='class/1.html'; }
+  else if(done.length===0){ cb.textContent='🚩 শুরু করো — ক্লাস ১'; cb.href='class/1.html'; }
+  else { cb.textContent='▶ চালিয়ে যাও — ক্লাস '+bn(nextN); cb.href='class/'+nextN+'.html'; }
+
+  var ql=document.getElementById('questLine');
+  if(done.length===0) ql.textContent='১২০টি ক্লাসের অভিযান। এক এক করে এগোও — কেউ তোমার সাথে দৌড় দিচ্ছে না।';
+  else if(done.length<total) ql.textContent='তুমি '+bn(done.length)+'টি ক্লাস শেষ করেছ। বাকি '+bn(total-done.length)+'টি।';
+  else ql.textContent='ছয় দ্বীপ, ১২০ ক্লাস — সব শেষ। এখন শেখানোর পালা।';
+
+  // per-island bars, shield pieces, gift shelf
+  var shield=0, gifts=0;
+  [].forEach.call(document.querySelectorAll('.island'),function(sec){
+    var from=+sec.getAttribute('data-from'), to=+sec.getAttribute('data-to'), n=0;
+    for(var i=from;i<=to;i++) if(done.indexOf(i)>-1) n++;
+    var tot=to-from+1, bar=sec.querySelector('.isl-bar');
+    bar.querySelector('i').style.width=(n/tot*100)+'%';
+    bar.querySelector('b').textContent=bn(n)+'/'+bn(tot);
+    if(n===tot){ sec.classList.add('cleared'); shield++; gifts++;
+      var sp=document.querySelector('.sp[data-sp="'+sec.className.match(/i(\\d)/)[1]+'"]'); }
+  });
+  [].forEach.call(document.querySelectorAll('.island'),function(sec,idx){
+    var from=+sec.getAttribute('data-from'), to=+sec.getAttribute('data-to'), n=0;
+    for(var i=from;i<=to;i++) if(done.indexOf(i)>-1) n++;
+    if(n===to-from+1){
+      var s=document.querySelector('.sp[data-sp="'+(idx+1)+'"]'); if(s) s.classList.add('won');
+      var g=document.querySelector('.gi[data-gi="'+(idx+1)+'"]'); if(g) g.classList.add('won');
+      var gb=sec.querySelector('.isl-gift'); if(gb) gb.classList.add('won');
+    }
+  });
+  document.getElementById('shieldCount').textContent=bn(shield)+'/৬';
+  document.getElementById('giftCount').textContent=bn(gifts)+'/৬';
+
+  // tick the finished class nodes
+  [].forEach.call(document.querySelectorAll('.node[data-cls]'),function(a){
+    var n=+a.getAttribute('data-cls');
+    if(done.indexOf(n)>-1) a.classList.add('is-done');
+    else if(n===nextN) a.classList.add('is-next');
+  });
+
+  var rs=document.getElementById('resetProg');
+  if(rs) rs.addEventListener('click',function(){
+    if(confirm('সব অগ্রগতি মুছে নতুন করে শুরু করবে?')){ saveP({done:[]}); location.reload(); }
+  });
+}
+
+// ---- class page: finish button ----
+var db=document.querySelector('.done-box');
+if(db){
+  var cn=+db.getAttribute('data-cls');
+  var btn=db.querySelector('.done-btn'), msg=db.querySelector('.done-msg');
+  function paint(){
+    if(isDone(cn)){
+      btn.textContent='✅ শেষ করেছ';
+      btn.classList.add('is-done');
+      msg.hidden=false;
+      var d=loadP().done.length;
+      msg.innerHTML='মোট <strong>'+bn(d)+'</strong>টি ক্লাস শেষ। '+(d>=120?'পুরো অভিযান শেষ! 🏁':'পরেরটায় যাও →');
+    }
+  }
+  paint();
+  btn.addEventListener('click',function(){
+    if(isDone(cn)) return;
+    markDone(cn); paint();
+    btn.classList.add('pop');
+    setTimeout(function(){ btn.classList.remove('pop'); },600);
+  });
+}
+
+// ---- class page: practice room (cards / pairs / quiz) ----
+var pr=document.querySelector('.practice');
+if(pr){
+  var qs=[]; var deck=[];
+  try{ qs=JSON.parse(pr.getAttribute('data-quiz')); }catch(e){}
+  try{ deck=JSON.parse(pr.getAttribute('data-deck')); }catch(e){}
+  var body=pr.querySelector('.pr-body');
+
+  // ---- tool 1: flash cards ----
+  // Self-marked, both directions, and the "আবার" pile simply comes round
+  // again — nothing is scored and nothing is failed.
+  function cards(){
+    var order=deck.map(function(_,i){return i;}), at=0, again=[], side=0, dir=0;
+    function draw(){
+      if(at>=order.length){
+        if(again.length){ order=again.slice(); again=[]; at=0; }
+        else {
+          body.innerHTML='<div class="qz-end"><p class="big-note">🎉 পুরো ডেক শেষ!</p>'+
+            '<p class="muted">সব কটা কার্ড তুমি "জানি" বলেছ। এবার আয়াতটা না দেখে বলার চেষ্টা করো।</p>'+
+            '<button class="btn ghost" type="button" id="cAgain">🔁 আবার</button></div>';
+          document.getElementById('cAgain').addEventListener('click',cards); return;
+        }
+      }
+      var c=deck[order[at]]; side=0;
+      var front=dir? c.bn : c.ar, back=dir? c.ar : c.bn;
+      body.innerHTML='<div class="fc-top"><span class="qz-n">'+bn(at+1)+'/'+bn(order.length)+'</span>'+
+        '<button class="mini" type="button" id="flipDir">'+(dir?'বাংলা → আরবি':'আরবি → বাংলা')+'</button></div>'+
+        '<button class="fcard" type="button" id="fc"><span class="'+(dir?'fc-bn':'ar huge')+'">'+front+'</span>'+
+        '<small class="fc-hint">চাপ দাও উল্টাতে</small></button>'+
+        '<div class="fc-acts" hidden id="fcActs">'+
+        '<button class="btn ghost" type="button" id="fcAgain">🔁 আবার দেখাও</button>'+
+        '<button class="btn" type="button" id="fcKnow">✅ জানি</button></div>';
+      document.getElementById('flipDir').addEventListener('click',function(){ dir=dir?0:1; draw(); });
+      document.getElementById('fc').addEventListener('click',function(){
+        if(side) return; side=1;
+        this.innerHTML='<span class="'+(dir?'ar huge':'fc-bn')+'">'+back+'</span>';
+        this.classList.add('flipped');
+        document.getElementById('fcActs').hidden=false;
+      });
+      document.getElementById('fcAgain').addEventListener('click',function(){ again.push(order[at]); at++; draw(); });
+      document.getElementById('fcKnow').addEventListener('click',function(){ at++; draw(); });
+    }
+    draw();
+  }
+
+  // ---- tool 2: matching pairs ----
+  function pairs(){
+    var n=Math.min(5,deck.length), set=deck.slice(0,n);
+    var left=set.map(function(c,i){return {t:c.ar,i:i,ar:1};});
+    var right=set.map(function(c,i){return {t:c.bn,i:i,ar:0};});
+    // deterministic offset so the columns never line up
+    right=right.slice(2).concat(right.slice(0,2));
+    var pick=null, matched=0;
+    body.innerHTML='<p class="muted sm">আরবি শব্দে চাপ দাও, তারপর তার মানে।</p>'+
+      '<div class="pair-grid"><div class="pcol">'+left.map(function(o){return '<button class="pbtn" type="button" data-i="'+o.i+'" data-s="a"><span class="ar">'+o.t+'</span></button>';}).join('')+
+      '</div><div class="pcol">'+right.map(function(o){return '<button class="pbtn" type="button" data-i="'+o.i+'" data-s="b">'+o.t+'</button>';}).join('')+
+      '</div></div><p class="qz-fb" id="pfb" hidden></p>';
+    var fb=document.getElementById('pfb');
+    [].forEach.call(body.querySelectorAll('.pbtn'),function(b){
+      b.addEventListener('click',function(){
+        if(b.disabled) return;
+        if(!pick){ pick=b; b.classList.add('sel'); return; }
+        if(pick===b){ b.classList.remove('sel'); pick=null; return; }
+        if(pick.getAttribute('data-s')===b.getAttribute('data-s')){
+          pick.classList.remove('sel'); pick=b; b.classList.add('sel'); return;
+        }
+        if(pick.getAttribute('data-i')===b.getAttribute('data-i')){
+          pick.classList.remove('sel'); pick.classList.add('done'); b.classList.add('done');
+          pick.disabled=true; b.disabled=true; matched++; pick=null;
+          fb.hidden=false; fb.className='qz-fb ok'; fb.textContent='মিলে গেছে! ✨';
+          if(matched===n){ fb.textContent='🎉 সব কটা জোড়া মিলেছে!'; }
+        } else {
+          var a=pick; a.classList.add('no'); b.classList.add('no');
+          fb.hidden=false; fb.className='qz-fb no'; fb.textContent='এটা মেলেনি — আরেকবার দেখো।';
+          setTimeout(function(){ a.classList.remove('no','sel'); b.classList.remove('no'); },600);
+          pick=null;
+        }
+      });
+    });
+  }
+
+  // ---- tool 3: quiz ----
+  function quiz(){
+  var at=0, right=0;
+  function shuffleFor(i,arr){ // deterministic rotation, no randomness needed
+    var out=arr.slice(); var k=i%out.length;
+    return out.slice(k).concat(out.slice(0,k));
+  }
+  function render(){
+    if(at>=qs.length){
+      body.innerHTML='<div class="qz-end"><p class="big-note">🎉 হয়ে গেল! '+bn(right)+'/'+bn(qs.length)+' ঠিক।</p>'+
+        '<p class="muted">'+(right===qs.length?'একটাও ভুল হয়নি। এবার আয়াতটা না দেখে পড়ে দেখো।':'যেগুলো ভুল হয়েছে, উপরে শব্দের ঘরে ফিরে গিয়ে আরেকবার দেখো। ভুল হওয়া মানে শেখা হচ্ছে।')+'</p>'+
+        '<button class="btn ghost qz-again" type="button">🔁 আবার খেলো</button></div>';
+      body.querySelector('.qz-again').addEventListener('click',function(){ at=0; right=0; render(); });
+      return;
+    }
+    var q=qs[at];
+    var opts=shuffleFor(at,q.o);
+    body.innerHTML='<div class="qz-q"><span class="qz-n">'+bn(at+1)+'/'+bn(qs.length)+'</span>'+
+      '<div class="ar huge">'+q.q+'</div><p class="muted sm">এর মানে কোনটা?</p></div>'+
+      '<div class="qz-opts">'+opts.map(function(o){return '<button class="qz-o" type="button">'+o+'</button>';}).join('')+'</div>'+
+      '<p class="qz-fb" hidden></p>';
+    var fb=body.querySelector('.qz-fb'), tries=0;
+    [].forEach.call(body.querySelectorAll('.qz-o'),function(b){
+      b.addEventListener('click',function(){
+        if(b.disabled) return;
+        if(b.textContent===q.a){
+          b.classList.add('ok');
+          if(tries===0) right++;
+          fb.hidden=false; fb.className='qz-fb ok'; fb.textContent='ঠিক! ✨';
+          [].forEach.call(body.querySelectorAll('.qz-o'),function(x){x.disabled=true;});
+          setTimeout(function(){ at++; render(); },800);
+        } else {
+          tries++; b.classList.add('no'); b.disabled=true;
+          fb.hidden=false; fb.className='qz-fb no';
+          fb.textContent=tries===1?'উঁহু — আরেকবার দেখো।':'ঠিক উত্তরটা হলো: '+q.a;
+          if(tries>=2){
+            [].forEach.call(body.querySelectorAll('.qz-o'),function(x){ if(x.textContent===q.a) x.classList.add('ok'); x.disabled=true; });
+            setTimeout(function(){ at++; render(); },1400);
+          }
+        }
+      });
+    });
+  }
+  render();
+  }
+
+  var TOOLS={cards:cards,pairs:pairs,quiz:quiz};
+  [].forEach.call(pr.querySelectorAll('.pr-tab'),function(t){
+    t.addEventListener('click',function(){
+      [].forEach.call(pr.querySelectorAll('.pr-tab'),function(x){x.classList.remove('on');});
+      t.classList.add('on');
+      TOOLS[t.getAttribute('data-tool')]();
+    });
+  });
+  cards();
+}
+
 // ---- theme ----
 var root=document.documentElement, KEY='nd-theme';
 try{var t=localStorage.getItem(KEY); if(t) root.setAttribute('data-theme',t);}catch(e){}
