@@ -1043,7 +1043,7 @@ ${rows}
       pool.push({ ar: [...e.forms][0], bn: e.bn.replace(/\s+/g, ' ').trim(), c: c.index });
     });
   });
-  fs.writeFileSync(path.join(OUT, 'assets', 'words.json'), JSON.stringify(pool));
+  write('assets/words.json', JSON.stringify(pool));
 
   const body = `
 <header class="page-head"><h1>🧠 অনুশীলনের ঘর</h1>
