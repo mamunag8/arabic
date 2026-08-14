@@ -660,7 +660,7 @@ function buildClass(c) {
       } else if (l.includes('দাদা') || l.includes('আবুল হোসেন')) {
         speaker = 'dada';
         tagLabel = 'দাদা';
-      } else if (l.includes('নানা') || l.includes('গোলাম রহমান')) {
+      } else if (l.includes('নানা') || l.includes('আবু বক্কার') || l.includes('আবু বকর সরদার')) {
         speaker = 'nana';
         tagLabel = 'নানা';
       } else if (l.includes('নানি') || l.includes('তাহুরা বেগম')) {
