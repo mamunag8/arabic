@@ -2109,6 +2109,38 @@ table.index td{padding:.4em .6em}
   table.stack td.c-num,table.stack td.c-hk{font-size:.9rem}
   table.stack .vrefs{flex:1}
   .c-hk{min-width:9rem}
+  /* Audio Panel on Mobile */
+  .audio-panel{padding:.85rem .9rem;margin:1rem 0}
+  .audio-panel-head{flex-direction:column;align-items:flex-start;gap:.4rem}
+  .audio-panel-title{font-size:.88rem}
+  .audio-durability-tag{font-size:.72rem}
+  .audio-btn-group{display:grid;grid-template-columns:1fr;gap:.5rem;width:100%}
+  .audio-drive-btn,.audio-save-btn,.audio-zip-btn,.audio-del-btn{
+    width:100%;min-height:44px;display:flex;align-items:center;justify-content:center;
+    padding:.6rem .8rem;font-size:.84rem;text-align:center
+  }
+  .audio-status{font-size:.8rem;line-height:1.4}
+
+  /* Story Section & Interactive Storyteller on Mobile */
+  .story-head-bar{flex-direction:column;align-items:stretch;gap:.7rem;margin-bottom:.8rem}
+  .story-head-bar h2{font-size:1.15rem;margin:0}
+  .story-audio-bar{display:flex;align-items:center;justify-content:space-between;gap:.5rem;width:100%}
+  .story-play-btn{flex:1;min-height:44px;font-size:.84rem;padding:.5rem .8rem;justify-content:center}
+  .story-speed-ctrl{min-height:44px;display:flex;align-items:center;padding:3px}
+  .sp-btn{min-height:38px;min-width:38px;padding:.3rem .55rem;font-size:.78rem}
+  .story-listening-status{font-size:.78rem;padding:.5rem .75rem;line-height:1.4}
+  
+  /* Story Segments & Tap targets */
+  .story-seg{padding:.75rem .85rem;margin:.55rem 0;font-size:.98rem;line-height:1.85;border-radius:12px;
+    -webkit-tap-highlight-color:transparent}
+  .story-seg.active-story-seg{transform:none;border-width:2px}
+  .seg-speaker-tag{font-size:.72rem;padding:.15rem .5rem;margin-bottom:.25rem;display:inline-block}
+
+  /* Inline and Ayah play buttons on mobile */
+  .play-btn{min-height:44px;min-width:44px;display:inline-flex;align-items:center;justify-content:center}
+  .word-play-inline{padding:.2rem .4rem;font-size:.9rem}
+  .ayah-play{min-height:44px;padding:.45rem .95rem;font-size:.85rem}
+
   blockquote{padding:.5em .8em}
   .foot{padding:1.5rem .85rem 2rem;text-align:center}
 }
