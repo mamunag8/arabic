@@ -478,13 +478,34 @@ function buildClass(c) {
     <span>${bn(c.week)}নং গ্রাম</span> ›
     <span>ক্লাস ${bn(c.index)}</span></div>`);
 
-  const classAudioUrls = [];
+  const classAudioItems = [];
+  const seenAudio = new Set();
   ayat.forEach((a) => {
     const aAudio = a.audioUrl || (a.passage ? ayahAudioUrl(a.passage.chapter, a.n) : '');
-    if (aAudio && !classAudioUrls.includes(aAudio)) classAudioUrls.push(aAudio);
+    if (aAudio && !seenAudio.has(aAudio)) {
+      seenAudio.add(aAudio);
+      const sPad = a.passage ? String(a.passage.chapter).padStart(3, '0') : '000';
+      const aPad = String(a.n).padStart(3, '0');
+      classAudioItems.push({
+        url: aAudio,
+        name: `Ayah_${sPad}_${aPad}_Alafasy.mp3`,
+        label: `${a.passage ? a.passage.name : 'সূরা'} আয়াত ${a.n} (আলাফাসী)`
+      });
+    }
     a.words.forEach((w, idx) => {
       const wAudio = w.audioUrl || (a.passage ? wbwAudioUrl(a.passage.chapter, a.n, idx + 1) : '');
-      if (wAudio && !classAudioUrls.includes(wAudio)) classAudioUrls.push(wAudio);
+      if (wAudio && !seenAudio.has(wAudio)) {
+        seenAudio.add(wAudio);
+        const sPad = a.passage ? String(a.passage.chapter).padStart(3, '0') : '000';
+        const aPad = String(a.n).padStart(3, '0');
+        const wPad = String(idx + 1).padStart(3, '0');
+        const cleanMeaning = (w.meaning || '').replace(/[^a-zA-Z0-9\u0980-\u09FF]/g, '_').slice(0, 15);
+        classAudioItems.push({
+          url: wAudio,
+          name: `Word_${sPad}_${aPad}_${wPad}_${cleanMeaning || 'word'}.mp3`,
+          label: `${w.ar} (${w.meaning || ''})`
+        });
+      }
     });
   });
 
@@ -493,8 +514,14 @@ function buildClass(c) {
     if (typeof val === 'string') {
       (val.match(ARABIC_RUN) || []).forEach((tok) => {
         const e = lex[strip(tok)];
-        if (e && e.audioUrl && !classAudioUrls.includes(e.audioUrl)) {
-          classAudioUrls.push(e.audioUrl);
+        if (e && e.audioUrl && !seenAudio.has(e.audioUrl)) {
+          seenAudio.add(e.audioUrl);
+          const cleanBn = (e.bn || '').replace(/[^a-zA-Z0-9\u0980-\u09FF]/g, '_').slice(0, 15);
+          classAudioItems.push({
+            url: e.audioUrl,
+            name: `Lex_${e.id}_${cleanBn || 'word'}.mp3`,
+            label: `${e.ar} (${e.bn || ''})`
+          });
         }
       });
       return;
@@ -510,10 +537,26 @@ function buildClass(c) {
   out.push(`<header class="class-head i${island.n}">
     <p class="eyebrow">${island.emoji} ${island.name} · সপ্তাহ ${bn(c.week)} · ${c.type === 'revision' ? 'রিভিশন' : passage.name}${c.part ? ` (পর্ব ${bn(c.part.k)}/${bn(c.part.of)})` : ''}</p>
     <h1><span class="cnum">ক্লাস ${bn(c.index)}</span>${ex.title || (passage && passage.name) || 'উইকলি চ্যাম্পিয়ন'}</h1>
-    ${classAudioUrls.length ? `
-    <div class="audio-ctrls">
-      <button class="btn audio-dl-btn" type="button" id="dlClassAudio" data-class-audio='${JSON.stringify(classAudioUrls)}'>📥 এই ক্লাসের অডিও ডাউনলোড (অফলাইন)</button>
-      <span class="audio-status" id="audioStatus" hidden></span>
+    ${classAudioItems.length ? `
+    <div class="audio-panel" id="classAudioPanel" data-class-id="${c.index}" data-class-name="Class_${String(c.index).padStart(3, '0')}" data-class-audios='${JSON.stringify(classAudioItems)}'>
+      <div class="audio-panel-head">
+        <span class="audio-panel-title">🎧 ক্লাস ${bn(c.index)}-এর অডিও (মোট ${bn(classAudioItems.length)}টি ফাইল)</span>
+        <span class="audio-durability-tag">🔒 স্থায়ী মেমরি</span>
+      </div>
+      <div class="audio-btn-group">
+        <button class="btn audio-save-btn" type="button" id="saveLocalAudioBtn">
+          💾 মেমরিতে সংরক্ষণ (অফলাইন প্লেয়ার)
+        </button>
+        <button class="btn audio-zip-btn" type="button" id="dlClassZipBtn">
+          📦 জিপ ডাউনলোড (.zip ফোল্ডার)
+        </button>
+        <button class="btn audio-del-btn" type="button" id="delLocalAudioBtn" hidden>
+          🗑️ অডিও মুছুন
+        </button>
+      </div>
+      <div class="audio-status" id="audioStatus">
+        <span class="audio-status-text">মেমরিতে সেভ করে রাখলে ইন্টারনেট ছাড়াই অডিও বাজবে — ডিলিট না করা পর্যন্ত কখনোই মুছবে না।</span>
+      </div>
     </div>` : ''}
   </header>`);
 
@@ -1714,13 +1757,26 @@ ul.check li::before{content:"☐ ";color:var(--mut)}
   border:1px solid color-mix(in srgb,var(--acc) 25%,transparent);
   color:var(--acc);font-weight:600;font-size:.82rem;padding:.3rem .75rem;border-radius:20px}
 .ayah-play:hover{background:var(--acc);color:#fff}
-.audio-ctrls{display:flex;align-items:center;gap:.8rem;margin:1rem 0 1.5rem;flex-wrap:wrap;
-  padding:.7rem 1rem;background:var(--card);border:1px solid var(--line);border-radius:var(--rad)}
-.audio-dl-btn{background:var(--chip);border:1px solid var(--line);color:var(--fg);
-  font-size:.85rem;font-weight:600;padding:.45rem .9rem;border-radius:9px;cursor:pointer;transition:all .2s ease}
-.audio-dl-btn:hover{background:var(--line);border-color:var(--mut)}
-.audio-dl-btn.is-cached{background:color-mix(in srgb,var(--acc) 15%,transparent);color:var(--acc);border-color:var(--acc)}
-.audio-status{font-size:.84rem;color:var(--mut)}
+.audio-panel{margin:1.1rem 0 1.5rem;padding:.9rem 1.2rem;background:var(--card);
+  border:1px solid var(--line);border-radius:var(--rad);box-shadow:0 2px 6px rgba(0,0,0,.02)}
+.audio-panel-head{display:flex;align-items:center;justify-content:space-between;gap:.6rem;
+  margin-bottom:.75rem;flex-wrap:wrap}
+.audio-panel-title{font-weight:700;font-size:.9rem;color:var(--fg)}
+.audio-durability-tag{font-size:.74rem;padding:.18rem .5rem;background:color-mix(in srgb,var(--acc2) 15%,transparent);
+  color:var(--acc2);border-radius:12px;font-weight:600;display:inline-flex;align-items:center}
+.audio-btn-group{display:flex;gap:.55rem;flex-wrap:wrap;align-items:center}
+.audio-save-btn{background:var(--chip);border:1px solid var(--line);color:var(--fg);
+  font-size:.84rem;font-weight:600;padding:.45rem .9rem;border-radius:9px;cursor:pointer;transition:all .2s ease}
+.audio-save-btn:hover{background:var(--line);border-color:var(--mut)}
+.audio-save-btn.is-saved{background:color-mix(in srgb,var(--acc) 15%,transparent);color:var(--acc);border-color:var(--acc)}
+.audio-zip-btn{background:color-mix(in srgb,var(--acc2) 12%,transparent);border:1px solid color-mix(in srgb,var(--acc2) 30%,transparent);
+  color:var(--acc2);font-size:.84rem;font-weight:600;padding:.45rem .9rem;border-radius:9px;cursor:pointer;transition:all .2s ease}
+.audio-zip-btn:hover{background:var(--acc2);color:#fff}
+.audio-del-btn{background:none;border:1px solid color-mix(in srgb,#e11d48 30%,transparent);color:#e11d48;
+  font-size:.8rem;font-weight:600;padding:.42rem .75rem;border-radius:9px;cursor:pointer;transition:all .2s ease}
+.audio-del-btn:hover{background:#e11d48;color:#fff}
+.audio-status{margin-top:.65rem;font-size:.83rem;color:var(--mut);line-height:1.45}
+.audio-status strong{color:var(--fg)}
 
 /* ---- tables ---- */
 .tbl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain;
@@ -2290,128 +2346,432 @@ if(pr){
   }
 }
 
-// ===== Audio Engine & Offline Caching =====
-var AUDIO_CACHE='nd-audio-v1';
-var currentAudio=null;
-var activePlayBtn=null;
+// ===== Permanent Audio Engine (IndexedDB + Persistent Storage + Zip Export) =====
+var DB_NAME = 'NoorDwipLocalAudio';
+var DB_VERSION = 1;
+var STORE_NAME = 'audio_blobs';
+var audioDbPromise = null;
 
-function stopAudio(){
-  if(currentAudio){
-    currentAudio.pause();
-    currentAudio=null;
+function getAudioDB() {
+  if (audioDbPromise) return audioDbPromise;
+  audioDbPromise = new Promise(function(resolve) {
+    if (!('indexedDB' in window)) {
+      return resolve(null);
+    }
+    var req = indexedDB.open(DB_NAME, DB_VERSION);
+    req.onupgradeneeded = function(e) {
+      var db = e.target.result;
+      if (!db.objectStoreNames.contains(STORE_NAME)) {
+        var store = db.createObjectStore(STORE_NAME, { keyPath: 'url' });
+        store.createIndex('by_class', 'classId', { unique: false });
+      }
+    };
+    req.onsuccess = function(e) {
+      if (navigator.storage && navigator.storage.persist) {
+        navigator.storage.persist().catch(function(){});
+      }
+      resolve(e.target.result);
+    };
+    req.onerror = function() {
+      resolve(null);
+    };
+  });
+  return audioDbPromise;
+}
+
+function getStoredAudioBlob(url) {
+  return getAudioDB().then(function(db) {
+    if (!db) return null;
+    return new Promise(function(resolve) {
+      try {
+        var tx = db.transaction(STORE_NAME, 'readonly');
+        var store = tx.objectStore(STORE_NAME);
+        var req = store.get(url);
+        req.onsuccess = function() {
+          var item = req.result;
+          resolve(item && item.blob ? item.blob : null);
+        };
+        req.onerror = function() { resolve(null); };
+      } catch (err) {
+        resolve(null);
+      }
+    });
+  });
+}
+
+function saveAudioBlobToDB(item, classId) {
+  return getAudioDB().then(function(db) {
+    if (!db) return false;
+    return new Promise(function(resolve) {
+      try {
+        var tx = db.transaction(STORE_NAME, 'readwrite');
+        var store = tx.objectStore(STORE_NAME);
+        store.put({
+          url: item.url,
+          classId: classId,
+          name: item.name,
+          blob: item.blob,
+          size: item.blob.size,
+          savedAt: Date.now()
+        });
+        tx.oncomplete = function() { resolve(true); };
+        tx.onerror = function() { resolve(false); };
+      } catch (err) {
+        resolve(false);
+      }
+    });
+  });
+}
+
+function deleteClassFromDB(classId) {
+  return getAudioDB().then(function(db) {
+    if (!db) return 0;
+    return new Promise(function(resolve) {
+      try {
+        var tx = db.transaction(STORE_NAME, 'readwrite');
+        var store = tx.objectStore(STORE_NAME);
+        var index = store.index('by_class');
+        var req = index.openKeyCursor(IDBKeyRange.only(classId));
+        var keysToDelete = [];
+        req.onsuccess = function(e) {
+          var cursor = e.target.result;
+          if (cursor) {
+            keysToDelete.push(cursor.primaryKey);
+            cursor.continue();
+          } else {
+            keysToDelete.forEach(function(k) { store.delete(k); });
+            tx.oncomplete = function() { resolve(keysToDelete.length); };
+          }
+        };
+        req.onerror = function() { resolve(0); };
+      } catch (err) {
+        resolve(0);
+      }
+    });
+  });
+}
+
+function getClassStoredCount(classId, urls) {
+  return Promise.all(urls.map(function(u) { return getStoredAudioBlob(u); })).then(function(blobs) {
+    return blobs.filter(Boolean).length;
+  });
+}
+
+// In-browser ZIP archive builder (Store / 0 overhead for MP3)
+function buildZipArchive(fileItems) {
+  var crcTable = new Uint32Array(256);
+  for (var i = 0; i < 256; i++) {
+    var c = i;
+    for (var j = 0; j < 8; j++) c = (c & 1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1);
+    crcTable[i] = c >>> 0;
   }
-  if(activePlayBtn){
+  function crc32(buf) {
+    var crc = 0xFFFFFFFF;
+    for (var i = 0; i < buf.length; i++) crc = (crc >>> 8) ^ crcTable[(crc ^ buf[i]) & 0xFF];
+    return (crc ^ 0xFFFFFFFF) >>> 0;
+  }
+
+  var parts = [];
+  var central = [];
+  var offset = 0;
+
+  fileItems.forEach(function(f) {
+    var nameBytes = new TextEncoder().encode(f.name);
+    var data = f.data instanceof Uint8Array ? f.data : new Uint8Array(f.data);
+    var crc = crc32(data);
+    var size = data.length;
+
+    var localHdr = new Uint8Array(30 + nameBytes.length);
+    var dv = new DataView(localHdr.buffer);
+    dv.setUint32(0, 0x04034b50, true);
+    dv.setUint16(4, 10, true);
+    dv.setUint16(6, 0x0800, true);
+    dv.setUint16(8, 0, true);
+    dv.setUint16(10, 0, true);
+    dv.setUint16(12, 0, true);
+    dv.setUint32(14, crc, true);
+    dv.setUint32(18, size, true);
+    dv.setUint32(22, size, true);
+    dv.setUint16(26, nameBytes.length, true);
+    dv.setUint16(28, 0, true);
+    localHdr.set(nameBytes, 30);
+
+    parts.push(localHdr, data);
+
+    var cdHdr = new Uint8Array(46 + nameBytes.length);
+    var cdv = new DataView(cdHdr.buffer);
+    cdv.setUint32(0, 0x02014b50, true);
+    cdv.setUint16(4, 20, true);
+    cdv.setUint16(6, 10, true);
+    cdv.setUint16(8, 0x0800, true);
+    cdv.setUint16(10, 0, true);
+    cdv.setUint16(12, 0, true);
+    cdv.setUint16(14, 0, true);
+    cdv.setUint32(16, crc, true);
+    cdv.setUint32(20, size, true);
+    cdv.setUint32(24, size, true);
+    cdv.setUint16(28, nameBytes.length, true);
+    cdv.setUint16(30, 0, true);
+    cdv.setUint16(32, 0, true);
+    cdv.setUint16(34, 0, true);
+    cdv.setUint16(36, 0, true);
+    cdv.setUint32(38, 0, true);
+    cdv.setUint32(42, offset, true);
+    cdHdr.set(nameBytes, 46);
+
+    central.push(cdHdr);
+    offset += localHdr.length + data.length;
+  });
+
+  var centralOffset = offset;
+  var centralSize = central.reduce(function(a, b) { return a + b.length; }, 0);
+
+  var eocd = new Uint8Array(22);
+  var edv = new DataView(eocd.buffer);
+  edv.setUint32(0, 0x06054b50, true);
+  edv.setUint16(4, 0, true);
+  edv.setUint16(6, 0, true);
+  edv.setUint16(8, fileItems.length, true);
+  edv.setUint16(10, fileItems.length, true);
+  edv.setUint32(12, centralSize, true);
+  edv.setUint32(16, centralOffset, true);
+  edv.setUint16(20, 0, true);
+
+  return new Blob(parts.concat(central).concat([eocd]), { type: 'application/zip' });
+}
+
+var currentAudio = null;
+var activePlayBtn = null;
+var activeObjectUrl = null;
+
+function stopAudio() {
+  if (currentAudio) {
+    currentAudio.pause();
+    currentAudio = null;
+  }
+  if (activePlayBtn) {
     activePlayBtn.classList.remove('playing');
-    activePlayBtn=null;
+    activePlayBtn = null;
+  }
+  if (activeObjectUrl) {
+    try { URL.revokeObjectURL(activeObjectUrl); } catch(e){}
+    activeObjectUrl = null;
   }
 }
 
-function playAudioUrl(url, btn){
-  if(activePlayBtn===btn && currentAudio && !currentAudio.paused){
+function playAudioUrl(url, btn) {
+  if (activePlayBtn === btn && currentAudio && !currentAudio.paused) {
     stopAudio();
     return;
   }
   stopAudio();
-  if(btn){
+  if (btn) {
     btn.classList.add('playing');
-    activePlayBtn=btn;
+    activePlayBtn = btn;
   }
 
-  function doPlay(src){
-    var a=new Audio(src);
-    currentAudio=a;
-    a.onended=function(){ stopAudio(); };
-    a.onerror=function(){ stopAudio(); };
-    a.play().catch(function(){ stopAudio(); });
+  function doPlay(src, isBlob) {
+    var a = new Audio(src);
+    currentAudio = a;
+    if (isBlob) activeObjectUrl = src;
+    a.onended = function() { stopAudio(); };
+    a.onerror = function() { stopAudio(); };
+    a.play().catch(function() { stopAudio(); });
   }
 
-  if('caches' in window){
-    caches.open(AUDIO_CACHE).then(function(cache){
-      return cache.match(url).then(function(res){
-        if(res){
-          return res.blob().then(function(blob){
-            return URL.createObjectURL(blob);
-          });
-        }
-        return url;
+  getStoredAudioBlob(url).then(function(blob) {
+    if (blob) {
+      var blobUrl = URL.createObjectURL(blob);
+      doPlay(blobUrl, true);
+      return;
+    }
+    if ('caches' in window) {
+      caches.open('nd-audio-v1').then(function(cache) {
+        return cache.match(url).then(function(res) {
+          if (res) {
+            return res.blob().then(function(cBlob) {
+              var cUrl = URL.createObjectURL(cBlob);
+              doPlay(cUrl, true);
+            });
+          }
+          doPlay(url, false);
+        });
+      }).catch(function() {
+        doPlay(url, false);
       });
-    }).then(function(src){
-      doPlay(src);
-    }).catch(function(){
-      doPlay(url);
-    });
-  } else {
-    doPlay(url);
-  }
+      return;
+    }
+    doPlay(url, false);
+  }).catch(function() {
+    doPlay(url, false);
+  });
 }
 
 // Global click delegate for audio buttons
-document.addEventListener('click',function(e){
-  var btn=e.target.closest('.play-btn');
-  if(!btn) return;
-  var audio=btn.getAttribute('data-audio');
-  if(audio){
+document.addEventListener('click', function(e) {
+  var btn = e.target.closest('.play-btn');
+  if (!btn) return;
+  var audio = btn.getAttribute('data-audio');
+  if (audio) {
     e.preventDefault();
     playAudioUrl(audio, btn);
   }
 });
 
-// Class audio download / offline caching
-var dlBtn=document.getElementById('dlClassAudio');
-var dlStatus=document.getElementById('audioStatus');
-if(dlBtn && 'caches' in window){
-  try{
-    var classAudios=JSON.parse(dlBtn.getAttribute('data-class-audio')||'[]');
-    if(classAudios.length>0){
-      caches.open(AUDIO_CACHE).then(function(cache){
-        return Promise.all(classAudios.map(function(u){ return cache.match(u); })).then(function(results){
-          var cachedCount=results.filter(Boolean).length;
-          if(cachedCount===classAudios.length){
-            dlBtn.classList.add('is-cached');
-            dlBtn.textContent='✅ সব অডিও অফলাইনে প্রস্তুত ('+bn(classAudios.length)+'টি)';
-          } else if(cachedCount>0){
-            dlBtn.textContent='📥 অফলাইন সম্পন্ন করুন ('+bn(cachedCount)+'/'+bn(classAudios.length)+')';
+// Class Audio Panel Controls
+var classPanel = document.getElementById('classAudioPanel');
+if (classPanel) {
+  var classId = parseInt(classPanel.getAttribute('data-class-id'), 10);
+  var classFolderName = classPanel.getAttribute('data-class-name') || ('Class_' + classId);
+  var classAudios = [];
+  try {
+    classAudios = JSON.parse(classPanel.getAttribute('data-class-audios') || '[]');
+  } catch(e) {}
+
+  var saveBtn = document.getElementById('saveLocalAudioBtn');
+  var zipBtn = document.getElementById('dlClassZipBtn');
+  var delBtn = document.getElementById('delLocalAudioBtn');
+  var statusSpan = document.querySelector('#audioStatus .audio-status-text');
+
+  function updateClassAudioStatus() {
+    if (!classAudios.length) return;
+    var urls = classAudios.map(function(item) { return item.url; });
+    getClassStoredCount(classId, urls).then(function(count) {
+      if (count === classAudios.length) {
+        if (saveBtn) {
+          saveBtn.classList.add('is-saved');
+          saveBtn.textContent = '✅ লোকাল মেমরিতে সুরক্ষিত (' + bn(count) + 'টি অডিও)';
+        }
+        if (delBtn) delBtn.hidden = false;
+        if (statusSpan) {
+          statusSpan.innerHTML = '🔒 <strong>স্থায়ী মেমরিতে সংরক্ষিত:</strong> অফলাইনে ইন্টারনেট ছাড়া বাজবে — আপনি ডিলিট না করা পর্যন্ত কখনোই মুছবে না।';
+        }
+      } else if (count > 0) {
+        if (saveBtn) {
+          saveBtn.classList.remove('is-saved');
+          saveBtn.textContent = '💾 বাকি অডিও সেভ করুন (' + bn(count) + '/' + bn(classAudios.length) + ')';
+        }
+        if (delBtn) delBtn.hidden = false;
+        if (statusSpan) {
+          statusSpan.textContent = bn(count) + 'টি অডিও মেমরিতে সংরক্ষিত আছে। বাকিগুলো সেভ করতে বাটনে চাপুন।';
+        }
+      } else {
+        if (saveBtn) {
+          saveBtn.classList.remove('is-saved');
+          saveBtn.textContent = '💾 মেমরিতে সংরক্ষণ (অফলাইন প্লেয়ার)';
+        }
+        if (delBtn) delBtn.hidden = true;
+        if (statusSpan) {
+          statusSpan.textContent = 'মেমরিতে সেভ করে রাখলে ইন্টারনেট ছাড়াই অডিও বাজবে — ডিলিট না করা পর্যন্ত কখনোই মুছবে না।';
+        }
+      }
+    });
+  }
+
+  updateClassAudioStatus();
+
+  // 1. Save all audios to permanent IndexedDB
+  if (saveBtn) {
+    saveBtn.addEventListener('click', function() {
+      saveBtn.disabled = true;
+      if (statusSpan) statusSpan.textContent = '⏳ অডিও ডাউনলোড করে স্থায়ী মেমরিতে সংরক্ষণ করা হচ্ছে... (০/' + bn(classAudios.length) + ')';
+
+      var done = 0;
+      Promise.all(classAudios.map(function(item) {
+        return getStoredAudioBlob(item.url).then(function(existingBlob) {
+          if (existingBlob) {
+            done++;
+            if (statusSpan) statusSpan.textContent = '⏳ মেমরিতে সংরক্ষণ হচ্ছে... (' + bn(done) + '/' + bn(classAudios.length) + ')';
+            return;
           }
+          return fetch(item.url).then(function(res) {
+            if (!res.ok) throw new Error('HTTP ' + res.status);
+            return res.blob();
+          }).then(function(blob) {
+            return saveAudioBlobToDB({ url: item.url, name: item.name, blob: blob }, classId);
+          }).then(function() {
+            done++;
+            if (statusSpan) statusSpan.textContent = '⏳ মেমরিতে সংরক্ষণ হচ্ছে... (' + bn(done) + '/' + bn(classAudios.length) + ')';
+          }).catch(function(err) {
+            console.warn('Audio fetch failed for:', item.url, err);
+          });
+        });
+      })).then(function() {
+        saveBtn.disabled = false;
+        updateClassAudioStatus();
+      });
+    });
+  }
+
+  // 2. Download as ZIP Folder
+  if (zipBtn) {
+    zipBtn.addEventListener('click', function() {
+      zipBtn.disabled = true;
+      var origText = zipBtn.textContent;
+      zipBtn.textContent = '⏳ জিপ তৈরি হচ্ছে...';
+      if (statusSpan) statusSpan.textContent = '⏳ অডিও সংগ্রহ করে জিপ তৈরি হচ্ছে... (০/' + bn(classAudios.length) + ')';
+
+      var collected = 0;
+      var filePromises = classAudios.map(function(item) {
+        return getStoredAudioBlob(item.url).then(function(cachedBlob) {
+          if (cachedBlob) {
+            return cachedBlob.arrayBuffer().then(function(ab) {
+              collected++;
+              if (statusSpan) statusSpan.textContent = '⏳ ফাইল সংগ্রহ হচ্ছে... (' + bn(collected) + '/' + bn(classAudios.length) + ')';
+              return { name: classFolderName + '/' + item.name, data: ab };
+            });
+          }
+          return fetch(item.url).then(function(res) {
+            if (!res.ok) throw new Error('HTTP ' + res.status);
+            return res.arrayBuffer();
+          }).then(function(ab) {
+            collected++;
+            if (statusSpan) statusSpan.textContent = '⏳ ফাইল সংগ্রহ হচ্ছে... (' + bn(collected) + '/' + bn(classAudios.length) + ')';
+            return { name: classFolderName + '/' + item.name, data: ab };
+          });
+        }).catch(function(err) {
+          console.warn('Failed for zip:', item.url, err);
+          return null;
         });
       });
 
-      dlBtn.addEventListener('click',function(){
-        dlBtn.disabled=true;
-        if(dlStatus){ dlStatus.hidden=false; dlStatus.textContent='অডিও ডাউনলোড হচ্ছে... (০/'+bn(classAudios.length)+')'; }
-        caches.open(AUDIO_CACHE).then(function(cache){
-          var completed=0;
-          return Promise.all(classAudios.map(function(url){
-            return cache.match(url).then(function(existing){
-              if(existing){
-                completed++;
-                if(dlStatus) dlStatus.textContent='অডিও ডাউনলোড হচ্ছে... ('+bn(completed)+'/'+bn(classAudios.length)+')';
-                return;
-              }
-              return fetch(url).then(function(res){
-                if(res.ok){
-                  return cache.put(url, res).then(function(){
-                    completed++;
-                    if(dlStatus) dlStatus.textContent='অডিও ডাউনলোড হচ্ছে... ('+bn(completed)+'/'+bn(classAudios.length)+')';
-                  });
-                }
-              }).catch(function(err){
-                console.warn('Audio download failed:', url, err);
-              });
-            });
-          }));
-        }).then(function(){
-          dlBtn.disabled=false;
-          dlBtn.classList.add('is-cached');
-          dlBtn.textContent='✅ সব অডিও অফলাইনে প্রস্তুত ('+bn(classAudios.length)+'টি)';
-          if(dlStatus) dlStatus.textContent='ক্লাসের সব অডিও ব্রাউজারে সেভ হয়েছে। নেট ছাড়াও বাজবে!';
-        }).catch(function(){
-          dlBtn.disabled=false;
-          if(dlStatus) dlStatus.textContent='কিছু অডিও ডাউনলোড হতে পারেনি। নেট সংযোগ দেখুন।';
-        });
+      Promise.all(filePromises).then(function(results) {
+        var validFiles = results.filter(Boolean);
+        if (!validFiles.length) {
+          alert('কোনো অডিও ফাইল ডাউনলোড করা যায়নি। ইন্টারনেট সংযোগ চেক করুন।');
+          zipBtn.disabled = false;
+          zipBtn.textContent = origText;
+          updateClassAudioStatus();
+          return;
+        }
+
+        var zipBlob = buildZipArchive(validFiles);
+        var zipUrl = URL.createObjectURL(zipBlob);
+        var a = document.createElement('a');
+        a.href = zipUrl;
+        a.download = 'Noor_Dwip_' + classFolderName + '_Audio.zip';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        setTimeout(function() { URL.revokeObjectURL(zipUrl); }, 60000);
+
+        zipBtn.disabled = false;
+        zipBtn.textContent = origText;
+        if (statusSpan) {
+          statusSpan.innerHTML = '🎉 <strong>' + a.download + '</strong> আপনার ডিভাইসে সেভ হয়েছে! এটি এক্সট্রাক্ট করে স্থায়ী ফোল্ডারে রাখুন।';
+        }
       });
-    }
-  }catch(e){
-    console.error(e);
+    });
+  }
+
+  // 3. Delete from permanent IndexedDB
+  if (delBtn) {
+    delBtn.addEventListener('click', function() {
+      if (!confirm('আপনি কি এই ক্লাসের মেমরিতে সংরক্ষিত অডিও মুছে ফেলতে চান?')) return;
+      deleteClassFromDB(classId).then(function() {
+        updateClassAudioStatus();
+      });
+    });
   }
 }
 
