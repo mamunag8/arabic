@@ -564,14 +564,66 @@ function buildClass(c) {
   </header>`);
 
   if (ex.hook) {
-    out.push('<section class="story"><h2>🗺️ আজকের অভিযান</h2>');
+    out.push(`<section class="story story-interactive" id="classStorySection">
+      <div class="story-head-bar">
+        <h2>🗺️ আজকের অভিযান</h2>
+        <div class="story-audio-bar">
+          <button class="btn story-play-btn" type="button" id="storyPlayBtn" aria-label="গল্প শুনুন">
+            <span class="st-ic">🎧</span> <span class="st-txt">গল্প শুনুন (স্টোরিটেলার)</span>
+          </button>
+          <div class="story-speed-ctrl" id="storySpeedCtrl">
+            <button class="sp-btn" type="button" data-spd="0.8">০.৮x</button>
+            <button class="sp-btn on" type="button" data-spd="1.0">১.০x</button>
+            <button class="sp-btn" type="button" data-spd="1.2">১.২x</button>
+          </div>
+        </div>
+      </div>
+      <div class="story-listening-status" id="storyStatusNote" hidden>
+        <span class="pulse-dot"></span> <span class="status-msg">স্টোরিটেলার গল্প শোনাচ্ছে... যেকোনো লাইনে ক্লিক করে সরাসরি শুনতে পারেন</span>
+      </div>
+      <div class="story-body" id="storyBody">`);
+
+    let segIdx = 0;
     ex.hook.forEach((l) => {
       if (l.trim() === '---') { out.push('<hr class="dream" data-label="স্বপ্ন">'); return; }
       if (l.startsWith('> ')) { out.push(`<blockquote>${inline(l.slice(2), rel, ctx)}</blockquote>`); return; }
       if (l.startsWith('# ')) { out.push(`<h3 class="big-note">${inline(l.slice(2), rel, ctx)}</h3>`); return; }
-      out.push(`<p>${inline(l, rel, ctx)}</p>`);
+
+      let speaker = 'narrator';
+      let tagLabel = 'গল্পকথক';
+
+      if (l.includes('বাদ দে তো') || l.includes('শত্রু') || l.includes('মাথার ভেতর') || l.includes('ওয়াসওয়াসা')) {
+        speaker = 'waswasa';
+        tagLabel = 'ছায়া';
+      } else if (l.includes('তাসমিয়া') || l.includes('মারইয়াম')) {
+        speaker = 'tasmiya';
+        tagLabel = 'তাসমিয়া';
+      } else if (l.includes('দাদা') || l.includes('আবুল হোসেন')) {
+        speaker = 'dada';
+        tagLabel = 'দাদা';
+      } else if (l.includes('নানা') || l.includes('গোলাম রহমান')) {
+        speaker = 'nana';
+        tagLabel = 'নানা';
+      } else if (l.includes('নানি') || l.includes('তাহুরা বেগম')) {
+        speaker = 'nani';
+        tagLabel = 'নানি';
+      } else if (l.includes('আম্মু') || l.includes('ফাতেমা')) {
+        speaker = 'ammu';
+        tagLabel = 'আম্মু';
+      } else if (l.includes('আব্বু') || l.includes('রেজওয়ানুল')) {
+        speaker = 'abbu';
+        tagLabel = 'আব্বু';
+      } else if (l.includes('মাহদী বলল') || l.includes('মাহদী জিজ্ঞেস করল') || l.startsWith('"নানা,') || l.startsWith('"দাদা,') || l.startsWith('"আছে নানা')) {
+        speaker = 'mahdi';
+        tagLabel = 'মাহদী';
+      }
+
+      out.push(`<p class="story-seg" data-seg="${segIdx++}" data-speaker="${speaker}" tabindex="0">
+        <span class="seg-speaker-tag ${speaker}-tag">${tagLabel}</span>
+        <span class="seg-content">${inline(l, rel, ctx)}</span>
+      </p>`);
     });
-    out.push('</section>');
+    out.push('</div></section>');
   }
 
   if (c.type !== 'revision') {
@@ -1785,6 +1837,48 @@ ul.check li::before{content:"☐ ";color:var(--mut)}
 .audio-status{margin-top:.65rem;font-size:.83rem;color:var(--mut);line-height:1.45}
 .audio-status strong{color:var(--fg)}
 
+/* ---- Interactive Storyteller & Auto-Scroll Styles ---- */
+.story-interactive{position:relative}
+.story-head-bar{display:flex;align-items:center;justify-content:space-between;gap:.8rem;flex-wrap:wrap;margin-bottom:1rem}
+.story-head-bar h2{margin:0}
+.story-audio-bar{display:flex;align-items:center;gap:.5rem;flex-wrap:wrap}
+.story-play-btn{background:linear-gradient(135deg,var(--acc),var(--acc2));color:#fff;
+  font-weight:700;font-size:.88rem;padding:.48rem 1rem;border-radius:24px;border:none;
+  cursor:pointer;display:inline-flex;align-items:center;gap:.4rem;box-shadow:0 3px 10px rgba(0,0,0,.12);
+  transition:all .2s ease}
+.story-play-btn:hover{transform:translateY(-1px);box-shadow:0 5px 14px rgba(0,0,0,.18)}
+.story-play-btn.playing{background:#e11d48;animation:storyPulse 1.5s infinite}
+@keyframes storyPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.03);box-shadow:0 0 14px rgba(225,29,72,.4)}}
+.story-speed-ctrl{display:inline-flex;background:var(--chip);border:1px solid var(--line);border-radius:18px;padding:2px}
+.sp-btn{background:none;border:none;padding:.2rem .5rem;font-size:.75rem;font-weight:600;
+  color:var(--mut);border-radius:14px;cursor:pointer;transition:all .15s ease}
+.sp-btn.on{background:var(--card);color:var(--acc);box-shadow:0 1px 4px rgba(0,0,0,.08)}
+.story-listening-status{background:color-mix(in srgb,var(--acc2) 12%,transparent);
+  border:1px solid color-mix(in srgb,var(--acc2) 28%,transparent);border-radius:10px;
+  padding:.45rem .8rem;font-size:.82rem;color:var(--fg);display:flex;align-items:center;gap:.5rem;margin-bottom:1rem}
+.pulse-dot{width:8px;height:8px;background:var(--acc2);border-radius:50%;animation:dotPulse 1s infinite alternate}
+@keyframes dotPulse{from{opacity:.4;transform:scale(.8)}to{opacity:1;transform:scale(1.3)}}
+.story-body{position:relative}
+.story-seg{padding:.65rem .9rem;margin:.5rem 0;border-radius:12px;border:1px solid transparent;
+  transition:all .25s ease;cursor:pointer;position:relative;line-height:1.7}
+.story-seg:hover{background:var(--chip);border-color:var(--line)}
+.story-seg.active-story-seg{background:color-mix(in srgb,var(--acc2) 18%,var(--card));
+  border:1px solid var(--acc2);box-shadow:0 4px 16px rgba(0,0,0,.06);transform:scale(1.015);
+  transition:all .2s cubic-bezier(.2,.8,.2,1)}
+.seg-speaker-tag{display:inline-block;font-size:.72rem;font-weight:700;padding:.12rem .5rem;
+  border-radius:10px;margin-inline-end:.5rem;vertical-align:middle;text-transform:uppercase;letter-spacing:.02em}
+.narrator-tag{background:color-mix(in srgb,var(--mut) 15%,transparent);color:var(--mut)}
+.mahdi-tag{background:color-mix(in srgb,#3b82f6 18%,transparent);color:#2563eb}
+.tasmiya-tag{background:color-mix(in srgb,#ec4899 18%,transparent);color:#db2777}
+.dada-tag{background:color-mix(in srgb,#059669 18%,transparent);color:#059669}
+.nana-tag{background:color-mix(in srgb,#d97706 18%,transparent);color:#d97706}
+.nani-tag{background:color-mix(in srgb,#8b5cf6 18%,transparent);color:#7c3aed}
+.ammu-tag{background:color-mix(in srgb,#14b8a6 18%,transparent);color:#0d9488}
+.abbu-tag{background:color-mix(in srgb,#6366f1 18%,transparent);color:#4f46e5}
+.waswasa-tag{background:color-mix(in srgb,#64748b 25%,transparent);color:#475569;font-style:italic}
+.active-story-seg .seg-speaker-tag{animation:tagGlow 1.2s infinite alternate}
+@keyframes tagGlow{from{filter:brightness(1)}to{filter:brightness(1.25)}}
+
 /* ---- tables ---- */
 .tbl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain;
   margin:.8em 0;border:1px solid var(--line);border-radius:var(--rad)}
@@ -2977,6 +3071,179 @@ if (classPanel) {
     });
   }
 }
+
+// ===== Storyteller Interactive Read-Along Engine =====
+(function initStoryPlayer() {
+  var storySec = document.getElementById('classStorySection');
+  if (!storySec) return;
+
+  var playBtn = document.getElementById('storyPlayBtn');
+  var speedCtrl = document.getElementById('storySpeedCtrl');
+  var statusNote = document.getElementById('storyStatusNote');
+  var segs = [].slice.call(storySec.querySelectorAll('.story-seg'));
+  if (!segs.length) return;
+
+  var isPlaying = false;
+  var currentIdx = 0;
+  var currentSpeed = 1.0;
+  var synth = window.speechSynthesis;
+  var currentUtterance = null;
+  var userScrolling = false;
+  var userScrollTimer = null;
+
+  function markUserScroll() {
+    userScrolling = true;
+    clearTimeout(userScrollTimer);
+    userScrollTimer = setTimeout(function() { userScrolling = false; }, 4000);
+  }
+  window.addEventListener('wheel', markUserScroll, { passive: true });
+  window.addEventListener('touchstart', markUserScroll, { passive: true });
+
+  if (speedCtrl) {
+    speedCtrl.addEventListener('click', function(e) {
+      var btn = e.target.closest('.sp-btn');
+      if (!btn) return;
+      [].forEach.call(speedCtrl.querySelectorAll('.sp-btn'), function(b){ b.classList.remove('on'); });
+      btn.classList.add('on');
+      currentSpeed = parseFloat(btn.getAttribute('data-spd') || '1.0');
+      if (isPlaying) {
+        speakSegment(currentIdx);
+      }
+    });
+  }
+
+  function setActiveSeg(idx) {
+    segs.forEach(function(s, i) {
+      if (i === idx) {
+        s.classList.add('active-story-seg');
+        if (!userScrolling) {
+          s.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      } else {
+        s.classList.remove('active-story-seg');
+      }
+    });
+  }
+
+  function stopStory() {
+    isPlaying = false;
+    if (synth) synth.cancel();
+    if (playBtn) {
+      playBtn.classList.remove('playing');
+      playBtn.querySelector('.st-txt').textContent = 'গল্প শুনুন (স্টোরিটেলার)';
+    }
+    if (statusNote) statusNote.hidden = true;
+    segs.forEach(function(s){ s.classList.remove('active-story-seg'); });
+  }
+
+  function getCleanText(elem) {
+    var contentElem = elem.querySelector('.seg-content');
+    var raw = contentElem ? contentElem.innerText : elem.innerText;
+    return raw.replace(/[\(\*\_\)]/g, '').trim();
+  }
+
+  function speakSegment(idx) {
+    if (!isPlaying || idx >= segs.length) {
+      stopStory();
+      return;
+    }
+    currentIdx = idx;
+    var seg = segs[idx];
+    setActiveSeg(idx);
+
+    var text = getCleanText(seg);
+    var speaker = seg.getAttribute('data-speaker') || 'narrator';
+
+    if (!synth) {
+      var wordCount = text.split(/\s+/).length;
+      var duration = Math.max(2500, (wordCount * 450) / currentSpeed);
+      setTimeout(function() {
+        if (isPlaying) speakSegment(idx + 1);
+      }, duration);
+      return;
+    }
+
+    synth.cancel();
+    var ut = new SpeechSynthesisUtterance(text);
+    ut.lang = 'bn-BD';
+    ut.rate = currentSpeed * 0.95;
+
+    // Character voice personality modulation
+    if (speaker === 'mahdi') {
+      ut.pitch = 1.35;
+      ut.rate = currentSpeed * 1.02;
+    } else if (speaker === 'tasmiya') {
+      ut.pitch = 1.6;
+      ut.rate = currentSpeed * 1.08;
+    } else if (speaker === 'dada') {
+      ut.pitch = 0.72;
+      ut.rate = currentSpeed * 0.88;
+    } else if (speaker === 'nana') {
+      ut.pitch = 0.8;
+      ut.rate = currentSpeed * 0.92;
+    } else if (speaker === 'nani' || speaker === 'ammu') {
+      ut.pitch = 1.15;
+      ut.rate = currentSpeed * 0.92;
+    } else if (speaker === 'waswasa') {
+      ut.pitch = 1.05;
+      ut.rate = currentSpeed * 0.82;
+    } else {
+      ut.pitch = 1.0;
+      ut.rate = currentSpeed * 0.96;
+    }
+
+    var voices = synth.getVoices();
+    var bnVoice = voices.find(function(v){ return v.lang && (v.lang.startsWith('bn') || v.lang.includes('Bengali')); });
+    if (bnVoice) ut.voice = bnVoice;
+
+    ut.onend = function() {
+      if (isPlaying) {
+        var pause = (speaker === 'waswasa' || speaker === 'dada') ? 600 : 350;
+        setTimeout(function() {
+          if (isPlaying) speakSegment(idx + 1);
+        }, pause / currentSpeed);
+      }
+    };
+
+    ut.onerror = function() {
+      if (isPlaying) {
+        setTimeout(function() { speakSegment(idx + 1); }, 1000);
+      }
+    };
+
+    currentUtterance = ut;
+    synth.speak(ut);
+  }
+
+  if (playBtn) {
+    playBtn.addEventListener('click', function() {
+      if (isPlaying) {
+        stopStory();
+      } else {
+        isPlaying = true;
+        playBtn.classList.add('playing');
+        playBtn.querySelector('.st-txt').textContent = 'বিরতি (পজ)';
+        if (statusNote) statusNote.hidden = false;
+        speakSegment(currentIdx || 0);
+      }
+    });
+  }
+
+  segs.forEach(function(seg, i) {
+    seg.addEventListener('click', function() {
+      currentIdx = i;
+      if (!isPlaying) {
+        isPlaying = true;
+        if (playBtn) {
+          playBtn.classList.add('playing');
+          playBtn.querySelector('.st-txt').textContent = 'বিরতি (পজ)';
+        }
+        if (statusNote) statusNote.hidden = false;
+      }
+      speakSegment(i);
+    });
+  });
+})();
 
 // ---- theme ----
 var root=document.documentElement, KEY='nd-theme';
