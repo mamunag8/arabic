@@ -1369,24 +1369,26 @@ hr{border:0;border-top:1px solid var(--line);margin:2em 0}
    --hdr / --tab are the single source of truth for how much space the fixed
    chrome occupies. Body padding, anchor scroll-margin and the sticky filter
    are all derived from them, so changing a height here fixes every page. */
+/* 3-column grid, not flex: the side columns are equal 1fr so the brand in the
+   middle stays optically centred no matter how wide the nav gets. */
 .top{position:fixed;inset-inline:0;top:0;z-index:30;
-  display:flex;gap:.6rem;align-items:center;
+  display:grid;grid-template-columns:1fr auto 1fr;gap:.6rem;align-items:center;
   height:calc(var(--hdr) + env(safe-area-inset-top));
   padding:0 max(.9rem,env(safe-area-inset-left)) 0 max(.9rem,env(safe-area-inset-right));
   padding-top:env(safe-area-inset-top);
   background:color-mix(in srgb,var(--bg) 86%,transparent);
   backdrop-filter:saturate(1.5) blur(12px);-webkit-backdrop-filter:saturate(1.5) blur(12px);
   border-bottom:1px solid var(--line)}
-.brand{display:flex;align-items:center;gap:.4rem;min-width:0;height:100%;font-weight:700;
-  text-decoration:none;color:var(--fg);white-space:nowrap}
+.brand{grid-column:2;justify-self:center;display:flex;align-items:center;gap:.4rem;min-width:0;
+  height:100%;font-weight:700;text-decoration:none;color:var(--fg);white-space:nowrap}
 .brand .bt{overflow:hidden;text-overflow:ellipsis}
 .brand .mark{filter:saturate(1.2);flex:none}
-.nav-top{display:flex;gap:.15rem;flex:1;justify-content:flex-end;font-size:.87rem;min-width:0}
+.nav-top{grid-column:1;justify-self:start;display:flex;gap:.15rem;font-size:.87rem;min-width:0;overflow:hidden}
 .nav-top a{display:inline-flex;align-items:center;gap:.32rem;padding:.45rem .6rem;border-radius:9px;
   text-decoration:none;color:var(--mut);white-space:nowrap}
 .nav-top a:hover,.nav-top a.on{background:var(--chip);color:var(--fg)}
-.theme{flex:none;background:none;border:1px solid var(--line);border-radius:9px;cursor:pointer;
-  font-size:1rem;min-width:44px;min-height:44px;color:var(--fg)}
+.theme{grid-column:3;justify-self:end;background:none;border:1px solid var(--line);border-radius:9px;
+  cursor:pointer;font-size:1rem;min-width:44px;min-height:44px;color:var(--fg)}
 
 /* bottom tab bar — hidden on desktop, shown at the mobile breakpoint */
 /* Height is exactly --tab (border included, box-sizing:border-box) so that
