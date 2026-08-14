@@ -1386,7 +1386,7 @@ hr{border:0;border-top:1px solid var(--line);margin:2em 0}
   text-decoration:none;color:var(--mut);white-space:nowrap}
 .nav-top a:hover,.nav-top a.on{background:var(--chip);color:var(--fg)}
 .theme{flex:none;background:none;border:1px solid var(--line);border-radius:9px;cursor:pointer;
-  font-size:1rem;min-width:40px;height:36px;color:var(--fg)}
+  font-size:1rem;min-width:44px;min-height:44px;color:var(--fg)}
 
 /* bottom tab bar — hidden on desktop, shown at the mobile breakpoint */
 /* Height is exactly --tab (border included, box-sizing:border-box) so that
@@ -1443,7 +1443,7 @@ hr{border:0;border-top:1px solid var(--line);margin:2em 0}
 .q-stats span{font-size:.72rem;color:var(--mut)}
 .q-note{font-size:.8rem;color:var(--mut);margin:1rem 0 0}
 .mini{font:inherit;font-size:.78rem;background:none;border:1px solid var(--line);
-  border-radius:999px;padding:.2rem .7rem;color:var(--mut);cursor:pointer}
+  border-radius:999px;padding:.5rem 1rem;min-height:40px;color:var(--mut);cursor:pointer}
 .mini:hover{border-color:var(--acc);color:var(--fg)}
 
 /* island cards */
@@ -1515,9 +1515,15 @@ hr{border:0;border-top:1px solid var(--line);margin:2em 0}
 .bdg:hover{border-color:var(--acc)}
 
 /* ---- practice room ---- */
-.pr-scope{display:flex;gap:.9rem;flex-wrap:wrap;margin:.2rem 0 .8rem;font-size:.85rem;color:var(--mut)}
-.pr-scope label{display:inline-flex;align-items:center;gap:.3rem;min-height:34px;cursor:pointer}
+.pr-scope{display:flex;gap:.5rem;flex-wrap:wrap;margin:.2rem 0 .8rem;font-size:.85rem;color:var(--mut)}
+.pr-scope label{display:inline-flex;align-items:center;gap:.45rem;min-height:44px;padding:.3rem .8rem;
+  border:1px solid var(--line);border-radius:999px;cursor:pointer}
+.pr-scope label:hover{border-color:var(--acc)}
+.pr-scope label:has(input:checked){border-color:var(--acc);background:var(--chip);color:var(--fg)}
 .pr-count{font-size:.88rem;margin:.2rem 0 .6rem}
+
+/* checkboxes and radios need a real thumb target, not a 13px default */
+input[type=checkbox],input[type=radio]{width:20px;height:20px;accent-color:var(--acc);flex:none}
 .practice{background:var(--card);border:1px solid var(--acc2);border-radius:var(--rad);
   padding:1rem 1.1rem;margin:1.5rem 0}
 .practice h2{margin:0 0 .2rem;border:0;padding:0;font-size:1.05rem}
@@ -1650,7 +1656,9 @@ tr:last-child td{border-bottom:0}
 .step-n{font-size:.78rem;color:var(--acc);font-weight:700}
 .pron{font-size:.92rem}
 .mean{font-size:.92rem;color:var(--mut)}
-.tick{display:block;font-size:.82rem;color:var(--mut);margin-top:.3rem;cursor:pointer}
+.tick{display:flex;align-items:center;gap:.5rem;min-height:46px;font-size:.82rem;color:var(--mut);
+  margin-top:.3rem;cursor:pointer}
+.src a{display:inline-flex;align-items:center;min-height:40px}
 .hidden-txt{filter:blur(6px);opacity:.45;transition:.15s;cursor:pointer}
 .hidden-txt:hover{filter:none;opacity:1}
 .two-way{margin-top:1rem;font-size:.88rem;color:var(--mut)}
@@ -1688,6 +1696,7 @@ a.xref{white-space:nowrap}
   border-radius:var(--rad);padding:.6rem .8rem}
 .stats .k{display:block;font-size:.76rem;color:var(--mut)}
 .stats .v{font-weight:700}
+.stats .v a{display:inline-flex;align-items:center;min-height:40px}
 /* ---- duas ---- */
 .dgroup{margin:2.2rem 0}
 .dgroup h2 .cnt{font-size:.75rem;color:var(--mut);border:1px solid var(--line);border-radius:999px;padding:.1rem .5rem;vertical-align:middle}
@@ -1726,9 +1735,9 @@ a.dw:hover{border-color:var(--acc);background:var(--chip)}
 .chunk-list .ar{font-size:1.35em}
 .chunk-list .gl{color:var(--mut);font-size:.88rem}
 .vrefs{display:flex;flex-wrap:wrap;gap:.25rem;min-width:0}
-.vref{display:inline-flex;align-items:center;justify-content:center;min-width:2rem;min-height:2rem;
-  padding:0 .35rem;border:1px solid var(--line);border-radius:8px;background:var(--bg);
-  text-decoration:none;font-size:.82rem}
+.vref{display:inline-flex;align-items:center;justify-content:center;min-width:2.6rem;min-height:2.6rem;
+  padding:0 .4rem;border:1px solid var(--line);border-radius:8px;background:var(--bg);
+  text-decoration:none;font-size:.85rem}
 .vref:hover{border-color:var(--acc);background:var(--chip)}
 table.refs td{vertical-align:top}
 tr.incomplete td:first-child{color:var(--acc2)}
@@ -1800,7 +1809,12 @@ table.index td{padding:.4em .6em}
 
   /* roomier tap targets — a 9-year-old's thumb, not a mouse pointer */
   .node{min-height:46px;font-size:.85rem}
-  .chip{min-height:38px}
+  .chip{min-height:44px}
+  /* links inside a stacked card get a real thumb target */
+  table.stack td a{display:inline-flex;align-items:center;min-height:40px}
+  table.stack td.c-ar a{min-height:48px;padding:.2rem .5rem}
+  .ayah-list a,.prose-list a{min-height:40px}
+  .ayah-list li,.prose-list li{padding:.75rem 0}
   .drill button{min-height:40px;padding:.45rem .95rem}
   .btn{padding:.7rem 1.4rem}
   .tick{display:inline-block;padding:.3rem 0;min-height:34px}
@@ -1822,12 +1836,19 @@ table.index td{padding:.4em .6em}
      content and overflows however block-y the rows are */
   table.stack,table.stack tbody{display:block;width:100%;max-width:100%}
   table.stack{background:none;font-size:1rem}
-  table.stack thead{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
+  /* display:none, not the clip trick — an absolutely positioned 1px thead
+     still lays its row out at full width and leaks ~10px into the document's
+     scroll width. Every cell carries data-label, so nothing is lost. */
+  table.stack thead{display:none}
   table.stack tr{display:block;margin:0 0 .55rem;padding:.6rem .8rem;background:var(--card);
     border:1px solid var(--line);border-radius:var(--rad)}
-  table.stack td{display:flex;gap:.6rem;align-items:baseline;padding:.18rem 0;border:0;text-align:start}
-  table.stack td::before{content:attr(data-label);flex:none;width:5.2rem;color:var(--mut);
-    font-size:.74rem;line-height:1.7}
+  /* flex-wrap so a cell full of class-number links wraps instead of crushing
+     each link to 6px and pushing the row 3px past the viewport */
+  table.stack td{display:flex;flex-wrap:wrap;gap:.35rem .6rem;align-items:baseline;
+    padding:.18rem 0;border:0;text-align:start;min-width:0}
+  table.stack td a{flex:none}
+  table.stack td::before{content:attr(data-label);flex:0 1 5.2rem;min-width:0;color:var(--mut);
+    font-size:.74rem;line-height:1.7;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   table.stack td:empty{display:none}
   /* flex children default to min-width:auto -- without this the 30 verse
      chips of Surah al-Mulk refuse to wrap and push the page wide */
