@@ -282,7 +282,10 @@ function inline(text, rel, ctx) {
     const e = lex[key];
     if (!e) return `<span class="ar">${tok}</span>`;
     if (ctx) ctx.words.add(e.id);
-    return `<a class="ar lk" href="${rel}word/${e.id}.html">${tok}</a>`;
+    const audioBtn = e.audioUrl
+      ? `<button class="play-btn word-play-inline" type="button" data-audio="${e.audioUrl}" title="উচ্চারণ শুনুন" aria-label="${tok} উচ্চারণ শুনুন">🔊</button>`
+      : '';
+    return `<span class="ar-term"><a class="ar lk" href="${rel}word/${e.id}.html">${tok}</a>${audioBtn}</span>`;
   });
 
   // --- link every "ক্লাস N" back-reference ----------------------------------
@@ -484,6 +487,25 @@ function buildClass(c) {
       if (wAudio && !classAudioUrls.includes(wAudio)) classAudioUrls.push(wAudio);
     });
   });
+
+  const scanForAudios = (val) => {
+    if (!val) return;
+    if (typeof val === 'string') {
+      (val.match(ARABIC_RUN) || []).forEach((tok) => {
+        const e = lex[strip(tok)];
+        if (e && e.audioUrl && !classAudioUrls.includes(e.audioUrl)) {
+          classAudioUrls.push(e.audioUrl);
+        }
+      });
+      return;
+    }
+    if (Array.isArray(val)) { val.forEach(scanForAudios); return; }
+    if (typeof val === 'object') { Object.values(val).forEach(scanForAudios); }
+  };
+  scanForAudios(ex);
+  scanForAudios(taj);
+  scanForAudios(gram);
+  scanForAudios(story);
 
   out.push(`<header class="class-head i${island.n}">
     <p class="eyebrow">${island.emoji} ${island.name} · সপ্তাহ ${bn(c.week)} · ${c.type === 'revision' ? 'রিভিশন' : passage.name}${c.part ? ` (পর্ব ${bn(c.part.k)}/${bn(c.part.of)})` : ''}</p>
@@ -1680,6 +1702,9 @@ ul.check li::before{content:"☐ ";color:var(--mut)}
 .play-btn:active{transform:scale(.95)}
 .play-btn.playing{color:var(--acc2);animation:audioPulse 1s infinite alternate}
 @keyframes audioPulse{from{transform:scale(1)}to{transform:scale(1.15);filter:drop-shadow(0 0 4px var(--acc2))}}
+.ar-term{display:inline-flex;align-items:center;vertical-align:baseline;white-space:nowrap;margin:0 .12rem}
+.word-play-inline{font-size:.8rem;padding:0 .18rem;opacity:.7;line-height:1;margin-inline-start:.15rem;border-radius:4px}
+.word-play-inline:hover{opacity:1;background:var(--chip);transform:scale(1.1)}
 .word-play{font-size:1.05rem;padding:.15rem .35rem;opacity:.85;margin-inline-start:.3rem}
 .word-play:hover{opacity:1}
 .word-play-lg{font-size:1.35rem;padding:.35rem .65rem;background:var(--chip);border-radius:12px;margin-inline-start:.5rem}
