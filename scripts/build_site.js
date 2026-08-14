@@ -3104,7 +3104,7 @@ if (classPanel) {
   }
 }
 
-// ===== Storyteller Interactive Read-Along Engine =====
+// ===== Storyteller Interactive Read-Along Engine (Real MP3 Audio + Auto-Scroll) =====
 (function initStoryPlayer() {
   var storySec = document.getElementById('classStorySection');
   if (!storySec) return;
@@ -3118,10 +3118,10 @@ if (classPanel) {
   var isPlaying = false;
   var currentIdx = 0;
   var currentSpeed = 1.0;
-  var synth = window.speechSynthesis;
-  var currentUtterance = null;
+  var storyAudioElem = new Audio();
   var userScrolling = false;
   var userScrollTimer = null;
+  var pauseTimer = null;
 
   function markUserScroll() {
     userScrolling = true;
@@ -3138,8 +3138,8 @@ if (classPanel) {
       [].forEach.call(speedCtrl.querySelectorAll('.sp-btn'), function(b){ b.classList.remove('on'); });
       btn.classList.add('on');
       currentSpeed = parseFloat(btn.getAttribute('data-spd') || '1.0');
-      if (isPlaying) {
-        speakSegment(currentIdx);
+      if (storyAudioElem) {
+        storyAudioElem.playbackRate = currentSpeed;
       }
     });
   }
@@ -3159,7 +3159,11 @@ if (classPanel) {
 
   function stopStory() {
     isPlaying = false;
-    if (synth) synth.cancel();
+    clearTimeout(pauseTimer);
+    if (storyAudioElem) {
+      storyAudioElem.pause();
+      storyAudioElem.src = '';
+    }
     if (playBtn) {
       playBtn.classList.remove('playing');
       playBtn.querySelector('.st-txt').textContent = 'গল্প শুনুন (স্টোরিটেলার)';
@@ -3171,10 +3175,10 @@ if (classPanel) {
   function getCleanText(elem) {
     var contentElem = elem.querySelector('.seg-content');
     var raw = contentElem ? contentElem.innerText : elem.innerText;
-    return raw.replace(/[\(\*\_\)]/g, '').trim();
+    return raw.replace(/[\(\*\_\#\>]/g, '').trim();
   }
 
-  function speakSegment(idx) {
+  function playSegment(idx) {
     if (!isPlaying || idx >= segs.length) {
       stopStory();
       return;
@@ -3184,67 +3188,41 @@ if (classPanel) {
     setActiveSeg(idx);
 
     var text = getCleanText(seg);
-    var speaker = seg.getAttribute('data-speaker') || 'narrator';
-
-    if (!synth) {
-      var wordCount = text.split(/\s+/).length;
-      var duration = Math.max(2500, (wordCount * 450) / currentSpeed);
-      setTimeout(function() {
-        if (isPlaying) speakSegment(idx + 1);
-      }, duration);
+    if (!text) {
+      playSegment(idx + 1);
       return;
     }
 
-    synth.cancel();
-    var ut = new SpeechSynthesisUtterance(text);
-    ut.lang = 'bn-BD';
-    ut.rate = currentSpeed * 0.95;
+    // Google Neural Bengali TTS stream url
+    var ttsUrl = 'https://translate.google.com/translate_tts?ie=UTF-8&q=' + encodeURIComponent(text) + '&tl=bn&client=tw-ob';
 
-    // Character voice personality modulation
-    if (speaker === 'mahdi') {
-      ut.pitch = 1.35;
-      ut.rate = currentSpeed * 1.02;
-    } else if (speaker === 'tasmiya') {
-      ut.pitch = 1.6;
-      ut.rate = currentSpeed * 1.08;
-    } else if (speaker === 'dada') {
-      ut.pitch = 0.72;
-      ut.rate = currentSpeed * 0.88;
-    } else if (speaker === 'nana') {
-      ut.pitch = 0.8;
-      ut.rate = currentSpeed * 0.92;
-    } else if (speaker === 'nani' || speaker === 'ammu') {
-      ut.pitch = 1.15;
-      ut.rate = currentSpeed * 0.92;
-    } else if (speaker === 'waswasa') {
-      ut.pitch = 1.05;
-      ut.rate = currentSpeed * 0.82;
-    } else {
-      ut.pitch = 1.0;
-      ut.rate = currentSpeed * 0.96;
+    storyAudioElem.src = ttsUrl;
+    storyAudioElem.playbackRate = currentSpeed;
+
+    storyAudioElem.onended = function() {
+      if (!isPlaying) return;
+      var speaker = seg.getAttribute('data-speaker') || 'narrator';
+      var pauseMs = (speaker === 'waswasa' || speaker === 'dada') ? 600 : 350;
+      pauseTimer = setTimeout(function() {
+        if (isPlaying) playSegment(idx + 1);
+      }, pauseMs / currentSpeed);
+    };
+
+    storyAudioElem.onerror = function(err) {
+      console.warn('Audio play error, skipping to next:', err);
+      if (isPlaying) {
+        pauseTimer = setTimeout(function() {
+          if (isPlaying) playSegment(idx + 1);
+        }, 800);
+      }
+    };
+
+    var playPromise = storyAudioElem.play();
+    if (playPromise !== undefined) {
+      playPromise.catch(function(error) {
+        console.warn('Playback prevented or failed:', error);
+      });
     }
-
-    var voices = synth.getVoices();
-    var bnVoice = voices.find(function(v){ return v.lang && (v.lang.startsWith('bn') || v.lang.includes('Bengali')); });
-    if (bnVoice) ut.voice = bnVoice;
-
-    ut.onend = function() {
-      if (isPlaying) {
-        var pause = (speaker === 'waswasa' || speaker === 'dada') ? 600 : 350;
-        setTimeout(function() {
-          if (isPlaying) speakSegment(idx + 1);
-        }, pause / currentSpeed);
-      }
-    };
-
-    ut.onerror = function() {
-      if (isPlaying) {
-        setTimeout(function() { speakSegment(idx + 1); }, 1000);
-      }
-    };
-
-    currentUtterance = ut;
-    synth.speak(ut);
   }
 
   if (playBtn) {
@@ -3256,7 +3234,7 @@ if (classPanel) {
         playBtn.classList.add('playing');
         playBtn.querySelector('.st-txt').textContent = 'বিরতি (পজ)';
         if (statusNote) statusNote.hidden = false;
-        speakSegment(currentIdx || 0);
+        playSegment(currentIdx || 0);
       }
     });
   }
@@ -3272,7 +3250,7 @@ if (classPanel) {
         }
         if (statusNote) statusNote.hidden = false;
       }
-      speakSegment(i);
+      playSegment(i);
     });
   });
 })();
