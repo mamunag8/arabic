@@ -129,22 +129,40 @@ function lexEntry(key) {
   return lex[key];
 }
 
+function wbwAudioUrl(surah, ayah, wordPos) {
+  const s = String(surah).padStart(3, '0');
+  const a = String(ayah).padStart(3, '0');
+  const w = String(wordPos).padStart(3, '0');
+  return `https://audio.qurancdn.com/wbw/${s}_${a}_${w}.mp3`;
+}
+
+function ayahAudioUrl(surah, ayah) {
+  const s = String(surah).padStart(3, '0');
+  const a = String(ayah).padStart(3, '0');
+  return `https://verses.quran.com/Alafasy/mp3/${s}${a}.mp3`;
+}
+
 // 1. from the verified ayah data
 const bump = (m, k) => m.set(k, (m.get(k) || 0) + 1);
-content.forEach((p) => p.ayat.forEach((a) => a.words.forEach((w, i) => {
-  const e = lexEntry(strip(w.arabic));
-  e.forms.add(w.arabic);
-  if (!e.pron) e.pron = w.pron;
-  if (!e.bn) e.bn = w.bn || '';
-  if (!e.en) e.en = w.en || '';
-  if (w.bn && w.bn.trim()) e.bns.add(w.bn.trim());
-  if (w.en && w.en.trim()) e.ens.add(w.en.trim());
-  e.count += 1;
-  if (!e.ayat.includes(a.key)) e.ayat.push(a.key);
-  // which words sit either side of it -- chunks are how you actually memorise
-  if (a.words[i - 1]) bump(e.before, strip(a.words[i - 1].arabic));
-  if (a.words[i + 1]) bump(e.after, strip(a.words[i + 1].arabic));
-})));
+content.forEach((p) => p.ayat.forEach((a) => {
+  a.audioUrl = ayahAudioUrl(p.chapter, a.n);
+  a.words.forEach((w, i) => {
+    const e = lexEntry(strip(w.arabic));
+    w.audioUrl = wbwAudioUrl(p.chapter, a.n, i + 1);
+    if (!e.audioUrl) e.audioUrl = w.audioUrl;
+    e.forms.add(w.arabic);
+    if (!e.pron) e.pron = w.pron;
+    if (!e.bn) e.bn = w.bn || '';
+    if (!e.en) e.en = w.en || '';
+    if (w.bn && w.bn.trim()) e.bns.add(w.bn.trim());
+    if (w.en && w.en.trim()) e.ens.add(w.en.trim());
+    e.count += 1;
+    if (!e.ayat.includes(a.key)) e.ayat.push(a.key);
+    // which words sit either side of it -- chunks are how you actually memorise
+    if (a.words[i - 1]) bump(e.before, strip(a.words[i - 1].arabic));
+    if (a.words[i + 1]) bump(e.after, strip(a.words[i + 1].arabic));
+  });
+}));
 
 // 2. first class each word is taught in
 plan.classes.forEach((c) => (c.ayat || []).forEach((k) => {
@@ -345,15 +363,19 @@ function wordChip(e, rel) {
   return `<a class="chip" href="${rel}word/${e.id}.html"><span class="ar">${[...e.forms][0]}</span><span class="gl">${e.bn || e.pron}</span></a>`;
 }
 
-function wordTable(words, rel) {
-  const rows = words.map((w) => {
+function wordTable(words, rel, ayah) {
+  const rows = words.map((w, idx) => {
     const e = lex[strip(w.arabic)];
     const hook = e && e.hook ? e.hook : '';
     const ar = e
       ? `<a class="ar lk" href="${rel}word/${e.id}.html">${w.arabic}</a>`
       : `<span class="ar">${w.arabic}</span>`;
+    const audioUrl = w.audioUrl || (ayah && ayah.passage ? wbwAudioUrl(ayah.passage.chapter, ayah.n, idx + 1) : (e ? e.audioUrl : ''));
+    const audioBtn = audioUrl
+      ? `<button class="play-btn word-play" type="button" data-audio="${audioUrl}" title="উচ্চারণ শুনুন" aria-label="উচ্চারণ শুনুন">🔊</button>`
+      : '';
     return `<tr>
-<td class="c-ar" data-label="আরবি">${ar}</td>
+<td class="c-ar" data-label="আরবি">${ar} ${audioBtn}</td>
 <td class="c-pr" data-label="উচ্চারণ"><strong>${w.pron}</strong></td>
 <td data-label="বাংলা">${w.bn || '—'}</td>
 <td class="c-en" data-label="English">${w.en || '—'}</td>
@@ -396,15 +418,19 @@ function memoryLadder(a, rel) {
 }
 
 function ayahBlock(a, i, rel) {
+  const aAudio = a.audioUrl || ayahAudioUrl(a.passage.chapter, a.n);
   return `<article class="ayah" id="a${a.key.replace(':', '-')}">
-<h4>${bn(i)}. আয়াত ${bn(a.n)} <span class="akey">${a.passage.name} · ${bn(a.n)}</span></h4>
+<div class="ayah-head">
+  <h4>${bn(i)}. আয়াত ${bn(a.n)} <span class="akey">${a.passage.name} · ${bn(a.n)}</span></h4>
+  <button class="play-btn ayah-play" type="button" data-audio="${aAudio}" title="মিশারী রশিদ আলাফাসীর তিলাওয়াত শুনুন">▶ <span>আলাফাসী তিলাওয়াত</span></button>
+</div>
 <div class="ar quran">${a.arabic}</div>
 <div class="ayah-meta">
   <p>🗣️ <strong>উচ্চারণ:</strong> ${a.pron}</p>
   <p>💬 <strong>অর্থ:</strong> ${a.bn}</p>
 </div>
 <h5>শব্দে শব্দে বুঝি</h5>
-${wordTable(a.words, rel)}
+${wordTable(a.words, rel, a)}
 ${memoryLadder(a, rel)}
 </article>`;
 }
@@ -449,9 +475,24 @@ function buildClass(c) {
     <span>${bn(c.week)}নং গ্রাম</span> ›
     <span>ক্লাস ${bn(c.index)}</span></div>`);
 
+  const classAudioUrls = [];
+  ayat.forEach((a) => {
+    const aAudio = a.audioUrl || (a.passage ? ayahAudioUrl(a.passage.chapter, a.n) : '');
+    if (aAudio && !classAudioUrls.includes(aAudio)) classAudioUrls.push(aAudio);
+    a.words.forEach((w, idx) => {
+      const wAudio = w.audioUrl || (a.passage ? wbwAudioUrl(a.passage.chapter, a.n, idx + 1) : '');
+      if (wAudio && !classAudioUrls.includes(wAudio)) classAudioUrls.push(wAudio);
+    });
+  });
+
   out.push(`<header class="class-head i${island.n}">
     <p class="eyebrow">${island.emoji} ${island.name} · সপ্তাহ ${bn(c.week)} · ${c.type === 'revision' ? 'রিভিশন' : passage.name}${c.part ? ` (পর্ব ${bn(c.part.k)}/${bn(c.part.of)})` : ''}</p>
     <h1><span class="cnum">ক্লাস ${bn(c.index)}</span>${ex.title || (passage && passage.name) || 'উইকলি চ্যাম্পিয়ন'}</h1>
+    ${classAudioUrls.length ? `
+    <div class="audio-ctrls">
+      <button class="btn audio-dl-btn" type="button" id="dlClassAudio" data-class-audio='${JSON.stringify(classAudioUrls)}'>📥 এই ক্লাসের অডিও ডাউনলোড (অফলাইন)</button>
+      <span class="audio-status" id="audioStatus" hidden></span>
+    </div>` : ''}
   </header>`);
 
   if (ex.hook) {
@@ -747,7 +788,7 @@ Object.values(lex).forEach((e) => {
   const body = `
 <div class="crumb"><a href="${rel}index.html">মানচিত্র</a> › <a href="${rel}words.html">শব্দের ঝুড়ি</a> › <span>${forms[0]}</span></div>
 <header class="word-head">
-  <div class="ar huge">${forms[0]}</div>
+  <div class="ar huge">${forms[0]} ${e.audioUrl ? `<button class="play-btn word-play-lg" type="button" data-audio="${e.audioUrl}" title="উচ্চারণ শুনুন" aria-label="উচ্চারণ শুনুন">🔊</button>` : ''}</div>
   <p class="gloss"><strong>${e.pron || ''}</strong>${e.bn ? ` · ${e.bn}` : ''}</p>
   ${enBlock}
   ${bnExtra}
@@ -1040,7 +1081,7 @@ ${rows}
     (classWordsIntroduced[c.index] || []).forEach((id) => {
       const e = lexById[id];
       if (!e || !e.bn) return;
-      pool.push({ ar: [...e.forms][0], bn: e.bn.replace(/\s+/g, ' ').trim(), c: c.index });
+      pool.push({ ar: [...e.forms][0], bn: e.bn.replace(/\s+/g, ' ').trim(), c: c.index, audio: e.audioUrl || '' });
     });
   });
   write('assets/words.json', JSON.stringify(pool));
@@ -1631,6 +1672,31 @@ ul.check li::before{content:"☐ ";color:var(--mut)}
 .ayah-meta{background:var(--chip);border-radius:var(--rad);padding:.7em 1em;margin:.6em 0}
 .ayah-meta p{margin:.3em 0;font-size:.95em}
 
+/* ---- Audio Player & Controls ---- */
+.play-btn{background:none;border:none;padding:.2rem .45rem;cursor:pointer;
+  display:inline-flex;align-items:center;gap:.35rem;border-radius:8px;
+  font-size:.92rem;color:var(--acc);vertical-align:middle;transition:all .15s ease}
+.play-btn:hover{background:var(--chip);transform:scale(1.06)}
+.play-btn:active{transform:scale(.95)}
+.play-btn.playing{color:var(--acc2);animation:audioPulse 1s infinite alternate}
+@keyframes audioPulse{from{transform:scale(1)}to{transform:scale(1.15);filter:drop-shadow(0 0 4px var(--acc2))}}
+.word-play{font-size:1.05rem;padding:.15rem .35rem;opacity:.85;margin-inline-start:.3rem}
+.word-play:hover{opacity:1}
+.word-play-lg{font-size:1.35rem;padding:.35rem .65rem;background:var(--chip);border-radius:12px;margin-inline-start:.5rem}
+.ayah-head{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.5rem;margin:1.8em 0 .5em}
+.ayah-head h4{margin:0}
+.ayah-play{background:color-mix(in srgb,var(--acc) 10%,transparent);
+  border:1px solid color-mix(in srgb,var(--acc) 25%,transparent);
+  color:var(--acc);font-weight:600;font-size:.82rem;padding:.3rem .75rem;border-radius:20px}
+.ayah-play:hover{background:var(--acc);color:#fff}
+.audio-ctrls{display:flex;align-items:center;gap:.8rem;margin:1rem 0 1.5rem;flex-wrap:wrap;
+  padding:.7rem 1rem;background:var(--card);border:1px solid var(--line);border-radius:var(--rad)}
+.audio-dl-btn{background:var(--chip);border:1px solid var(--line);color:var(--fg);
+  font-size:.85rem;font-weight:600;padding:.45rem .9rem;border-radius:9px;cursor:pointer;transition:all .2s ease}
+.audio-dl-btn:hover{background:var(--line);border-color:var(--mut)}
+.audio-dl-btn.is-cached{background:color-mix(in srgb,var(--acc) 15%,transparent);color:var(--acc);border-color:var(--acc)}
+.audio-status{font-size:.84rem;color:var(--mut)}
+
 /* ---- tables ---- */
 .tbl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain;
   margin:.8em 0;border:1px solid var(--line);border-radius:var(--rad)}
@@ -2196,6 +2262,131 @@ if(pr){
     }).catch(function(){ body.innerHTML='<p class="muted">শব্দগুলো আনা গেল না। পাতাটা রিফ্রেশ করে দেখো।</p>'; });
   } else {
     cards();
+  }
+}
+
+// ===== Audio Engine & Offline Caching =====
+var AUDIO_CACHE='nd-audio-v1';
+var currentAudio=null;
+var activePlayBtn=null;
+
+function stopAudio(){
+  if(currentAudio){
+    currentAudio.pause();
+    currentAudio=null;
+  }
+  if(activePlayBtn){
+    activePlayBtn.classList.remove('playing');
+    activePlayBtn=null;
+  }
+}
+
+function playAudioUrl(url, btn){
+  if(activePlayBtn===btn && currentAudio && !currentAudio.paused){
+    stopAudio();
+    return;
+  }
+  stopAudio();
+  if(btn){
+    btn.classList.add('playing');
+    activePlayBtn=btn;
+  }
+
+  function doPlay(src){
+    var a=new Audio(src);
+    currentAudio=a;
+    a.onended=function(){ stopAudio(); };
+    a.onerror=function(){ stopAudio(); };
+    a.play().catch(function(){ stopAudio(); });
+  }
+
+  if('caches' in window){
+    caches.open(AUDIO_CACHE).then(function(cache){
+      return cache.match(url).then(function(res){
+        if(res){
+          return res.blob().then(function(blob){
+            return URL.createObjectURL(blob);
+          });
+        }
+        return url;
+      });
+    }).then(function(src){
+      doPlay(src);
+    }).catch(function(){
+      doPlay(url);
+    });
+  } else {
+    doPlay(url);
+  }
+}
+
+// Global click delegate for audio buttons
+document.addEventListener('click',function(e){
+  var btn=e.target.closest('.play-btn');
+  if(!btn) return;
+  var audio=btn.getAttribute('data-audio');
+  if(audio){
+    e.preventDefault();
+    playAudioUrl(audio, btn);
+  }
+});
+
+// Class audio download / offline caching
+var dlBtn=document.getElementById('dlClassAudio');
+var dlStatus=document.getElementById('audioStatus');
+if(dlBtn && 'caches' in window){
+  try{
+    var classAudios=JSON.parse(dlBtn.getAttribute('data-class-audio')||'[]');
+    if(classAudios.length>0){
+      caches.open(AUDIO_CACHE).then(function(cache){
+        return Promise.all(classAudios.map(function(u){ return cache.match(u); })).then(function(results){
+          var cachedCount=results.filter(Boolean).length;
+          if(cachedCount===classAudios.length){
+            dlBtn.classList.add('is-cached');
+            dlBtn.textContent='✅ সব অডিও অফলাইনে প্রস্তুত ('+bn(classAudios.length)+'টি)';
+          } else if(cachedCount>0){
+            dlBtn.textContent='📥 অফলাইন সম্পন্ন করুন ('+bn(cachedCount)+'/'+bn(classAudios.length)+')';
+          }
+        });
+      });
+
+      dlBtn.addEventListener('click',function(){
+        dlBtn.disabled=true;
+        if(dlStatus){ dlStatus.hidden=false; dlStatus.textContent='অডিও ডাউনলোড হচ্ছে... (০/'+bn(classAudios.length)+')'; }
+        caches.open(AUDIO_CACHE).then(function(cache){
+          var completed=0;
+          return Promise.all(classAudios.map(function(url){
+            return cache.match(url).then(function(existing){
+              if(existing){
+                completed++;
+                if(dlStatus) dlStatus.textContent='অডিও ডাউনলোড হচ্ছে... ('+bn(completed)+'/'+bn(classAudios.length)+')';
+                return;
+              }
+              return fetch(url).then(function(res){
+                if(res.ok){
+                  return cache.put(url, res).then(function(){
+                    completed++;
+                    if(dlStatus) dlStatus.textContent='অডিও ডাউনলোড হচ্ছে... ('+bn(completed)+'/'+bn(classAudios.length)+')';
+                  });
+                }
+              }).catch(function(err){
+                console.warn('Audio download failed:', url, err);
+              });
+            });
+          }));
+        }).then(function(){
+          dlBtn.disabled=false;
+          dlBtn.classList.add('is-cached');
+          dlBtn.textContent='✅ সব অডিও অফলাইনে প্রস্তুত ('+bn(classAudios.length)+'টি)';
+          if(dlStatus) dlStatus.textContent='ক্লাসের সব অডিও ব্রাউজারে সেভ হয়েছে। নেট ছাড়াও বাজবে!';
+        }).catch(function(){
+          dlBtn.disabled=false;
+          if(dlStatus) dlStatus.textContent='কিছু অডিও ডাউনলোড হতে পারেনি। নেট সংযোগ দেখুন।';
+        });
+      });
+    }
+  }catch(e){
+    console.error(e);
   }
 }
 
