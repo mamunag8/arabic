@@ -197,6 +197,39 @@ DUAS.forEach((d, i) => {
   });
 });
 
+// 3c. from story hooks, tajweed, and passage stories -- so every Arabic word is in lexicon
+Object.values(meta.EXERCISES || {}).forEach((ex) => {
+  (ex.hook || []).forEach((l) => {
+    (l.match(ARABIC_RUN) || []).forEach((tok) => {
+      const e = lexEntry(strip(tok));
+      e.forms.add(tok);
+      if (!e.audioUrl) {
+        e.audioUrl = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(tok)}&tl=ar&client=tw-ob`;
+      }
+    });
+  });
+});
+
+Object.values(meta.PASSAGE_STORY || {}).forEach((st) => {
+  (st.story || []).forEach((l) => {
+    (l.match(ARABIC_RUN) || []).forEach((tok) => {
+      const e = lexEntry(strip(tok));
+      e.forms.add(tok);
+      if (!e.audioUrl) {
+        e.audioUrl = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(tok)}&tl=ar&client=tw-ob`;
+      }
+    });
+  });
+});
+
+// Ensure every single word in the lexicon has an audioUrl
+Object.values(lex).forEach((e) => {
+  if (!e.audioUrl) {
+    const rep = Array.from(e.forms)[0] || e.key;
+    e.audioUrl = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(rep)}&tl=ar&client=tw-ob`;
+  }
+});
+
 // 4. spelling-similarity links --------------------------------------------
 // NOTE: this is deliberately a SPELLING observation, not a claim about Arabic
 // morphology. The real root families are the authored GRAMMAR tables above and
@@ -276,16 +309,21 @@ function inline(text, rel, ctx) {
   // protect the only raw tags we allow
   s = s.replace(/<sub>/g, '').replace(/<\/sub>/g, '');
 
-  // --- link every Arabic token that exists in the lexicon --------------------
+  // --- link every Arabic token with audio pronunciation --------------------
   s = s.replace(ARABIC_RUN, (tok) => {
     const key = strip(tok);
     const e = lex[key];
-    if (!e) return `<span class="ar">${tok}</span>`;
-    if (ctx) ctx.words.add(e.id);
-    const audioBtn = e.audioUrl
-      ? `<button class="play-btn word-play-inline" type="button" data-audio="${e.audioUrl}" title="উচ্চারণ শুনুন" aria-label="${tok} উচ্চারণ শুনুন">🔊</button>`
-      : '';
-    return `<span class="ar-term"><a class="ar lk" href="${rel}word/${e.id}.html">${tok}</a>${audioBtn}</span>`;
+    const audioUrl = (e && e.audioUrl)
+      ? e.audioUrl
+      : `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(tok)}&tl=ar&client=tw-ob`;
+
+    const audioBtn = `<button class="play-btn word-play-inline" type="button" data-audio="${audioUrl}" title="${tok} উচ্চারণ শুনুন" aria-label="${tok} উচ্চারণ শুনুন">🔊</button>`;
+
+    if (e) {
+      if (ctx) ctx.words.add(e.id);
+      return `<span class="ar-term"><a class="ar lk" href="${rel}word/${e.id}.html">${tok}</a>${audioBtn}</span>`;
+    }
+    return `<span class="ar-term"><span class="ar">${tok}</span>${audioBtn}</span>`;
   });
 
   // --- link every "ক্লাস N" back-reference ----------------------------------
@@ -514,13 +552,17 @@ function buildClass(c) {
     if (typeof val === 'string') {
       (val.match(ARABIC_RUN) || []).forEach((tok) => {
         const e = lex[strip(tok)];
-        if (e && e.audioUrl && !seenAudio.has(e.audioUrl)) {
-          seenAudio.add(e.audioUrl);
-          const cleanBn = (e.bn || '').replace(/[^a-zA-Z0-9\u0980-\u09FF]/g, '_').slice(0, 15);
+        const audioUrl = (e && e.audioUrl)
+          ? e.audioUrl
+          : `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(tok)}&tl=ar&client=tw-ob`;
+        if (audioUrl && !seenAudio.has(audioUrl)) {
+          seenAudio.add(audioUrl);
+          const safeName = tok.replace(/[^a-zA-Z0-9\u0600-\u06FF]/g, '_').slice(0, 20);
+          const cleanBn = e ? (e.bn || '').replace(/[^a-zA-Z0-9\u0980-\u09FF]/g, '_').slice(0, 15) : 'arabic';
           classAudioItems.push({
-            url: e.audioUrl,
-            name: `Lex_${e.id}_${cleanBn || 'word'}.mp3`,
-            label: `${e.ar} (${e.bn || ''})`
+            url: audioUrl,
+            name: e ? `Lex_${e.id}_${cleanBn || 'word'}.mp3` : `Story_Ar_${safeName}.mp3`,
+            label: `${tok} (${(e && e.bn) || 'আরবি শব্দ'})`
           });
         }
       });
@@ -648,8 +690,14 @@ function buildClass(c) {
     const fam = (gram.family || []).map(([ar, pron, mean]) => {
       const tok = String(ar).match(ARABIC_RUN)?.[0];
       const e = tok ? lex[strip(tok)] : null;
+      const audioUrl = (e && e.audioUrl)
+        ? e.audioUrl
+        : (tok ? `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(tok)}&tl=ar&client=tw-ob` : '');
+      const audioBtn = audioUrl
+        ? `<button class="play-btn word-play-inline" type="button" data-audio="${audioUrl}" title="${ar} উচ্চারণ শুনুন" aria-label="${ar} উচ্চারণ শুনুন">🔊</button>`
+        : '';
       const link = e ? `<a class="ar lk" href="${rel}word/${e.id}.html">${ar}</a>` : `<span class="ar">${ar}</span>`;
-      return `<tr><td class="c-ar" data-label="আরবি">${link}</td><td data-label="উচ্চারণ"><strong>${pron}</strong></td><td data-label="মানে">${inline(mean, rel)}</td></tr>`;
+      return `<tr><td class="c-ar" data-label="আরবি"><span class="ar-term">${link}${audioBtn}</span></td><td data-label="উচ্চারণ"><strong>${pron}</strong></td><td data-label="মানে">${inline(mean, rel)}</td></tr>`;
     }).join('');
     out.push(`<section class="gram"><h2>🧩 ব্যাকরণের গল্প: ${inline(gram.title, rel, ctx)}</h2>
       ${gram.story.map((s) => `<p>${inline(s, rel, ctx)}</p>`).join('')}
@@ -679,9 +727,16 @@ function buildClass(c) {
     const parts = duaFor(dRef.ar);
     const idx = DUAS.indexOf(parts[0]);
     const words = parts.flatMap((p) => p.words || []);
+    const fullDuaAr = parts.map((p) => p.arabic).join(' ');
+    const fullDuaAudioUrl = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(fullDuaAr)}&tl=ar&client=tw-ob`;
     const seen = words.filter((w) => { const e = lex[strip(w.arabic)]; return e && e.count > 0; }).length;
     out.push(`<section class="todaydua">
-      <h2>🤲 আজকের দুআ</h2>
+      <div class="ayah-head">
+        <h2>🤲 আজকের দুআ</h2>
+        <button class="btn ayah-play play-btn" type="button" data-audio="${fullDuaAudioUrl}">
+          ▶ দুআ শুনুন
+        </button>
+      </div>
       <p class="why">${inline(dRef.why, rel, ctx)}</p>
       <p class="ar quran">${parts.map((p) => p.arabic).join(' ')}</p>
       <p class="pron">🗣️ ${parts.map((p) => p.pron).join(' · ')}</p>
@@ -690,9 +745,13 @@ function buildClass(c) {
       <div class="dwords">${words.map((w) => {
         const e = lex[strip(w.arabic)];
         const hit = e && e.count > 0;
+        const wAudio = (e && e.audioUrl)
+          ? e.audioUrl
+          : `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(w.arabic)}&tl=ar&client=tw-ob`;
+        const audioBtn = `<button class="play-btn word-play-inline" type="button" data-audio="${wAudio}" title="${w.arabic} উচ্চারণ শুনুন" aria-label="${w.arabic} উচ্চারণ শুনুন">🔊</button>`;
         return e
-          ? `<a class="dw${hit ? ' seen' : ''}" href="${rel}word/${e.id}.html"><span class="ar">${w.arabic}</span><span class="gl">${w.meaning}</span></a>`
-          : `<span class="dw"><span class="ar">${w.arabic}</span><span class="gl">${w.meaning}</span></span>`;
+          ? `<span class="dw${hit ? ' seen' : ''}"><a class="ar-lk-wrap" href="${rel}word/${e.id}.html"><span class="ar">${w.arabic}</span><span class="gl">${w.meaning}</span></a>${audioBtn}</span>`
+          : `<span class="dw"><span class="ar">${w.arabic}</span><span class="gl">${w.meaning}</span>${audioBtn}</span>`;
       }).join('')}</div>
       ${parts[0].note ? `<p class="dnote">⚖️ ${parts[0].note}</p>` : ''}
       <p class="src">📚 ${parts[0].ref} · <a href="${rel}duas.html#d${idx}">দুআর ঝুলিতে দেখো</a></p>
