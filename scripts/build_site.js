@@ -499,7 +499,7 @@ plan.classes.forEach((c) => {
 
 function buildClass(c) {
   const rel = '../';
-  const ex = meta.CLASS_EXTRAS[c.index] || {};
+  const ex = { ...((meta.EXERCISES && meta.EXERCISES[c.index]) || {}), ...(meta.CLASS_EXTRAS[c.index] || {}) };
   const island = islandOf(c.week);
   const taj = meta.TAJWEED[c.index];
   const gram = meta.GRAMMAR[c.index];
@@ -518,7 +518,24 @@ function buildClass(c) {
 
   const classAudioItems = [];
   const seenAudio = new Set();
-  ayat.forEach((a) => {
+
+  // If revision class has no direct ayat, collect from reviewWeeks / passage
+  let targetAyat = ayat.slice();
+  if (!targetAyat.length && c.reviewWeeks) {
+    c.reviewWeeks.forEach((w) => {
+      plan.classes.filter((cls) => cls.week === w && cls.index !== c.index).forEach((cls) => {
+        (cls.ayat || []).forEach((k) => {
+          const a = ayahByKey[k];
+          if (a && !targetAyat.includes(a)) targetAyat.push(a);
+        });
+      });
+    });
+  }
+  if (!targetAyat.length && c.passageId && passageById[c.passageId]) {
+    targetAyat = passageById[c.passageId].ayat;
+  }
+
+  targetAyat.forEach((a) => {
     const aAudio = a.audioUrl || (a.passage ? ayahAudioUrl(a.passage.chapter, a.n) : '');
     if (aAudio && !seenAudio.has(aAudio)) {
       seenAudio.add(aAudio);
@@ -1306,19 +1323,29 @@ ${rows}
 
   let known = 0; let totalWords = 0;
   const card = (d, i) => {
+    const fullDuaAudioUrl = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(d.arabic)}&tl=ar&client=tw-ob`;
     const ws = (d.words || []).map((w) => {
       const e = lex[strip(w.arabic)];
       totalWords += 1;
       const seen = e && e.count > 0;
       if (seen) known += 1;
+      const wAudio = (e && e.audioUrl)
+        ? e.audioUrl
+        : `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(w.arabic)}&tl=ar&client=tw-ob`;
+      const audioBtn = `<button class="play-btn word-play-inline" type="button" data-audio="${wAudio}" title="${w.arabic} উচ্চারণ শুনুন" aria-label="${w.arabic} উচ্চারণ শুনুন">🔊</button>`;
       return e
-        ? `<a class="dw${seen ? ' seen' : ''}" href="${rel}word/${e.id}.html" title="${w.meaning || ''}">
-             <span class="ar">${w.arabic}</span><span class="gl">${w.meaning || w.pron || ''}</span></a>`
-        : `<span class="dw"><span class="ar">${w.arabic}</span><span class="gl">${w.meaning || ''}</span></span>`;
+        ? `<span class="dw${seen ? ' seen' : ''}"><a class="ar-lk-wrap" href="${rel}word/${e.id}.html" title="${w.meaning || ''}">
+             <span class="ar">${w.arabic}</span><span class="gl">${w.meaning || w.pron || ''}</span></a>${audioBtn}</span>`
+        : `<span class="dw"><span class="ar">${w.arabic}</span><span class="gl">${w.meaning || ''}</span>${audioBtn}</span>`;
     }).join('');
     const seenCount = (d.words || []).filter((w) => { const e = lex[strip(w.arabic)]; return e && e.count > 0; }).length;
     return `<article class="dua" id="d${i}">
-      ${d.slot ? `<h3>${d.slot}</h3>` : ''}
+      <div class="ayah-head">
+        ${d.slot ? `<h3>${d.slot}</h3>` : '<span></span>'}
+        <button class="btn ayah-play play-btn" type="button" data-audio="${fullDuaAudioUrl}">
+          ▶ শুনুন
+        </button>
+      </div>
       <p class="ar quran">${d.arabic}</p>
       <p class="pron">🗣️ ${d.pron}</p>
       <p class="mean">💬 ${d.meaning}</p>
