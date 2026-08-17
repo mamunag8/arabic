@@ -47,7 +47,10 @@ const SITE_TAG = 'কুরআন বুঝে বুঝে পড়া ও ম
 // (see the "progress" section of assets/app.js). This anon key is meant to be
 // public; access is gated entirely by the RLS policies in
 // deploy/supabase_schema.sql, which must be applied once in Supabase Studio.
-const SUPABASE_URL = 'http://supabasekong-x13mvxxre05qxbkdkchtd68u.185.169.252.53.sslip.io';
+// The client calls this same origin at /supabase/... (see deploy/nginx.conf,
+// which proxies it server-side) rather than Arabic_DB's Kong URL directly --
+// Kong is HTTP-only, and a browser on this HTTPS site would block that call
+// outright as mixed content.
 const SUPABASE_ANON_KEY = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJzdXBhYmFzZSIsImlhdCI6MTc4Njk2MTU4MCwiZXhwIjo0OTQyNjM1MTgwLCJyb2xlIjoiYW5vbiJ9.jfJMjIAPRUvadhcJuuoUjHvQYw1ocmpOrRFduy8__aM';
 
 // ---------------------------------------------------------------------------
@@ -3627,7 +3630,7 @@ if(tb) tb.addEventListener('click',function(){
   // supabase-js. If the CDN is unreachable everything above still works;
   // only the optional sync layer stays inactive.
   import('https://esm.sh/@supabase/supabase-js@2').then(function(mod){
-    supa = mod.createClient('${SUPABASE_URL}', '${SUPABASE_ANON_KEY}');
+    supa = mod.createClient(location.origin + '/supabase', '${SUPABASE_ANON_KEY}');
     return supa.auth.getSession();
   }).then(function(res){
     session = (res && res.data) ? res.data.session : null;
