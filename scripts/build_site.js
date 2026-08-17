@@ -16,6 +16,7 @@
 
 const fs = require('fs');
 const path = require('path');
+const crypto = require('crypto');
 const content = require('./course_content.js');
 const plan = require('./course_plan.js');
 const meta = require('./course_meta.js');
@@ -72,10 +73,16 @@ const toInt = (s) => Number(String(s).replace(/[^০-৯0-9]/g, '').split('')
   .map((c) => (BN_DIGITS[c] !== undefined ? BN_DIGITS[c] : c)).join(''));
 
 const mkdir = (p) => fs.mkdirSync(p, { recursive: true });
+// Every page written this build, so the asset-version placeholder can be
+// stamped once the CSS and JS actually exist (see the cache-bust pass at the
+// end). Without this a deploy ships new HTML against a browser's week-old
+// cached style.css / app.js and the page silently renders with the old rules.
+const writtenPages = [];
 const write = (rel, html) => {
   const full = path.join(OUT, rel);
   mkdir(path.dirname(full));
   fs.writeFileSync(full, html);
+  if (rel.endsWith('.html')) writtenPages.push(full);
 };
 
 // ---------------------------------------------------------------------------
@@ -376,7 +383,7 @@ function page({ title, desc, body, rel, cls = '', active = '' }) {
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+Bengali:wght@400;600;700&family=Amiri+Quran&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="${rel}assets/style.css">
+<link rel="stylesheet" href="${rel}assets/style.css?v=__AV__">
 </head>
 <body class="${cls}">
 <a class="skip" href="#main">মূল অংশে যাও</a>
@@ -392,7 +399,7 @@ function page({ title, desc, body, rel, cls = '', active = '' }) {
   <p class="muted"><a href="${rel}threads.html">🧵 সুতো</a> · <a href="${rel}refs.html">📚 সব সূত্র</a> · <a href="${rel}about.html">ℹ️ পরিচয়</a></p>
 </footer>
 <nav class="tabbar" aria-label="প্রধান মেনু">${nav}</nav>
-<script src="${rel}assets/app.js"></script>
+<script src="${rel}assets/app.js?v=__AV__"></script>
 </body>
 </html>`;
 }
@@ -3529,6 +3536,25 @@ const files = [];
     if (fs.statSync(p).isDirectory()) walk(p); else files.push(p);
   });
 }(OUT));
+
+// ---------------------------------------------------------------------------
+// cache-bust the assets
+// ---------------------------------------------------------------------------
+// style.css and app.js keep the same URL every deploy, and nginx serves
+// /assets/ with a 7-day max-age. A returning visitor therefore gets the new
+// HTML against last week's CSS and JS — which is exactly what happened after
+// one deploy: new markup, old rules, header silently back to two rows.
+// Stamping the URLs with a hash of the actual content means the URL only
+// changes when the file changes, so the long cache stays safe.
+const assetVersion = crypto.createHash('sha1')
+  .update(fs.readFileSync(path.join(OUT, 'assets', 'style.css')))
+  .update(fs.readFileSync(path.join(OUT, 'assets', 'app.js')))
+  .digest('hex').slice(0, 10);
+writtenPages.forEach((p) => {
+  const html = fs.readFileSync(p, 'utf8');
+  if (html.includes('__AV__')) fs.writeFileSync(p, html.split('__AV__').join(assetVersion));
+});
+
 const bytes = files.reduce((s, f) => s + fs.statSync(f).size, 0);
 
 console.log(`
@@ -3542,5 +3568,6 @@ console.log(`
   ------------------------------------------
   files      ${files.length}
   size       ${(bytes / 1024 / 1024).toFixed(1)} MB
+  asset ver  ${assetVersion}
   -> ${OUT}
 `);
