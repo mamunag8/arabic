@@ -3655,19 +3655,58 @@ if(tb) tb.addEventListener('click',function(){
       }).catch(function(){});
   }
 
+  // Reuses the same login-box phone parsing so "01XXXXXXXXX" typed here
+  // normalises to +880... the same way, rather than needing its own rules.
+  function normalizePhone(raw){
+    var v=String(raw||'').trim();
+    if(!v) return null;
+    var id=resolveIdentifier(v);
+    return (id && id.phone) ? id.phone : null;
+  }
+
+  // If a student signs up with just a phone (or just an email) and later
+  // fills in the other one here, link it onto the SAME auth account instead
+  // of leaving it as inert contact text -- so from then on either identifier
+  // logs in with the one password they already set, instead of needing two
+  // separate accounts. Phone changes apply immediately on this setup; email
+  // changes go through Supabase's secure-email-change flow and sit
+  // unconfirmed forever with no mail delivery configured here -- so this
+  // checks what the server actually did rather than assuming success, and
+  // the caller must never claim an email login works unless emailLinked is
+  // true (emailPending means it silently did NOT take effect).
+  function linkIdentifiers(normalizedPhone,email){
+    if(!supa || !session) return Promise.resolve({phoneLinked:false,emailLinked:false,emailPending:false});
+    var wantPhone = normalizedPhone && normalizedPhone.replace('+','')!==session.user.phone;
+    var wantEmail = email && email!==session.user.email;
+    var patch={};
+    if(wantPhone) patch.phone=normalizedPhone;
+    if(wantEmail) patch.email=email;
+    if(!wantPhone && !wantEmail) return Promise.resolve({phoneLinked:false,emailLinked:false,emailPending:false});
+    return supa.auth.updateUser(patch).then(function(res){
+      if(res.error) throw res.error;
+      var u = res.data && res.data.user;
+      if(u) session=Object.assign({},session,{user:u});
+      var phoneLinked = !!(wantPhone && u && u.phone===normalizedPhone.replace('+',''));
+      var emailLinked = !!(wantEmail && u && u.email===email);
+      return {phoneLinked:phoneLinked, emailLinked:emailLinked, emailPending: wantEmail && !emailLinked};
+    });
+  }
+
   if(pfForm) pfForm.addEventListener('submit',function(e){
     e.preventDefault();
     if(pfErr) pfErr.hidden=true;
     if(pfOk) pfOk.hidden=true;
-    var name=pfName.value.trim(), phone=pfPhone.value.trim(), email=pfEmail.value.trim();
+    var name=pfName.value.trim(), phoneRaw=pfPhone.value.trim(), email=pfEmail.value.trim();
     if(!name){ pfErr.textContent='নাম লিখতে হবে।'; pfErr.hidden=false; return; }
-    if(!phone && !email){ pfErr.textContent='ফোন অথবা ইমেইল, অন্তত একটা লিখতে হবে।'; pfErr.hidden=false; return; }
+    if(!phoneRaw && !email){ pfErr.textContent='ফোন অথবা ইমেইল, অন্তত একটা লিখতে হবে।'; pfErr.hidden=false; return; }
+    var normalizedPhone = phoneRaw ? normalizePhone(phoneRaw) : null;
+    if(phoneRaw && !normalizedPhone){ pfErr.textContent='ফোন নম্বরটা ঠিক নেই, এভাবে লেখো: 01XXXXXXXXX'; pfErr.hidden=false; return; }
     if(!supa || !session){ pfErr.textContent='একটু অপেক্ষা করো, লোড হচ্ছে…'; pfErr.hidden=false; return; }
     pfSubmit.disabled=true;
     supa.from('nd_profile').upsert({
       user_id:session.user.id,
       name:name,
-      phone:phone||null,
+      phone:normalizedPhone,
       email:email||null,
       address:pfAddress.value.trim()||null,
       age:pfAge.value?parseInt(pfAge.value,10):null,
@@ -3675,7 +3714,22 @@ if(tb) tb.addEventListener('click',function(){
       updated_at:new Date().toISOString()
     }).then(function(res){
       if(res.error) throw res.error;
+      // A failure here means the identifier couldn't be linked (e.g. it
+      // needs a confirmation this self-hosted setup can't deliver) -- the
+      // profile data above already saved fine, so this must never surface
+      // as a hard error, only a softer note inside the success message.
+      return linkIdentifiers(normalizedPhone,email).catch(function(){ return {phoneLinked:false,emailLinked:false,emailPending:false,failed:true}; });
+    }).then(function(link){
+      var linkedWhat=[];
+      if(link.phoneLinked) linkedWhat.push('ফোন');
+      if(link.emailLinked) linkedWhat.push('ইমেইল');
+      var msg='তথ্য সেভ হয়েছে।';
+      if(linkedWhat.length) msg='তথ্য সেভ হয়েছে। এখন থেকে '+linkedWhat.join(' আর ')+' দিয়েও একই পাসওয়ার্ডে লগইন করা যাবে।';
+      else if(link.emailPending) msg='তথ্য সেভ হয়েছে। (ইমেইল দিয়ে লগইন এখনই চালু করা গেল না — আগের নম্বর/ইমেইল দিয়েই লগইন করো।)';
+      else if(link.failed) msg='তথ্য সেভ হয়েছে। (ফোন/ইমেইল যোগ করতে সমস্যা হয়েছে।)';
+      pfOk.textContent=msg;
       pfOk.hidden=false;
+      paintModal();
     }).catch(function(err){
       pfErr.textContent=(err && err.message) || 'সেভ করা যায়নি, আবার চেষ্টা করো।';
       pfErr.hidden=false;
