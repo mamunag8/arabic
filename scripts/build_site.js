@@ -1773,10 +1773,16 @@ hr{border:0;border-top:1px solid var(--line);margin:2em 0}
    it would cover the entire home page on every load, before anyone clicks
    the account button */
 .acct-modal[hidden]{display:none}
-.acct-modal{position:fixed;inset:0;z-index:50;display:flex;align-items:center;justify-content:center;
-  background:color-mix(in srgb,#000 55%,transparent);padding:1rem}
+/* align-items:flex-start (not center) + overflow-y on the modal itself is
+   the load-bearing part: the profile view got tall (demographic fields +
+   password form + logout), and a centered flex item that's taller than the
+   viewport clips off both top and bottom with no way to scroll to it --
+   this keeps the top always reachable and lets the whole thing scroll. */
+.acct-modal{position:fixed;inset:0;z-index:50;display:flex;align-items:flex-start;justify-content:center;
+  background:color-mix(in srgb,#000 55%,transparent);padding:1.5rem 1rem;overflow-y:auto;
+  -webkit-overflow-scrolling:touch}
 .acct-card{background:var(--card);border:1px solid var(--line);border-radius:var(--rad);
-  padding:1.5rem;max-width:22rem;width:100%;position:relative}
+  padding:1.5rem;max-width:22rem;width:100%;position:relative;margin:0 auto}
 .acct-x{position:absolute;top:.3rem;right:.3rem;background:none;border:0;font-size:1.2rem;
   cursor:pointer;color:var(--mut);width:44px;height:44px;line-height:44px;text-align:center;
   padding:0;border-radius:9px}
