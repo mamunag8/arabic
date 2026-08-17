@@ -432,6 +432,27 @@ function page({ title, desc, body, rel, cls = '', active = '' }) {
       <h2>তোমার প্রোফাইল</h2>
       <p><b id="acctUserEmail"></b></p>
       <p class="muted"><span id="acctUserDone">০</span>টি ক্লাস শেষ করেছ — এই অ্যাকাউন্টে সেভ হয়ে গেছে।</p>
+
+      <form id="pfForm">
+        <label class="acct-label">নাম <span class="acct-req">*</span><input type="text" id="pfName" required></label>
+        <label class="acct-label">ফোন<input type="text" id="pfPhone" inputmode="tel" placeholder="01XXXXXXXXX"></label>
+        <label class="acct-label">ইমেইল<input type="email" id="pfEmail"></label>
+        <label class="acct-label">ঠিকানা<input type="text" id="pfAddress" placeholder="জেলা, উপজেলা"></label>
+        <label class="acct-label">বয়স<input type="number" id="pfAge" min="1" max="100" inputmode="numeric"></label>
+        <label class="acct-label">লিঙ্গ
+          <select id="pfSex">
+            <option value="">উল্লেখ করিনি</option>
+            <option value="male">ছেলে</option>
+            <option value="female">মেয়ে</option>
+            <option value="other">অন্যান্য</option>
+          </select>
+        </label>
+        <p class="acct-hint">নাম আবশ্যক। ফোন অথবা ইমেইলের অন্তত একটা লাগবে — বাকি সব ঐচ্ছিক।</p>
+        <p class="acct-err" id="pfErr" hidden></p>
+        <p class="acct-ok" id="pfOk" hidden>তথ্য সেভ হয়েছে।</p>
+        <button class="btn" type="submit" id="pfSubmit">তথ্য সেভ করো</button>
+      </form>
+
       <button class="btn ghost" id="acctLogout" type="button">লগআউট</button>
     </div>
   </div>
@@ -1745,6 +1766,14 @@ hr{border:0;border-top:1px solid var(--line);margin:2em 0}
 .acct-card form .btn{width:100%;border:0;font:inherit;font-size:1rem;cursor:pointer;margin-top:.2rem}
 .acct-hint{color:var(--mut);font-size:.78rem;margin:-.4rem 0 .6rem;line-height:1.5}
 .acct-err{color:#c0392b;font-size:.85rem;margin:.3rem 0}
+.acct-ok{color:var(--acc);font-size:.85rem;margin:.3rem 0}
+.acct-card select{display:block;width:100%;font:inherit;font-size:max(1rem,16px);padding:.65rem .9rem;
+  border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--fg);margin-bottom:.6rem}
+.acct-label{display:block;font-size:.82rem;color:var(--mut);margin:.7rem 0 0}
+.acct-label input,.acct-label select{margin-top:.3rem}
+.acct-req{color:#c0392b}
+#pfForm{margin-top:1rem;padding-top:1rem;border-top:1px solid var(--line)}
+#pfForm .btn{margin-top:1rem}
 .linklike{background:none;border:0;padding:0;color:var(--acc);text-decoration:underline;cursor:pointer;font:inherit}
 .acct-nudge{background:var(--chip);border:1px solid var(--line);border-radius:var(--rad);
   padding:.8rem 1rem;margin:.8rem 0;font-size:.88rem;display:flex;gap:.6rem;align-items:center;
@@ -3524,6 +3553,16 @@ if(tb) tb.addEventListener('click',function(){
   var logoutBtn=document.getElementById('acctLogout');
   var userEmailEl=document.getElementById('acctUserEmail');
   var userDoneEl=document.getElementById('acctUserDone');
+  var pfForm=document.getElementById('pfForm');
+  var pfName=document.getElementById('pfName');
+  var pfPhone=document.getElementById('pfPhone');
+  var pfEmail=document.getElementById('pfEmail');
+  var pfAddress=document.getElementById('pfAddress');
+  var pfAge=document.getElementById('pfAge');
+  var pfSex=document.getElementById('pfSex');
+  var pfErr=document.getElementById('pfErr');
+  var pfOk=document.getElementById('pfOk');
+  var pfSubmit=document.getElementById('pfSubmit');
 
   var mode='login', supa=null, session=null;
 
@@ -3598,6 +3637,53 @@ if(tb) tb.addEventListener('click',function(){
   }
   window.__ndPushProgress = pushProgress;
 
+  // Optional demographic details (edtech analysis / future planning) --
+  // never blocks play, only offered once someone already has an account.
+  // Name is required; phone or email (either can differ from the identifier
+  // they actually logged in with) is required; everything else is optional.
+  function loadProfileForm(){
+    if(!supa || !session || !pfForm) return;
+    supa.from('nd_profile').select('*').eq('user_id',session.user.id).single()
+      .then(function(res){
+        var p = res && res.data;
+        pfName.value = (p && p.name) || '';
+        pfPhone.value = (p && p.phone) || (session.user.phone ? '+'+session.user.phone : '');
+        pfEmail.value = (p && p.email) || session.user.email || '';
+        pfAddress.value = (p && p.address) || '';
+        pfAge.value = (p && p.age) || '';
+        pfSex.value = (p && p.sex) || '';
+      }).catch(function(){});
+  }
+
+  if(pfForm) pfForm.addEventListener('submit',function(e){
+    e.preventDefault();
+    if(pfErr) pfErr.hidden=true;
+    if(pfOk) pfOk.hidden=true;
+    var name=pfName.value.trim(), phone=pfPhone.value.trim(), email=pfEmail.value.trim();
+    if(!name){ pfErr.textContent='নাম লিখতে হবে।'; pfErr.hidden=false; return; }
+    if(!phone && !email){ pfErr.textContent='ফোন অথবা ইমেইল, অন্তত একটা লিখতে হবে।'; pfErr.hidden=false; return; }
+    if(!supa || !session){ pfErr.textContent='একটু অপেক্ষা করো, লোড হচ্ছে…'; pfErr.hidden=false; return; }
+    pfSubmit.disabled=true;
+    supa.from('nd_profile').upsert({
+      user_id:session.user.id,
+      name:name,
+      phone:phone||null,
+      email:email||null,
+      address:pfAddress.value.trim()||null,
+      age:pfAge.value?parseInt(pfAge.value,10):null,
+      sex:pfSex.value||null,
+      updated_at:new Date().toISOString()
+    }).then(function(res){
+      if(res.error) throw res.error;
+      pfOk.hidden=false;
+    }).catch(function(err){
+      pfErr.textContent=(err && err.message) || 'সেভ করা যায়নি, আবার চেষ্টা করো।';
+      pfErr.hidden=false;
+    }).then(function(){
+      pfSubmit.disabled=false;
+    });
+  });
+
   if(form) form.addEventListener('submit',function(e){
     e.preventDefault();
     if(!supa){ showErr('একটু অপেক্ষা করো, লোড হচ্ছে…'); return; }
@@ -3665,9 +3751,9 @@ if(tb) tb.addEventListener('click',function(){
     session = (res && res.data) ? res.data.session : null;
     var after = session ? syncAfterLogin() : Promise.resolve();
     after.then(function(){
-      paintAcctBtn(); paintModal(); window.__ndMaybeNudge();
+      paintAcctBtn(); paintModal(); loadProfileForm(); window.__ndMaybeNudge();
     });
-    supa.auth.onAuthStateChange(function(_evt,s){ session=s; paintAcctBtn(); paintModal(); });
+    supa.auth.onAuthStateChange(function(_evt,s){ session=s; paintAcctBtn(); paintModal(); loadProfileForm(); });
   }).catch(function(){
     window.__ndMaybeNudge();
   });
