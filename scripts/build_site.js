@@ -43,6 +43,13 @@ const OUT = path.join(__dirname, '..', 'site');
 const SITE_TITLE = 'নূর দ্বীপ অভিযান';
 const SITE_TAG = 'কুরআন বুঝে বুঝে পড়া ও মুখস্থ করার ২৪ সপ্তাহের অভিযান';
 
+// Optional cloud sync only -- the site fully works with zero network calls
+// (see the "progress" section of assets/app.js). This anon key is meant to be
+// public; access is gated entirely by the RLS policies in
+// deploy/supabase_schema.sql, which must be applied once in Supabase Studio.
+const SUPABASE_URL = 'http://supabasekong-x13mvxxre05qxbkdkchtd68u.185.169.252.53.sslip.io';
+const SUPABASE_ANON_KEY = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJzdXBhYmFzZSIsImlhdCI6MTc4Njk2MTU4MCwiZXhwIjo0OTQyNjM1MTgwLCJyb2xlIjoiYW5vbiJ9.jfJMjIAPRUvadhcJuuoUjHvQYw1ocmpOrRFduy8__aM';
+
 // ---------------------------------------------------------------------------
 // helpers
 // ---------------------------------------------------------------------------
@@ -390,7 +397,10 @@ function page({ title, desc, body, rel, cls = '', active = '' }) {
 <header class="top">
   <a class="brand" href="${rel}index.html"><span class="mark">🌙</span> <span class="bt">${SITE_TITLE}</span></a>
   <nav class="nav nav-top" aria-label="প্রধান মেনু">${nav}</nav>
-  <button class="theme" id="themeBtn" aria-label="থিম বদলাও">🌗</button>
+  <div class="hdr-r">
+    <button class="theme" id="acctBtn" aria-label="লগইন / প্রোফাইল">👤</button>
+    <button class="theme" id="themeBtn" aria-label="থিম বদলাও">🌗</button>
+  </div>
 </header>
 <main id="main">${body}</main>
 <footer class="foot">
@@ -399,6 +409,30 @@ function page({ title, desc, body, rel, cls = '', active = '' }) {
   <p class="muted"><a href="${rel}threads.html">🧵 সুতো</a> · <a href="${rel}refs.html">📚 সব সূত্র</a> · <a href="${rel}about.html">ℹ️ পরিচয়</a></p>
 </footer>
 <nav class="tabbar" aria-label="প্রধান মেনু">${nav}</nav>
+
+<div class="acct-modal" id="acctModal" hidden>
+  <div class="acct-card" role="dialog" aria-modal="true" aria-labelledby="acctTitle">
+    <button class="acct-x" id="acctClose" type="button" aria-label="বন্ধ করো">✕</button>
+    <div id="acctGuest">
+      <h2 id="acctTitle">অ্যাকাউন্ট</h2>
+      <p class="muted">তোমার অগ্রগতি এমনিতেই এই ফোনে সেভ থাকে। অ্যাকাউন্ট বানালে অন্য ডিভাইস থেকেও চালিয়ে যেতে পারবে।</p>
+      <form id="acctForm">
+        <input type="email" id="acctEmail" placeholder="ইমেইল" required autocomplete="email">
+        <input type="password" id="acctPass" placeholder="পাসওয়ার্ড" required autocomplete="current-password" minlength="6">
+        <p class="acct-err" id="acctErr" hidden></p>
+        <button class="btn" type="submit" id="acctSubmit">লগইন করো</button>
+      </form>
+      <p class="muted sm" id="acctToggleWrap">অ্যাকাউন্ট নেই? <button class="linklike" id="acctToggle" type="button">সাইন আপ করো</button></p>
+    </div>
+    <div id="acctUser" hidden>
+      <h2>তোমার প্রোফাইল</h2>
+      <p><b id="acctUserEmail"></b></p>
+      <p class="muted"><span id="acctUserDone">০</span>টি ক্লাস শেষ করেছ — এই অ্যাকাউন্টে সেভ হয়ে গেছে।</p>
+      <button class="btn ghost" id="acctLogout" type="button">লগআউট</button>
+    </div>
+  </div>
+</div>
+
 <script src="${rel}assets/app.js?v=__AV__"></script>
 </body>
 </html>`;
@@ -1661,8 +1695,10 @@ hr{border:0;border-top:1px solid var(--line);margin:2em 0}
 .nav-top a{display:inline-flex;align-items:center;gap:.32rem;padding:.45rem .6rem;border-radius:9px;
   text-decoration:none;color:var(--mut);white-space:nowrap}
 .nav-top a:hover,.nav-top a.on{background:var(--chip);color:var(--fg)}
-.theme{grid-column:3;grid-row:1;justify-self:end;background:none;border:1px solid var(--line);border-radius:9px;
+.hdr-r{grid-column:3;grid-row:1;justify-self:end;display:flex;gap:.4rem}
+.theme{background:none;border:1px solid var(--line);border-radius:9px;
   cursor:pointer;font-size:1rem;min-width:44px;min-height:44px;color:var(--fg)}
+.theme.is-in{border-color:var(--acc);color:var(--acc)}
 
 /* bottom tab bar — hidden on desktop, shown at the mobile breakpoint */
 /* Height is exactly --tab (border included, box-sizing:border-box) so that
@@ -1682,6 +1718,24 @@ hr{border:0;border-top:1px solid var(--line);margin:2em 0}
 .foot a{display:inline-block;padding:.4rem .1rem}
 .crumb{font-size:.83rem;color:var(--mut);margin:.6rem 0 1.2rem}
 .crumb a{color:var(--mut);display:inline-block;padding:.35rem .1rem}
+
+/* ---- account modal (optional cloud sync — never required to play) ---- */
+.acct-modal{position:fixed;inset:0;z-index:50;display:flex;align-items:center;justify-content:center;
+  background:color-mix(in srgb,#000 55%,transparent);padding:1rem}
+.acct-card{background:var(--card);border:1px solid var(--line);border-radius:var(--rad);
+  padding:1.5rem;max-width:22rem;width:100%;position:relative}
+.acct-x{position:absolute;top:.6rem;right:.6rem;background:none;border:0;font-size:1.1rem;
+  cursor:pointer;color:var(--mut);min-width:32px;min-height:32px}
+.acct-card h2{margin-top:0;border:0;padding:0;font-size:1.25rem}
+.acct-card input{display:block;width:100%;font:inherit;font-size:max(1rem,16px);padding:.65rem .9rem;
+  border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--fg);margin-bottom:.6rem}
+.acct-card input:focus{outline:2px solid var(--acc);outline-offset:1px}
+.acct-card form .btn{width:100%;border:0;font:inherit;font-size:1rem;cursor:pointer;margin-top:.2rem}
+.acct-err{color:#c0392b;font-size:.85rem;margin:.3rem 0}
+.linklike{background:none;border:0;padding:0;color:var(--acc);text-decoration:underline;cursor:pointer;font:inherit}
+.acct-nudge{background:var(--chip);border:1px solid var(--line);border-radius:var(--rad);
+  padding:.8rem 1rem;margin:.8rem 0;font-size:.88rem;display:flex;gap:.6rem;align-items:center;
+  justify-content:space-between;flex-wrap:wrap}
 
 /* ---- quest dashboard ---- */
 .quest{background:var(--card);border:1px solid var(--line);border-radius:var(--rad);
@@ -2432,6 +2486,8 @@ if(db){
     markDone(cn); paint();
     btn.classList.add('pop');
     setTimeout(function(){ btn.classList.remove('pop'); },600);
+    if(window.__ndPushProgress) window.__ndPushProgress();
+    if(window.__ndMaybeNudge) window.__ndMaybeNudge();
   });
 }
 
@@ -3431,6 +3487,159 @@ if(tb) tb.addEventListener('click',function(){
   if(next) root.setAttribute('data-theme',next); else root.removeAttribute('data-theme');
   try{ next?localStorage.setItem(KEY,next):localStorage.removeItem(KEY); }catch(e){}
 });
+
+// ---- account: optional cloud sync -----------------------------------
+// Everything above this line already works with zero network calls. This
+// block only adds an opt-in layer: signing in additively merges this
+// device's done-list with whatever is already saved to the account (never
+// drops a class either side has), then keeps pushing new marks up. Signing
+// out never touches local data -- localStorage stays the source of truth.
+(function(){
+  var modal=document.getElementById('acctModal');
+  if(!modal) return;
+  var acctBtn=document.getElementById('acctBtn');
+  var closeBtn=document.getElementById('acctClose');
+  var guestBox=document.getElementById('acctGuest');
+  var userBox=document.getElementById('acctUser');
+  var form=document.getElementById('acctForm');
+  var emailInp=document.getElementById('acctEmail');
+  var passInp=document.getElementById('acctPass');
+  var errBox=document.getElementById('acctErr');
+  var submitBtn=document.getElementById('acctSubmit');
+  var toggleBtn=document.getElementById('acctToggle');
+  var toggleWrap=document.getElementById('acctToggleWrap');
+  var logoutBtn=document.getElementById('acctLogout');
+  var userEmailEl=document.getElementById('acctUserEmail');
+  var userDoneEl=document.getElementById('acctUserDone');
+
+  var mode='login', supa=null, session=null;
+
+  function openModal(){ modal.hidden=false; }
+  function closeModal(){ modal.hidden=true; if(errBox){errBox.hidden=true;} }
+  if(acctBtn) acctBtn.addEventListener('click',openModal);
+  if(closeBtn) closeBtn.addEventListener('click',closeModal);
+  modal.addEventListener('click',function(e){ if(e.target===modal) closeModal(); });
+  document.addEventListener('keydown',function(e){ if(e.key==='Escape' && !modal.hidden) closeModal(); });
+
+  function paintAcctBtn(){
+    if(!acctBtn) return;
+    acctBtn.setAttribute('aria-label', session ? 'প্রোফাইল' : 'লগইন / প্রোফাইল');
+    acctBtn.classList.toggle('is-in', !!session);
+  }
+  function paintModal(){
+    if(!guestBox || !userBox) return;
+    if(session){
+      guestBox.hidden=true; userBox.hidden=false;
+      if(userEmailEl) userEmailEl.textContent = session.user.email || '';
+      if(userDoneEl) userDoneEl.textContent = bn(loadP().done.length);
+    } else {
+      guestBox.hidden=false; userBox.hidden=true;
+    }
+  }
+  function setMode(m){
+    mode=m;
+    if(submitBtn) submitBtn.textContent = m==='signup' ? 'সাইন আপ করো' : 'লগইন করো';
+    if(toggleBtn) toggleBtn.textContent = m==='signup' ? 'লগইন করো' : 'সাইন আপ করো';
+    if(toggleWrap && toggleWrap.firstChild) toggleWrap.firstChild.textContent = m==='signup' ? 'আগে থেকেই অ্যাকাউন্ট আছে? ' : 'অ্যাকাউন্ট নেই? ';
+  }
+  if(toggleBtn) toggleBtn.addEventListener('click',function(){ setMode(mode==='signup'?'login':'signup'); });
+  function showErr(msg){ if(!errBox) return; errBox.textContent=msg; errBox.hidden=false; }
+
+  function mergeDone(a,b){
+    var seen={}; a.concat(b).forEach(function(n){ seen[n]=1; });
+    return Object.keys(seen).map(Number).sort(function(x,y){ return x-y; });
+  }
+
+  function syncAfterLogin(){
+    if(!supa || !session) return Promise.resolve();
+    return supa.from('nd_progress').select('done').eq('user_id',session.user.id).single()
+      .then(function(res){
+        var remote = (res && res.data && res.data.done) || [];
+        var merged = mergeDone(loadP().done, remote);
+        saveP({done:merged});
+        return supa.from('nd_progress').upsert({user_id:session.user.id, done:merged, updated_at:new Date().toISOString()});
+      }).catch(function(){});
+  }
+
+  function pushProgress(){
+    if(!supa || !session) return;
+    supa.from('nd_progress').upsert({
+      user_id:session.user.id, done:loadP().done, updated_at:new Date().toISOString()
+    }).catch(function(){});
+  }
+  window.__ndPushProgress = pushProgress;
+
+  if(form) form.addEventListener('submit',function(e){
+    e.preventDefault();
+    if(!supa){ showErr('একটু অপেক্ষা করো, লোড হচ্ছে…'); return; }
+    if(errBox) errBox.hidden=true;
+    if(submitBtn) submitBtn.disabled=true;
+    var email=emailInp.value.trim(), pass=passInp.value;
+    var call = mode==='signup'
+      ? supa.auth.signUp({email:email,password:pass})
+      : supa.auth.signInWithPassword({email:email,password:pass});
+    call.then(function(res){
+      if(res.error) throw res.error;
+      if(mode==='signup' && !res.data.session){
+        showErr('অ্যাকাউন্ট তৈরি হয়েছে! এখন লগইন করো।');
+        setMode('login');
+        return;
+      }
+      session = res.data.session;
+      return syncAfterLogin().then(function(){
+        paintAcctBtn(); paintModal(); closeModal();
+        location.reload();
+      });
+    }).catch(function(err){
+      showErr((err && err.message) || 'কিছু ভুল হয়েছে, আবার চেষ্টা করো।');
+    }).then(function(){
+      if(submitBtn) submitBtn.disabled=false;
+    });
+  });
+
+  if(logoutBtn) logoutBtn.addEventListener('click',function(){
+    if(supa) supa.auth.signOut().catch(function(){});
+    session=null;
+    paintAcctBtn(); paintModal(); closeModal();
+  });
+
+  window.__ndMaybeNudge = function(){
+    if(session) return;
+    if(loadP().done.length<1) return;
+    if(document.querySelector('.acct-nudge')) return;
+    var host = document.querySelector('.done-msg') || document.querySelector('.q-note');
+    if(!host) return;
+    var n=document.createElement('div');
+    n.className='acct-nudge';
+    var span=document.createElement('span');
+    span.textContent='তোমার প্রোগ্রেস সেভ করে রাখো — অন্য ফোন থেকেও চালিয়ে যেতে পারবে।';
+    var b=document.createElement('button');
+    b.className='btn ghost mini'; b.type='button'; b.textContent='অ্যাকাউন্ট বানাও';
+    b.addEventListener('click',openModal);
+    n.appendChild(span); n.appendChild(b);
+    host.parentNode.insertBefore(n, host.nextSibling);
+  };
+
+  setMode('login');
+
+  // Loaded from a CDN on purpose -- this project ships with no bundler (see
+  // the top of build_site.js), so this is the zero-build way to bring in
+  // supabase-js. If the CDN is unreachable everything above still works;
+  // only the optional sync layer stays inactive.
+  import('https://esm.sh/@supabase/supabase-js@2').then(function(mod){
+    supa = mod.createClient('${SUPABASE_URL}', '${SUPABASE_ANON_KEY}');
+    return supa.auth.getSession();
+  }).then(function(res){
+    session = (res && res.data) ? res.data.session : null;
+    var after = session ? syncAfterLogin() : Promise.resolve();
+    after.then(function(){
+      paintAcctBtn(); paintModal(); window.__ndMaybeNudge();
+    });
+    supa.auth.onAuthStateChange(function(_evt,s){ session=s; paintAcctBtn(); paintModal(); });
+  }).catch(function(){
+    window.__ndMaybeNudge();
+  });
+})();
 
 // ---- memorisation drills ----
 document.querySelectorAll('[data-ladder]').forEach(function(l){
