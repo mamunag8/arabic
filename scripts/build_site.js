@@ -1076,34 +1076,45 @@ const ISLAND_GIFTS = [
     const first = plan.classes.find((c) => c.week === isl.weeks[0]).index;
     const last = plan.classes.filter((c) => c.week === isl.weeks[1]).slice(-1)[0].index;
     const gift = ISLAND_GIFTS[isl.n - 1];
-    const weeks = [];
+    // Each week is 4 lessons then a revision — so a week reads as one leg of
+    // the journey: four stops and a flag. Rendered as a vertical path with a
+    // connector, which is a journey on a phone instead of a wall of tiles.
+    const legs = [];
     for (let w = isl.weeks[0]; w <= isl.weeks[1]; w += 1) {
       const cls = plan.classes.filter((c) => c.week === w);
-      weeks.push(`<div class="week">
-        <div class="wk-n">সপ্তাহ ${bn(w)}</div>
-        <div class="nodes">${cls.map((c) => {
+      legs.push(`<div class="leg">
+        <div class="leg-n">সপ্তাহ ${bn(w)}</div>
+        <div class="stops">${cls.map((c) => {
     const ex = meta.CLASS_EXTRAS[c.index] || {};
-    return `<a class="node ${c.type}" data-cls="${c.index}" href="class/${c.index}.html" title="${ex.title || ''}">
-            <span class="n">${bn(c.index)}</span><span class="t">${ex.title || 'রিভিশন'}</span>
-            <span class="tick" aria-hidden="true">✓</span></a>`;
+    const flag = c.type === 'revision';
+    return `<a class="stop${flag ? ' flag' : ''}" data-cls="${c.index}" href="class/${c.index}.html">
+            <span class="s-dot">${flag ? '🚩' : bn(c.index)}</span>
+            <span class="s-t">${ex.title || 'রিভিশন'}</span>
+            <span class="s-mark" aria-hidden="true"></span></a>`;
   }).join('')}</div></div>`);
     }
-    return `<section class="island i${isl.n}" data-from="${first}" data-to="${last}">
-      <header class="isl-head">
-        <div class="isl-badge">${isl.emoji}</div>
-        <div class="isl-txt">
-          <h2>দ্বীপ ${bn(isl.n)} — ${isl.name}</h2>
-          <p>${isl.blurb}</p>
+    const total = last - first + 1;
+    return `<section class="island i${isl.n}" data-from="${first}" data-to="${last}" data-island="${isl.n}">
+      <button class="isl-head" type="button" aria-expanded="false">
+        <span class="isl-badge">${isl.emoji}</span>
+        <span class="isl-txt">
+          <span class="isl-name">দ্বীপ ${bn(isl.n)} — ${isl.name}</span>
+          <span class="isl-sub">${isl.blurb}</span>
+        </span>
+        <span class="isl-state" data-state="future">🔒</span>
+        <span class="isl-chev" aria-hidden="true">▾</span>
+      </button>
+      <div class="isl-bar" role="progressbar" aria-valuemin="0" aria-valuemax="${total}" aria-valuenow="0"><i></i></div>
+      <p class="isl-meta"><b class="isl-count">০/${bn(total)}</b> ক্লাস
+        <span class="isl-shield">🛡️ ${meta.STORY_ARC.shield[isl.n]}</span></p>
+      <div class="isl-body" hidden>
+        <div class="isl-gift" data-gift="${isl.n}">
+          <span class="g-e">${gift.e}</span>
+          <span class="g-t"><b>${gift.n}</b><small>${gift.d} · ক্লাস ${bn(gift.cls)}-এ</small></span>
+          <span class="g-lock">🔒</span>
         </div>
-      </header>
-      <div class="isl-bar"><i></i><b>০/${bn(last - first + 1)}</b></div>
-      <p class="shield">🛡️ ${meta.STORY_ARC.shield[isl.n]}</p>
-      <div class="isl-gift" data-gift="${isl.n}">
-        <span class="g-e">${gift.e}</span>
-        <span class="g-t"><b>${gift.n}</b><small>${gift.d} · ক্লাস ${bn(gift.cls)}-এ</small></span>
-        <span class="g-lock">🔒</span>
-      </div>
-      <div class="weeks">${weeks.join('')}</div></section>`;
+        ${legs.join('')}
+      </div></section>`;
   }).join('');
 
   const body = `
@@ -1695,19 +1706,64 @@ hr{border:0;border-top:1px solid var(--line);margin:2em 0}
   border-radius:999px;padding:.5rem 1rem;min-height:40px;color:var(--mut);cursor:pointer}
 .mini:hover{border-color:var(--acc);color:var(--fg)}
 
-/* island cards */
-.isl-head{display:flex;gap:.7rem;align-items:flex-start}
+/* island cards — collapsible, with a journey path inside */
+.isl-head{display:flex;gap:.7rem;align-items:center;width:100%;padding:0;min-height:56px;
+  background:none;border:0;font:inherit;color:var(--fg);text-align:start;cursor:pointer}
 .isl-badge{flex:none;width:2.8rem;height:2.8rem;display:flex;align-items:center;justify-content:center;
   font-size:1.5rem;background:var(--chip);border-radius:12px}
-.isl-txt h2{margin:0 0 .2em;border:0;padding:0;font-size:1.15rem}
-.isl-txt p{margin:0;font-size:.9rem;color:var(--mut)}
-.isl-bar{position:relative;height:1.35rem;background:var(--bg);border:1px solid var(--line);
-  border-radius:999px;margin:.7rem 0 .4rem;overflow:hidden}
-.isl-bar i{position:absolute;inset:0 auto 0 0;width:0;background:var(--acc);
+.isl-txt{flex:1;min-width:0;display:flex;flex-direction:column;gap:.1rem}
+.isl-name{font-size:1.08rem;font-weight:700;line-height:1.35}
+.isl-sub{font-size:.85rem;color:var(--mut);overflow:hidden;text-overflow:ellipsis;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.isl-state{flex:none;font-size:1rem}
+.isl-chev{flex:none;color:var(--mut);transition:transform .25s}
+.isl-head[aria-expanded=true] .isl-chev{transform:rotate(180deg)}
+
+/* progress bar: label sits OUTSIDE the bar, so no blend-mode trickery */
+.isl-bar{height:.6rem;background:var(--bg);border:1px solid var(--line);
+  border-radius:999px;margin:.7rem 0 .35rem;overflow:hidden}
+.isl-bar i{display:block;height:100%;width:0;background:var(--acc);
   transition:width .7s cubic-bezier(.3,1,.4,1)}
-.isl-bar b{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
-  font-size:.72rem;color:var(--fg);mix-blend-mode:difference;filter:invert(1) grayscale(1) contrast(9)}
+.isl-meta{display:flex;flex-wrap:wrap;gap:.2rem .6rem;align-items:baseline;
+  margin:0;font-size:.8rem;color:var(--mut)}
+.isl-count{color:var(--fg)}
+.isl-shield{color:var(--acc2)}
 .island.cleared{border-color:var(--acc2)}
+.island.current{border-color:var(--acc);box-shadow:0 0 0 2px color-mix(in srgb,var(--acc) 22%,transparent)}
+.isl-body{margin-top:.9rem}
+
+/* the path: a connector line with stops hanging off it */
+.leg{margin:.9rem 0 0}
+.leg-n{font-size:.74rem;color:var(--mut);margin-bottom:.25rem}
+.stops{position:relative;padding-inline-start:1.15rem}
+.stops::before{content:"";position:absolute;inset-block:1.1rem;inset-inline-start:.42rem;
+  width:2px;background:var(--line);border-radius:2px}
+.stop{position:relative;display:flex;align-items:center;gap:.6rem;min-height:46px;
+  padding:.35rem .6rem .35rem .2rem;text-decoration:none;color:var(--fg);font-size:.88rem;line-height:1.35}
+.stop .s-dot{position:absolute;inset-inline-start:-1.15rem;width:1.5rem;height:1.5rem;flex:none;
+  display:flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:700;
+  background:var(--bg);border:2px solid var(--line);border-radius:50%;color:var(--mut)}
+.stop .s-t{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.stop .s-mark{flex:none;width:1.2rem;text-align:center;color:var(--acc);font-weight:700}
+.stop:hover{background:var(--chip);border-radius:9px}
+.stop:hover .s-dot{border-color:var(--acc)}
+.stop.flag .s-dot{border-style:dashed;font-size:.85rem}
+.stop.flag .s-t{font-weight:600}
+
+.stop.is-done .s-dot{background:var(--acc);border-color:var(--acc);color:#fff}
+.stop.is-done .s-mark::after{content:"✓"}
+.stop.is-done .s-t{color:var(--mut)}
+.stop.is-next{background:color-mix(in srgb,var(--acc2) 12%,transparent);border-radius:9px}
+.stop.is-next .s-dot{border-color:var(--acc2);color:var(--acc2);
+  box-shadow:0 0 0 4px color-mix(in srgb,var(--acc2) 22%,transparent)}
+.stop.is-next .s-mark::after{content:"▶";color:var(--acc2)}
+@media(prefers-reduced-motion:no-preference){
+  .stop.is-next .s-dot{animation:pulse 2.2s ease-in-out infinite}
+}
+@keyframes pulse{
+  0%,100%{box-shadow:0 0 0 4px color-mix(in srgb,var(--acc2) 22%,transparent)}
+  50%{box-shadow:0 0 0 7px color-mix(in srgb,var(--acc2) 8%,transparent)}
+}
 .isl-gift{display:flex;align-items:center;gap:.6rem;margin:.6rem 0;padding:.5rem .7rem;
   background:var(--bg);border:1px dashed var(--line);border-radius:10px}
 .isl-gift .g-e{font-size:1.4rem;filter:grayscale(1);opacity:.4}
@@ -1718,10 +1774,6 @@ hr{border:0;border-top:1px solid var(--line);margin:2em 0}
 .isl-gift.won .g-lock{display:none}
 
 /* class node states */
-.node .tick{display:none;margin-inline-start:auto;color:var(--acc);font-weight:700}
-.node.is-done{border-color:var(--acc);background:color-mix(in srgb,var(--acc) 8%,var(--bg))}
-.node.is-done .tick{display:inline}
-.node.is-next{border-color:var(--acc2);box-shadow:0 0 0 2px color-mix(in srgb,var(--acc2) 30%,transparent)}
 
 /* finish button */
 .done-box{margin-top:1rem}
@@ -1838,20 +1890,6 @@ input[type=checkbox],input[type=radio]{width:20px;height:20px;accent-color:var(-
 .island{margin:2rem 0;padding:1.1rem;border:1px solid var(--line);border-radius:var(--rad);background:var(--card)}
 .island h2{margin-top:0;border:0;padding:0}
 .island .shield{font-size:.85rem;color:var(--acc2);margin:.2rem 0 0}
-.week{margin:1rem 0}
-.wk-n{font-size:.8rem;color:var(--mut);margin-bottom:.3rem}
-.nodes{display:grid;grid-template-columns:repeat(auto-fill,minmax(9.5rem,1fr));gap:.4rem}
-/* min-width:0 on both the grid item and the flex child — without it the
-   nowrap title sets the track's min size and blows the grid past the
-   viewport on narrow phones (grid/flex children default to min-width:auto). */
-.node{display:flex;gap:.5rem;align-items:center;min-width:0;padding:.45rem .6rem;background:var(--bg);
-  border:1px solid var(--line);border-radius:10px;text-decoration:none;color:var(--fg);font-size:.82rem;line-height:1.35}
-.node:hover{border-color:var(--acc);background:var(--chip)}
-.node .n{flex:none;font-weight:700;color:var(--acc);min-width:1.6em;text-align:center}
-.node .t{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.node.revision{border-style:dashed}
-.i1 .node .n{color:var(--i1)} .i2 .node .n{color:var(--i2)} .i3 .node .n{color:var(--i3)}
-.i4 .node .n{color:var(--i4)} .i5 .node .n{color:var(--i5)} .i6 .node .n{color:var(--i6)}
 
 /* ---- class ---- */
 .class-head{margin-bottom:1.5rem}
@@ -2144,7 +2182,6 @@ table.index td{padding:.4em .6em}
   .ar.big{font-size:1.45em}
 
   /* roomier tap targets — a 9-year-old's thumb, not a mouse pointer */
-  .node{min-height:46px;font-size:.85rem}
   .chip{min-height:44px}
   /* links inside a stacked card get a real thumb target */
   table.stack td a{display:inline-flex;align-items:center;min-height:40px}
@@ -2155,8 +2192,7 @@ table.index td{padding:.4em .6em}
   .btn{padding:.7rem 1.4rem}
   .tick{display:inline-block;padding:.3rem 0;min-height:34px}
 
-  .nodes{grid-template-columns:repeat(auto-fill,minmax(8.2rem,1fr))}
-  .island,.links,.thread,.ladder{padding:.85rem .7rem}
+    .island,.links,.thread,.ladder{padding:.85rem .7rem}
   .stat-row div{flex:1 1 27%;min-width:4.2rem;padding:.5rem .6rem}
   .stat-row b{font-size:1.2rem}
   .stats div{min-width:6.5rem}
@@ -2235,8 +2271,7 @@ table.index td{padding:.4em .6em}
 @media(max-width:380px){
   .brand{font-size:.95rem}              /* title stays — the header only holds brand + theme here */
   .ar.quran{font-size:1.35rem}
-  .nodes{grid-template-columns:1fr 1fr}
-  .tabbar a{font-size:.63rem}
+    .tabbar a{font-size:.63rem}
 }
 
 /* ---- landscape phone: reclaim vertical space ---- */
@@ -2296,34 +2331,58 @@ if(ring){
   else if(done.length<total) ql.textContent='তুমি '+bn(done.length)+'টি ক্লাস শেষ করেছ। বাকি '+bn(total-done.length)+'টি।';
   else ql.textContent='ছয় দ্বীপ, ১২০ ক্লাস — সব শেষ। এখন শেখানোর পালা।';
 
-  // per-island bars, shield pieces, gift shelf
+  // per-island: progress, state, shield piece, gift, and open/closed
   var shield=0, gifts=0;
   [].forEach.call(document.querySelectorAll('.island'),function(sec){
+    var idx=+sec.getAttribute('data-island');
     var from=+sec.getAttribute('data-from'), to=+sec.getAttribute('data-to'), n=0;
     for(var i=from;i<=to;i++) if(done.indexOf(i)>-1) n++;
-    var tot=to-from+1, bar=sec.querySelector('.isl-bar');
+    var tot=to-from+1;
+    var bar=sec.querySelector('.isl-bar');
     bar.querySelector('i').style.width=(n/tot*100)+'%';
-    bar.querySelector('b').textContent=bn(n)+'/'+bn(tot);
-    if(n===tot){ sec.classList.add('cleared'); shield++; gifts++;
-      var sp=document.querySelector('.sp[data-sp="'+sec.className.match(/i(\\d)/)[1]+'"]'); }
-  });
-  [].forEach.call(document.querySelectorAll('.island'),function(sec,idx){
-    var from=+sec.getAttribute('data-from'), to=+sec.getAttribute('data-to'), n=0;
-    for(var i=from;i<=to;i++) if(done.indexOf(i)>-1) n++;
-    if(n===to-from+1){
-      var s=document.querySelector('.sp[data-sp="'+(idx+1)+'"]'); if(s) s.classList.add('won');
-      var g=document.querySelector('.gi[data-gi="'+(idx+1)+'"]'); if(g) g.classList.add('won');
+    bar.setAttribute('aria-valuenow',n);
+    sec.querySelector('.isl-count').textContent=bn(n)+'/'+bn(tot);
+
+    var st=sec.querySelector('.isl-state'), head=sec.querySelector('.isl-head');
+    var isCurrent = nextN>=from && nextN<=to;
+    if(n===tot){
+      sec.classList.add('cleared'); shield++; gifts++;
+      st.textContent='✅'; st.setAttribute('data-state','cleared'); st.title='জয় হয়ে গেছে';
+      var s=document.querySelector('.sp[data-sp="'+idx+'"]'); if(s) s.classList.add('won');
+      var g=document.querySelector('.gi[data-gi="'+idx+'"]'); if(g) g.classList.add('won');
       var gb=sec.querySelector('.isl-gift'); if(gb) gb.classList.add('won');
+    } else if(isCurrent){
+      sec.classList.add('current');
+      st.textContent='▶'; st.setAttribute('data-state','current'); st.title='তুমি এখানে আছ';
+    } else if(n>0){
+      st.textContent='◐'; st.setAttribute('data-state','started'); st.title='শুরু করেছ';
+    } else {
+      st.textContent='🔒'; st.setAttribute('data-state','future'); st.title='সামনে';
     }
+
+    // open the island the child is actually on; keep the rest folded away so
+    // the map is a next step, not a wall of 120 tiles
+    var open = isCurrent || (done.length===0 && idx===1);
+    head.setAttribute('aria-expanded', open?'true':'false');
+    sec.querySelector('.isl-body').hidden = !open;
   });
   document.getElementById('shieldCount').textContent=bn(shield)+'/৬';
   document.getElementById('giftCount').textContent=bn(gifts)+'/৬';
 
-  // tick the finished class nodes
-  [].forEach.call(document.querySelectorAll('.node[data-cls]'),function(a){
+  // stop states along the path
+  [].forEach.call(document.querySelectorAll('.stop[data-cls]'),function(a){
     var n=+a.getAttribute('data-cls');
     if(done.indexOf(n)>-1) a.classList.add('is-done');
     else if(n===nextN) a.classList.add('is-next');
+  });
+
+  // expand / collapse
+  [].forEach.call(document.querySelectorAll('.isl-head'),function(h){
+    h.addEventListener('click',function(){
+      var open=h.getAttribute('aria-expanded')==='true';
+      h.setAttribute('aria-expanded', open?'false':'true');
+      h.parentNode.querySelector('.isl-body').hidden = open;
+    });
   });
 
   var rs=document.getElementById('resetProg');
