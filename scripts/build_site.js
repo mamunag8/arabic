@@ -1643,15 +1643,18 @@ hr{border:0;border-top:1px solid var(--line);margin:2em 0}
   background:color-mix(in srgb,var(--bg) 86%,transparent);
   backdrop-filter:saturate(1.5) blur(12px);-webkit-backdrop-filter:saturate(1.5) blur(12px);
   border-bottom:1px solid var(--line)}
-.brand{grid-column:2;justify-self:center;display:flex;align-items:center;gap:.4rem;min-width:0;
+/* grid-row:1 is load-bearing. With only grid-column set, sparse auto-placement
+   walks the cursor past column 2 for the brand and drops the nav and theme
+   onto a second row — the header silently became two rows tall. */
+.brand{grid-column:2;grid-row:1;justify-self:center;display:flex;align-items:center;gap:.4rem;min-width:0;
   height:100%;font-weight:700;text-decoration:none;color:var(--fg);white-space:nowrap}
 .brand .bt{overflow:hidden;text-overflow:ellipsis}
 .brand .mark{filter:saturate(1.2);flex:none}
-.nav-top{grid-column:1;justify-self:start;display:flex;gap:.15rem;font-size:.87rem;min-width:0;overflow:hidden}
+.nav-top{grid-column:1;grid-row:1;justify-self:start;display:flex;gap:.15rem;font-size:.87rem;min-width:0;overflow:hidden}
 .nav-top a{display:inline-flex;align-items:center;gap:.32rem;padding:.45rem .6rem;border-radius:9px;
   text-decoration:none;color:var(--mut);white-space:nowrap}
 .nav-top a:hover,.nav-top a.on{background:var(--chip);color:var(--fg)}
-.theme{grid-column:3;justify-self:end;background:none;border:1px solid var(--line);border-radius:9px;
+.theme{grid-column:3;grid-row:1;justify-self:end;background:none;border:1px solid var(--line);border-radius:9px;
   cursor:pointer;font-size:1rem;min-width:44px;min-height:44px;color:var(--fg)}
 
 /* bottom tab bar — hidden on desktop, shown at the mobile breakpoint */
@@ -1682,9 +1685,11 @@ hr{border:0;border-top:1px solid var(--line);margin:2em 0}
 .q-ring circle{fill:none;stroke-width:9;stroke-linecap:round}
 .q-ring .rbg{stroke:var(--line)}
 .q-ring .rfg{stroke:var(--acc);transition:stroke-dashoffset .8s cubic-bezier(.3,1,.4,1)}
-.q-num{position:absolute;inset:0;display:flex;align-items:baseline;justify-content:center;gap:.05rem}
-.q-num b{font-size:1.7rem;color:var(--acc);line-height:2.6}
-.q-num small{font-size:.75rem;color:var(--mut)}
+/* centre it properly — the old rule faked it with line-height:2.6 on a
+   baseline-aligned flex row, which sat the number 17px above the ring centre */
+.q-num{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;gap:.08rem}
+.q-num b{font-size:1.7rem;line-height:1;color:var(--acc)}
+.q-num small{font-size:.8rem;line-height:1;color:var(--mut);align-self:flex-end;padding-bottom:.22rem}
 .q-info{flex:1;min-width:12rem}
 .q-info h1{font-size:1.5rem;margin:0}
 .q-info .lead{margin:.1em 0 .4em}
@@ -1741,13 +1746,16 @@ hr{border:0;border-top:1px solid var(--line);margin:2em 0}
 /* the path: a connector line with stops hanging off it */
 .leg{margin:.9rem 0 0}
 .leg-n{font-size:.74rem;color:var(--mut);margin-bottom:.25rem}
-.stops{position:relative;padding-inline-start:1.15rem}
-.stops::before{content:"";position:absolute;inset-block:1.1rem;inset-inline-start:.42rem;
+/* The dot sits IN the flow, not absolutely — an absolute dot at a negative
+   offset landed on top of the title text. The connector line is drawn behind
+   the dot column instead. */
+.stops{position:relative}
+.stops::before{content:"";position:absolute;inset-block:1.4rem;inset-inline-start:1.05rem;
   width:2px;background:var(--line);border-radius:2px}
-.stop{position:relative;display:flex;align-items:center;gap:.6rem;min-height:46px;
-  padding:.35rem .6rem .35rem .2rem;text-decoration:none;color:var(--fg);font-size:.88rem;line-height:1.35}
-.stop .s-dot{position:absolute;inset-inline-start:-1.15rem;width:1.5rem;height:1.5rem;flex:none;
-  display:flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:700;
+.stop{position:relative;display:flex;align-items:center;gap:.7rem;min-height:46px;
+  padding:.35rem .6rem;text-decoration:none;color:var(--fg);font-size:.88rem;line-height:1.35}
+.stop .s-dot{position:relative;z-index:1;width:1.7rem;height:1.7rem;flex:none;
+  display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:700;
   background:var(--bg);border:2px solid var(--line);border-radius:50%;color:var(--mut)}
 .stop .s-t{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .stop .s-mark{flex:none;width:1.2rem;text-align:center;color:var(--acc);font-weight:700}
