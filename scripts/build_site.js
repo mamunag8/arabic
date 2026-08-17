@@ -427,6 +427,19 @@ function page({ title, desc, body, rel, cls = '', active = '' }) {
         <button class="btn" type="submit" id="acctSubmit">লগইন করো</button>
       </form>
       <p class="muted sm" id="acctToggleWrap">অ্যাকাউন্ট নেই? <button class="linklike" id="acctToggle" type="button">সাইন আপ করো</button></p>
+      <p class="muted sm"><button class="linklike" id="acctForgotBtn" type="button">পাসওয়ার্ড ভুলে গেছো?</button></p>
+      <p class="acct-err" id="acctForgotErr" hidden></p>
+      <p class="acct-ok" id="acctForgotOk" hidden></p>
+    </div>
+    <div id="acctRecover" hidden>
+      <h2>নতুন পাসওয়ার্ড দাও</h2>
+      <p class="muted">ইমেইলের লিংকে ক্লিক করেছ। এবার নতুন পাসওয়ার্ড লেখো।</p>
+      <form id="recForm">
+        <input type="password" id="recNew" placeholder="নতুন পাসওয়ার্ড" required minlength="6" autocomplete="new-password">
+        <input type="password" id="recConfirm" placeholder="আবার লেখো" required minlength="6" autocomplete="new-password">
+        <p class="acct-err" id="recErr" hidden></p>
+        <button class="btn" type="submit" id="recSubmit">পাসওয়ার্ড সেট করো</button>
+      </form>
     </div>
     <div id="acctUser" hidden>
       <h2>তোমার প্রোফাইল</h2>
@@ -451,6 +464,15 @@ function page({ title, desc, body, rel, cls = '', active = '' }) {
         <p class="acct-err" id="pfErr" hidden></p>
         <p class="acct-ok" id="pfOk" hidden>তথ্য সেভ হয়েছে।</p>
         <button class="btn" type="submit" id="pfSubmit">তথ্য সেভ করো</button>
+      </form>
+
+      <form id="pwForm">
+        <h3>পাসওয়ার্ড বদলাও</h3>
+        <input type="password" id="pwNew" placeholder="নতুন পাসওয়ার্ড" required minlength="6" autocomplete="new-password">
+        <input type="password" id="pwConfirm" placeholder="আবার লেখো" required minlength="6" autocomplete="new-password">
+        <p class="acct-err" id="pwErr" hidden></p>
+        <p class="acct-ok" id="pwOk" hidden>পাসওয়ার্ড বদলে গেছে।</p>
+        <button class="btn ghost" type="submit" id="pwSubmit">পাসওয়ার্ড বদলাও</button>
       </form>
 
       <button class="btn ghost" id="acctLogout" type="button">লগআউট</button>
@@ -1774,6 +1796,9 @@ hr{border:0;border-top:1px solid var(--line);margin:2em 0}
 .acct-req{color:#c0392b}
 #pfForm{margin-top:1rem;padding-top:1rem;border-top:1px solid var(--line)}
 #pfForm .btn{margin-top:1rem}
+#pwForm{margin-top:1rem;padding-top:1rem;border-top:1px solid var(--line)}
+#pwForm h3{margin:0 0 .6rem;font-size:1rem;border:0;padding:0}
+#pwForm .btn{margin-top:.3rem}
 .linklike{background:none;border:0;padding:0;color:var(--acc);text-decoration:underline;cursor:pointer;font:inherit}
 .acct-nudge{background:var(--chip);border:1px solid var(--line);border-radius:var(--rad);
   padding:.8rem 1rem;margin:.8rem 0;font-size:.88rem;display:flex;gap:.6rem;align-items:center;
@@ -3563,8 +3588,23 @@ if(tb) tb.addEventListener('click',function(){
   var pfErr=document.getElementById('pfErr');
   var pfOk=document.getElementById('pfOk');
   var pfSubmit=document.getElementById('pfSubmit');
+  var forgotBtn=document.getElementById('acctForgotBtn');
+  var forgotErr=document.getElementById('acctForgotErr');
+  var forgotOk=document.getElementById('acctForgotOk');
+  var pwForm=document.getElementById('pwForm');
+  var pwNew=document.getElementById('pwNew');
+  var pwConfirm=document.getElementById('pwConfirm');
+  var pwErr=document.getElementById('pwErr');
+  var pwOk=document.getElementById('pwOk');
+  var pwSubmit=document.getElementById('pwSubmit');
+  var recoverBox=document.getElementById('acctRecover');
+  var recForm=document.getElementById('recForm');
+  var recNew=document.getElementById('recNew');
+  var recConfirm=document.getElementById('recConfirm');
+  var recErr=document.getElementById('recErr');
+  var recSubmit=document.getElementById('recSubmit');
 
-  var mode='login', supa=null, session=null;
+  var mode='login', supa=null, session=null, recoveryMode=false;
 
   function openModal(){ modal.hidden=false; }
   function closeModal(){ modal.hidden=true; if(errBox){errBox.hidden=true;} }
@@ -3580,6 +3620,12 @@ if(tb) tb.addEventListener('click',function(){
   }
   function paintModal(){
     if(!guestBox || !userBox) return;
+    if(recoveryMode){
+      guestBox.hidden=true; userBox.hidden=true;
+      if(recoverBox) recoverBox.hidden=false;
+      return;
+    }
+    if(recoverBox) recoverBox.hidden=true;
     if(session){
       guestBox.hidden=true; userBox.hidden=false;
       if(userEmailEl) userEmailEl.textContent = session.user.email || (session.user.phone ? '+'+session.user.phone : '');
@@ -3738,6 +3784,76 @@ if(tb) tb.addEventListener('click',function(){
     });
   });
 
+  // Forgot password -- only works for email (sends a real reset link, needs
+  // SMTP configured on Arabic_DB). Phone accounts have no SMS provider
+  // configured here, so that path is told plainly rather than pretending.
+  if(forgotBtn) forgotBtn.addEventListener('click',function(){
+    if(forgotErr) forgotErr.hidden=true;
+    if(forgotOk) forgotOk.hidden=true;
+    var id=resolveIdentifier(emailInp.value);
+    if(!id){ forgotErr.textContent='আগে উপরে ইমেইল অথবা ফোন নম্বর লেখো।'; forgotErr.hidden=false; return; }
+    if(id.phone){ forgotErr.textContent='ফোন দিয়ে পাসওয়ার্ড রিসেট এখনো চালু নেই। ইমেইল থাকলে সেটা দিয়ে চেষ্টা করো।'; forgotErr.hidden=false; return; }
+    if(!supa){ forgotErr.textContent='একটু অপেক্ষা করো, লোড হচ্ছে…'; forgotErr.hidden=false; return; }
+    forgotBtn.disabled=true;
+    supa.auth.resetPasswordForEmail(id.email,{redirectTo:location.origin+location.pathname}).then(function(res){
+      if(res.error) throw res.error;
+      forgotOk.textContent='রিসেট লিংক ইমেইলে পাঠানো হয়েছে। ইনবক্স (আর স্প্যাম ফোল্ডার) দেখো।';
+      forgotOk.hidden=false;
+    }).catch(function(err){
+      forgotErr.textContent=(err && err.message) || 'পাঠানো যায়নি, আবার চেষ্টা করো।';
+      forgotErr.hidden=false;
+    }).then(function(){
+      forgotBtn.disabled=false;
+    });
+  });
+
+  // Change password while already signed in -- no "current password" field
+  // needed, the active session itself is the proof of ownership.
+  if(pwForm) pwForm.addEventListener('submit',function(e){
+    e.preventDefault();
+    if(pwErr) pwErr.hidden=true;
+    if(pwOk) pwOk.hidden=true;
+    var p1=pwNew.value, p2=pwConfirm.value;
+    if(p1.length<6){ pwErr.textContent='পাসওয়ার্ড অন্তত ৬ অক্ষরের হতে হবে।'; pwErr.hidden=false; return; }
+    if(p1!==p2){ pwErr.textContent='দুইটা পাসওয়ার্ড মিলছে না।'; pwErr.hidden=false; return; }
+    if(!supa || !session){ pwErr.textContent='একটু অপেক্ষা করো, লোড হচ্ছে…'; pwErr.hidden=false; return; }
+    pwSubmit.disabled=true;
+    supa.auth.updateUser({password:p1}).then(function(res){
+      if(res.error) throw res.error;
+      pwOk.hidden=false;
+      pwForm.reset();
+    }).catch(function(err){
+      pwErr.textContent=(err && err.message) || 'বদলানো যায়নি, আবার চেষ্টা করো।';
+      pwErr.hidden=false;
+    }).then(function(){
+      pwSubmit.disabled=false;
+    });
+  });
+
+  // Landing from a password-reset email link -- supabase-js parses the
+  // recovery token out of the URL on init and fires PASSWORD_RECOVERY
+  // below, which is what actually opens this view (see onAuthStateChange).
+  if(recForm) recForm.addEventListener('submit',function(e){
+    e.preventDefault();
+    if(recErr) recErr.hidden=true;
+    var p1=recNew.value, p2=recConfirm.value;
+    if(p1.length<6){ recErr.textContent='পাসওয়ার্ড অন্তত ৬ অক্ষরের হতে হবে।'; recErr.hidden=false; return; }
+    if(p1!==p2){ recErr.textContent='দুইটা পাসওয়ার্ড মিলছে না।'; recErr.hidden=false; return; }
+    if(!supa){ recErr.textContent='একটু অপেক্ষা করো, লোড হচ্ছে…'; recErr.hidden=false; return; }
+    recSubmit.disabled=true;
+    supa.auth.updateUser({password:p1}).then(function(res){
+      if(res.error) throw res.error;
+      recoveryMode=false;
+      try{ history.replaceState(null,'',location.pathname); }catch(e2){}
+      paintAcctBtn(); paintModal(); loadProfileForm();
+    }).catch(function(err){
+      recErr.textContent=(err && err.message) || 'সেট করা যায়নি, আবার চেষ্টা করো।';
+      recErr.hidden=false;
+    }).then(function(){
+      recSubmit.disabled=false;
+    });
+  });
+
   if(form) form.addEventListener('submit',function(e){
     e.preventDefault();
     if(!supa){ showErr('একটু অপেক্ষা করো, লোড হচ্ছে…'); return; }
@@ -3807,7 +3923,11 @@ if(tb) tb.addEventListener('click',function(){
     after.then(function(){
       paintAcctBtn(); paintModal(); loadProfileForm(); window.__ndMaybeNudge();
     });
-    supa.auth.onAuthStateChange(function(_evt,s){ session=s; paintAcctBtn(); paintModal(); loadProfileForm(); });
+    supa.auth.onAuthStateChange(function(_evt,s){
+      session=s;
+      if(_evt==='PASSWORD_RECOVERY'){ recoveryMode=true; openModal(); }
+      paintAcctBtn(); paintModal(); loadProfileForm();
+    });
   }).catch(function(){
     window.__ndMaybeNudge();
   });
