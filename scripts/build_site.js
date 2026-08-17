@@ -420,7 +420,8 @@ function page({ title, desc, body, rel, cls = '', active = '' }) {
       <h2 id="acctTitle">অ্যাকাউন্ট</h2>
       <p class="muted">তোমার অগ্রগতি এমনিতেই এই ফোনে সেভ থাকে। অ্যাকাউন্ট বানালে অন্য ডিভাইস থেকেও চালিয়ে যেতে পারবে।</p>
       <form id="acctForm">
-        <input type="email" id="acctEmail" placeholder="ইমেইল" required autocomplete="email">
+        <input type="text" id="acctEmail" placeholder="ইমেইল অথবা ফোন নম্বর" required autocomplete="username" inputmode="email">
+        <p class="acct-hint">ফোন দিয়ে? লিখো: 01XXXXXXXXX (মোট ১১ সংখ্যা) — শুরুতে +880 আমরা নিজে থেকেই যোগ করব। অন্য দেশের নম্বর হলে নিজে দেশের কোডসহ লেখো, যেমন +8801XXXXXXXXX।</p>
         <input type="password" id="acctPass" placeholder="পাসওয়ার্ড" required autocomplete="current-password" minlength="6">
         <p class="acct-err" id="acctErr" hidden></p>
         <button class="btn" type="submit" id="acctSubmit">লগইন করো</button>
@@ -1742,6 +1743,7 @@ hr{border:0;border-top:1px solid var(--line);margin:2em 0}
   border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--fg);margin-bottom:.6rem}
 .acct-card input:focus{outline:2px solid var(--acc);outline-offset:1px}
 .acct-card form .btn{width:100%;border:0;font:inherit;font-size:1rem;cursor:pointer;margin-top:.2rem}
+.acct-hint{color:var(--mut);font-size:.78rem;margin:-.4rem 0 .6rem;line-height:1.5}
 .acct-err{color:#c0392b;font-size:.85rem;margin:.3rem 0}
 .linklike{background:none;border:0;padding:0;color:var(--acc);text-decoration:underline;cursor:pointer;font:inherit}
 .acct-nudge{background:var(--chip);border:1px solid var(--line);border-radius:var(--rad);
@@ -3541,7 +3543,7 @@ if(tb) tb.addEventListener('click',function(){
     if(!guestBox || !userBox) return;
     if(session){
       guestBox.hidden=true; userBox.hidden=false;
-      if(userEmailEl) userEmailEl.textContent = session.user.email || '';
+      if(userEmailEl) userEmailEl.textContent = session.user.email || (session.user.phone ? '+'+session.user.phone : '');
       if(userDoneEl) userDoneEl.textContent = bn(loadP().done.length);
     } else {
       guestBox.hidden=false; userBox.hidden=true;
@@ -3559,6 +3561,22 @@ if(tb) tb.addEventListener('click',function(){
   function mergeDone(a,b){
     var seen={}; a.concat(b).forEach(function(n){ seen[n]=1; });
     return Object.keys(seen).map(Number).sort(function(x,y){ return x-y; });
+  }
+
+  // One box, email or phone -- same login either way. A Bangladeshi mobile
+  // typed the way everyone actually types it (01XXXXXXXXX, 11 digits) gets
+  // +880 stitched on automatically; anything already starting with + is
+  // trusted as-is so other countries still work.
+  function resolveIdentifier(raw){
+    var v=String(raw||'').trim();
+    if(v.indexOf('@')>-1) return {email:v};
+    var digits=v.replace(/[\\s-]/g,'');
+    if(digits.charAt(0)==='+') digits='+'+digits.slice(1).replace(/\\D/g,'');
+    else digits=digits.replace(/\\D/g,'');
+    if(/^01[0-9]{9}$/.test(digits)) return {phone:'+880'+digits.slice(1)};
+    if(/^8801[0-9]{9}$/.test(digits)) return {phone:'+'+digits};
+    if(/^\\+[1-9][0-9]{7,14}$/.test(digits)) return {phone:digits};
+    return null;
   }
 
   function syncAfterLogin(){
@@ -3584,11 +3602,14 @@ if(tb) tb.addEventListener('click',function(){
     e.preventDefault();
     if(!supa){ showErr('একটু অপেক্ষা করো, লোড হচ্ছে…'); return; }
     if(errBox) errBox.hidden=true;
+    var id=resolveIdentifier(emailInp.value);
+    if(!id){ showErr('সঠিক ইমেইল লেখো, অথবা ফোন নম্বর লেখো এভাবে: 01XXXXXXXXX'); return; }
     if(submitBtn) submitBtn.disabled=true;
-    var email=emailInp.value.trim(), pass=passInp.value;
+    var pass=passInp.value;
+    var creds = id.email ? {email:id.email,password:pass} : {phone:id.phone,password:pass};
     var call = mode==='signup'
-      ? supa.auth.signUp({email:email,password:pass})
-      : supa.auth.signInWithPassword({email:email,password:pass});
+      ? supa.auth.signUp(creds)
+      : supa.auth.signInWithPassword(creds);
     call.then(function(res){
       if(res.error) throw res.error;
       if(mode==='signup' && !res.data.session){
