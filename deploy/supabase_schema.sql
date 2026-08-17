@@ -1,6 +1,6 @@
--- Run once in Supabase Studio (Arabic_DB) -> SQL Editor, before the login
--- feature goes live. One table: each student's device-progress array,
--- readable/writable only by that student.
+-- Run in Supabase Studio (Arabic_DB) -> SQL Editor. Safe to re-run any
+-- number of times -- every statement is idempotent (CREATE POLICY has no
+-- IF NOT EXISTS in Postgres, so each one is preceded by a DROP IF EXISTS).
 
 create table if not exists public.nd_progress (
   user_id uuid primary key references auth.users(id) on delete cascade,
@@ -10,12 +10,15 @@ create table if not exists public.nd_progress (
 
 alter table public.nd_progress enable row level security;
 
+drop policy if exists "read own progress" on public.nd_progress;
 create policy "read own progress" on public.nd_progress
   for select using (auth.uid() = user_id);
 
+drop policy if exists "insert own progress" on public.nd_progress;
 create policy "insert own progress" on public.nd_progress
   for insert with check (auth.uid() = user_id);
 
+drop policy if exists "update own progress" on public.nd_progress;
 create policy "update own progress" on public.nd_progress
   for update using (auth.uid() = user_id);
 
@@ -37,11 +40,14 @@ create table if not exists public.nd_profile (
 
 alter table public.nd_profile enable row level security;
 
+drop policy if exists "read own profile" on public.nd_profile;
 create policy "read own profile" on public.nd_profile
   for select using (auth.uid() = user_id);
 
+drop policy if exists "insert own profile" on public.nd_profile;
 create policy "insert own profile" on public.nd_profile
   for insert with check (auth.uid() = user_id);
 
+drop policy if exists "update own profile" on public.nd_profile;
 create policy "update own profile" on public.nd_profile
   for update using (auth.uid() = user_id);
