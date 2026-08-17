@@ -1723,6 +1723,12 @@ hr{border:0;border-top:1px solid var(--line);margin:2em 0}
 .crumb a{color:var(--mut);display:inline-block;padding:.35rem .1rem}
 
 /* ---- account modal (optional cloud sync — never required to play) ---- */
+/* the [hidden] rule must win over the plain-class display:flex below, or the
+   browser's built-in "hidden means display:none" rule loses the cascade to
+   this author rule and the modal stays visible even when JS sets .hidden --
+   it would cover the entire home page on every load, before anyone clicks
+   the account button */
+.acct-modal[hidden]{display:none}
 .acct-modal{position:fixed;inset:0;z-index:50;display:flex;align-items:center;justify-content:center;
   background:color-mix(in srgb,#000 55%,transparent);padding:1rem}
 .acct-card{background:var(--card);border:1px solid var(--line);border-radius:var(--rad);
