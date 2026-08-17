@@ -1574,6 +1574,9 @@ fs.writeFileSync(path.join(OUT, 'assets', 'style.css'), `
   --rad:14px; --maxw:56rem;
   --hdr:56px;   /* fixed header height */
   --tab:0px;    /* bottom tab bar height — 0 on desktop, set at the breakpoint */
+  --hdrw:64rem; /* header content band. Slightly wider than the 56rem text
+                   column — the nav needs ~356px per side and an exact match
+                   would squeeze it — but close enough to read as one page. */
 }
 :root[data-theme=dark]{
   --bg:#12100e; --fg:#eceae5; --mut:#a19b90; --line:#2b2723; --card:#1a1714;
@@ -1632,7 +1635,10 @@ hr{border:0;border-top:1px solid var(--line);margin:2em 0}
 .top{position:fixed;inset-inline:0;top:0;z-index:30;
   display:grid;grid-template-columns:1fr auto 1fr;gap:.6rem;align-items:center;
   height:calc(var(--hdr) + env(safe-area-inset-top));
-  padding:0 max(.9rem,env(safe-area-inset-left)) 0 max(.9rem,env(safe-area-inset-right));
+  /* the bar is full width; its CONTENTS are pulled in to a band so they sit
+     near the page column instead of glued to the screen edges on a wide
+     monitor (at 1440 the nav used to start 250px outside the text column) */
+  padding-inline:max(.9rem,env(safe-area-inset-left),calc((100% - var(--hdrw)) / 2));
   padding-top:env(safe-area-inset-top);
   background:color-mix(in srgb,var(--bg) 86%,transparent);
   backdrop-filter:saturate(1.5) blur(12px);-webkit-backdrop-filter:saturate(1.5) blur(12px);
