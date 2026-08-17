@@ -1727,8 +1727,10 @@ hr{border:0;border-top:1px solid var(--line);margin:2em 0}
   background:color-mix(in srgb,#000 55%,transparent);padding:1rem}
 .acct-card{background:var(--card);border:1px solid var(--line);border-radius:var(--rad);
   padding:1.5rem;max-width:22rem;width:100%;position:relative}
-.acct-x{position:absolute;top:.6rem;right:.6rem;background:none;border:0;font-size:1.1rem;
-  cursor:pointer;color:var(--mut);min-width:32px;min-height:32px}
+.acct-x{position:absolute;top:.3rem;right:.3rem;background:none;border:0;font-size:1.2rem;
+  cursor:pointer;color:var(--mut);width:44px;height:44px;line-height:44px;text-align:center;
+  padding:0;border-radius:9px}
+.acct-x:active{background:var(--chip)}
 .acct-card h2{margin-top:0;border:0;padding:0;font-size:1.25rem}
 .acct-card input{display:block;width:100%;font:inherit;font-size:max(1rem,16px);padding:.65rem .9rem;
   border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--fg);margin-bottom:.6rem}
