@@ -1805,6 +1805,7 @@ hr{border:0;border-top:1px solid var(--line);margin:2em 0}
 #pwForm{margin-top:1rem;padding-top:1rem;border-top:1px solid var(--line)}
 #pwForm h3{margin:0 0 .6rem;font-size:1rem;border:0;padding:0}
 #pwForm .btn{margin-top:.3rem}
+#acctLogout{display:block;margin:1.5rem auto 0}
 .linklike{background:none;border:0;padding:0;color:var(--acc);text-decoration:underline;cursor:pointer;font:inherit}
 .acct-nudge{background:var(--chip);border:1px solid var(--line);border-radius:var(--rad);
   padding:.8rem 1rem;margin:.8rem 0;font-size:.88rem;display:flex;gap:.6rem;align-items:center;
