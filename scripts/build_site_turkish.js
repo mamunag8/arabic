@@ -200,6 +200,35 @@ function prideHtml(p) {
     </div>`;
 }
 
+// Generic [word, pronunciation, meaning] triples -> table. Shared by any
+// station that teaches a vocabulary group rather than a suffix/alphabet
+// (parts of speech, tense conjugations, day/month names, etc.).
+function vocabGroupTable(words) {
+  const rows = words.map((w) => `
+        <tr>
+          <td class="tr-letter">${w[0]}</td>
+          <td>${w[1]}</td>
+          <td>${w[2]}</td>
+        </tr>`).join('');
+  return `<div class="tbl-wrap"><table>
+        <tr><th>তুর্কি</th><th>উচ্চারণ</th><th>বাংলা অর্থ</th></tr>${rows}
+      </table></div>`;
+}
+
+function wordFormationHtml(wf) {
+  const trs = wf.examples.map((e) => `
+        <tr>
+          <td class="tr-letter">${e.stem} <span class="gloss">(${e.stemMeaning})</span></td>
+          <td>${e.suf}</td>
+          <td><strong>${e.result}</strong> <span class="gloss">(${e.pron})</span></td>
+          <td>${e.meaning}</td>
+        </tr>`).join('');
+  return `<p>${wf.rule}</p>
+    <div class="tbl-wrap"><table>
+        <tr><th>মূল/স্টেম</th><th>Suffix</th><th>নতুন শব্দ (উচ্চারণ)</th><th>অর্থ</th></tr>${trs}
+      </table></div>`;
+}
+
 function miniExamHtml(exam) {
   const items = exam.items.map((it, i) => `
         <li><span class="mx-q">${i + 1}. ${it.q}</span> <span class="answer">উত্তর: ${it.a}</span></li>`).join('');
@@ -237,11 +266,7 @@ function stationBody(s, idx) {
       <p class="gloss">${s.vowelHarmony.note}</p>
       <h2>🥜 কঠিন ব্যঞ্জনবর্ণ (Fıstıkçı Şahap)</h2>
       <p>${s.softConsonants.intro}</p>
-      ${softConsonantTable(s.softConsonants.table)}
-      <h2>🔗 বাংলার সাথে যোগসূত্র</h2>
-      <p class="gloss">এই শব্দগুলো বাংলাতেও প্রায় হুবহু চলে — একই পুরনো ফারসি/আরবি উৎস থেকে দুই ভাষাতেই এসেছে। এগুলো মুখস্থ করতে হবে না, এমনিই মনে থাকবে।</p>
-      ${cognatesHtml(s.cognates)}
-      ${s.pride ? `<h2>🕌 হারানো গৌরবের গল্প: ${s.pride.title}</h2>${prideHtml(s.pride)}` : ''}` : '';
+      ${softConsonantTable(s.softConsonants.table)}` : '';
 
   const suffixSection = s.overview ? `
       <h2>🧩 ছয়টা মূল Suffix — পরিচয়</h2>
@@ -251,6 +276,18 @@ function stationBody(s, idx) {
       <p>${s.deepDive.intro}</p>
       <p class="gloss">${s.deepDive.rule}</p>
       ${accusativeTable(s.deepDive.table)}` : '';
+
+  const wordClassesSection = s.wordClasses ? `
+      <p>${s.ruleIntro}</p>
+      ${s.wordClasses.map((g) => `
+      <h2>${g.icon} ${g.title}</h2>
+      ${vocabGroupTable(g.words)}`).join('')}` : '';
+
+  const extrasSection = `
+      ${s.cognates ? `<h2>🔗 বাংলার সাথে যোগসূত্র</h2>
+      <p class="gloss">এই শব্দগুলো বাংলাতেও প্রায় হুবহু চলে — একই পুরনো ফারসি/আরবি উৎস থেকে দুই ভাষাতেই এসেছে। এগুলো মুখস্থ করতে হবে না, এমনিই মনে থাকবে।</p>
+      ${cognatesHtml(s.cognates)}` : ''}
+      ${s.pride ? `<h2>🕌 হারানো গৌরবের গল্প: ${s.pride.title}</h2>${prideHtml(s.pride)}` : ''}`;
 
   const retrievalItems = s.retrieval.items.map((it) => `<li>${it.q} <span class="answer">(${it.a})</span></li>`).join('');
 
@@ -268,6 +305,10 @@ function stationBody(s, idx) {
 
       ${alphabetSection}
       ${suffixSection}
+      ${wordClassesSection}
+      ${extrasSection}
+
+      ${s.wordFormation ? `<h2>🔧 শব্দ গঠনের নিয়ম</h2>${wordFormationHtml(s.wordFormation)}` : ''}
 
       <h2>✏️ চর্চার জন্য অনুশীলন</h2>
       <ul class="mission">${s.exercises.map((e) => `<li>${e}</li>`).join('')}</ul>
