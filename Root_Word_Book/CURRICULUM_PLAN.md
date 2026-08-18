@@ -1,6 +1,6 @@
 # আরবি শব্দমূল ও কুরআন — Curriculum Plan (Phase 2, pilot)
 
-**Status: PLAN FOR REVIEW — no story content written yet.** This synthesizes three research passes (`RESEARCH_ROOT_WORDS.md` in this folder — 84 Quranic roots; a daily-life vocabulary pass; a pedagogy/mind-map pass, both inline in the session) into a concrete proposal. Nothing below is final until you sign off, per the approved plan for this book.
+**Status (2026-08-19): Stage 1 content complete — all 25 classes written and live at arabic.kasbpro.com/books/arabic-roots/.** This synthesizes three research passes (`RESEARCH_ROOT_WORDS.md` in this folder — 84 Quranic roots; a daily-life vocabulary pass; a pedagogy/mind-map pass, both inline in the session) into a concrete proposal, then Stage 1 (§3a) got fully built out. **Still not alim/reviewer-signed-off** (§7 rule 7) — shipped live at the user's explicit request, with that gap flagged each time. Content lives as structured data in `scripts/arabic_roots_content.js`; only classes 1–2 also have the full markdown authoring-layer copy in `Root_Word_Book/Stage_1/` (3–25 were written straight into the data file given the volume — retrofitting the markdown layer for consistency with book 1's convention is a known gap, not done as of this writing).
 
 ---
 
