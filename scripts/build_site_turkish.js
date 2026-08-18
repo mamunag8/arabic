@@ -215,6 +215,20 @@ function vocabGroupTable(words) {
       </table></div>`;
 }
 
+// word/pron/meaning + a full example sentence with its own pronunciation --
+// station 4's shape, richer than a plain vocabGroupTable row.
+function sentencePatternTable(rows) {
+  const trs = rows.map((r) => `
+        <tr>
+          <td class="tr-letter">${r.word} <span class="gloss">(${r.pron})</span></td>
+          <td>${r.meaning}</td>
+          <td>${r.ex}<br><span class="gloss">${r.exPron} — ${r.exMeaning}</span></td>
+        </tr>`).join('');
+  return `<div class="tbl-wrap"><table>
+        <tr><th>তুর্কি শব্দ</th><th>অর্থ</th><th>উদাহরণ বাক্য (উচ্চারণ — অর্থ)</th></tr>${trs}
+      </table></div>`;
+}
+
 function wordFormationHtml(wf) {
   const trs = wf.examples.map((e) => `
         <tr>
@@ -283,6 +297,11 @@ function stationBody(s, idx) {
       <h2>${g.icon} ${g.title}</h2>
       ${vocabGroupTable(g.words)}`).join('')}` : '';
 
+  const sentenceWordsSection = s.sentenceWords ? `
+      <h2>💬 ছোট বাক্যের মূল শব্দ</h2>
+      <p>${s.ruleIntro}</p>
+      ${sentencePatternTable(s.sentenceWords)}` : '';
+
   const extrasSection = `
       ${s.cognates ? `<h2>🔗 বাংলার সাথে যোগসূত্র</h2>
       <p class="gloss">এই শব্দগুলো বাংলাতেও প্রায় হুবহু চলে — একই পুরনো ফারসি/আরবি উৎস থেকে দুই ভাষাতেই এসেছে। এগুলো মুখস্থ করতে হবে না, এমনিই মনে থাকবে।</p>
@@ -306,6 +325,7 @@ function stationBody(s, idx) {
       ${alphabetSection}
       ${suffixSection}
       ${wordClassesSection}
+      ${sentenceWordsSection}
       ${extrasSection}
 
       ${s.wordFormation ? `<h2>🔧 শব্দ গঠনের নিয়ম</h2>${wordFormationHtml(s.wordFormation)}` : ''}
