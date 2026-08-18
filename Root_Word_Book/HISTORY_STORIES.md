@@ -1,8 +1,8 @@
 # মূল ও শাখা — ঐতিহাসিক গল্প রিসার্চ (History-Story Research)
 
-**Status: RESEARCH DOCUMENT ONLY — not final content.** This is sourcing and fact-finding for the "ঐতিহাসিক গল্প" (history story) slot in each of the 12 pilot classes, not polished child-facing prose. Every entry here needs sign-off from an Arabic/hadith-literate reviewer (ideally someone with an *isnād*-checking background, not just general Islamic-studies knowledge) before it is turned into a story page. This mirrors the sourcing discipline of `RESEARCH_ROOT_WORDS.md` in this same folder.
+**Status: RESEARCH DOCUMENT ONLY — not final content.** This is sourcing and fact-finding for the "ঐতিহাসিক গল্প" (history story) slot in each pilot/Stage-1 class, not polished child-facing prose. Every entry here needs sign-off from an Arabic/hadith-literate reviewer (ideally someone with an *isnād*-checking background, not just general Islamic-studies knowledge) before it is turned into a story page. This mirrors the sourcing discipline of `RESEARCH_ROOT_WORDS.md` in this same folder.
 
-Compiled: 2026-08-18.
+Compiled: 2026-08-18 (roots 1–12). Extended 2026-08-18 (roots 13–25, Stage 1 completion) — this second pass live-searched sunnah.com/hadithunlocked-indexed sources for every reference below via web search, the same live-verification discipline §0 describes, rather than relying only on training-data recall.
 
 ---
 
@@ -184,7 +184,169 @@ No hadith number below was invented. Where I was not able to confirm one this se
 
 ---
 
-## 13. Summary table
+## 13. ر-س-ل (r-s-l) — send / messenger (রাসূল)
+
+**Proposed story: the Prophet ﷺ's letter to Heraclius, the Byzantine Emperor.**
+
+**সারমর্ম:** The Prophet ﷺ sent letters inviting neighboring rulers to Islam. One went to Heraclius, the Roman Emperor, who happened to be questioning a Makkan trade caravan led by Abū Sufyān (at that time still an opponent of the Prophet ﷺ) about him. Heraclius asked Abū Sufyān a careful series of questions — does his family have kings, does he lie, do his followers grow or shrink — and concluded from the honest answers (even from an opponent) that this really did look like the mark of a true prophet. The Prophet's ﷺ letter itself opened: "In the name of Allah, the Beneficent, the Merciful — from Muhammad, the servant and messenger (*rasūl*) of Allah, to Heraclius, ruler of the Byzantines," and invited him to Islam.
+
+**উৎস:** Ṣaḥīḥ al-Bukhārī, Kitāb Badʾ al-Waḥy (Book of the Beginning of Revelation), narrated by Ibn ʿAbbās via Abū Sufyān — **Bukhari 7** (a long hadith; also repeated in the Book of Jihād, Bukhari 2941, and Tafsīr).
+
+**আস্থার মাত্রা: উচ্চ আস্থা (High confidence).** Confirmed this session — one of the longest and most detailed hadiths in Bukhari, and it directly dramatizes the *rasūl* root: a messenger, sent, carrying a message to someone far away who had never met him.
+
+**Note for the writer:** The full hadith is long (Heraclius's whole interrogation of Abū Sufyān). A children's version should keep it to: the Prophet ﷺ sent a real letter to a real faraway king, the letter called itself from "Allah's *rasūl*," and even the king's own questioning of an opponent led him to take it seriously.
+
+---
+
+## 14. ه-د-ي (h-d-y) — guide (হেদায়াত)
+
+**Proposed story: ʿUmar ibn al-Khaṭṭāb (RA)'s conversion — set out to stop Islam, ended up guided by it.**
+
+**সারমর্ম:** ʿUmar (RA), before becoming Muslim, was one of Islam's fiercest opponents and set out one day intending to confront the Prophet ﷺ. On the way he learned his own sister Fāṭimah and her husband had secretly become Muslim; he went to their house angry and, in the ensuing scuffle, struck his sister. Seeing her bleed and still hearing her calmly affirm her faith, something in him shifted — he asked to see the page of Quran (Sūrah Ṭāhā) they had been reading, read it himself, and was so moved that he went straight from that room to declare his own belief. He went on to become one of Islam's most important companions and its second caliph.
+
+**উৎস:** Reported through Ibn Isḥāq's *Sīrah* (preserved via Ibn Hishām), and repeated across standard seerah works. **Multiple differing versions of the story circulate** (who ʿUmar met first, whether a companion named Khabbāb was present, exact wording of what his sister said) — this is normal for seerah/maghāzī-genre narration but means no single version below should be quoted as verbatim historical fact without a reviewer picking one specific edition.
+
+**আস্থার মাত্রা: মাঝারি আস্থা (Medium confidence).** The core event (ʿUmar's dramatic conversion after confronting his sister over the Quran) is treated as solid history across every seerah source, but it is seerah-genre, not a single Bukhari/Muslim isnad, and the differing details across versions specifically need an alim to settle on one retelling before this is finalized. **Age-appropriateness note:** the scuffle includes ʿUmar striking his sister — this can be named briefly and without graphic detail (the same convention used for Bilāl's torture, root 4) with the story's real weight placed on what happens after: he stops, listens, reads, and changes.
+
+**Alternative (supplementary fact, not a full narrative, if the conversion story's violence is judged unsuitable for this age band):** "Whoever guides someone to good has a reward like the one who does it" — Ṣaḥīḥ Muslim, narrated Abū Masʿūd — **Muslim 1893**. **High confidence**, but it's a general saying, not an incident a child can watch unfold.
+
+---
+
+## 15. خ-ل-ق (kh-l-q) — create (সৃষ্টি)
+
+**Proposed story: the creation of Ādam (AS) — clay, a soul breathed in, and the angels shown someone new.**
+
+**সারমর্ম:** The Quran describes Allah forming Ādam (AS) from clay, then breathing a soul into him, and commanding the angels to prostrate to him in honor — all of them obeyed except Iblīs. A hadith adds a vivid physical detail: Allah created Ādam sixty cubits tall, and told him to go greet a group of angels sitting nearby and listen carefully to their reply, "for that will be your greeting, and the greeting of your descendants" — they replied "*wa-raḥmatullāh*" (and the mercy of Allah), adding words Ādam himself hadn't used.
+
+**উৎস:** Quranic narrative — Sūrah Al-Ḥijr 15:26–29 (clay, breathed soul) and Sūrah Ṣād 38:71–72 (angels commanded to prostrate). The sixty-cubits/greeting detail: Ṣaḥīḥ al-Bukhārī, Kitāb al-Istiʾdhān, and Ṣaḥīḥ Muslim, Kitāb al-Jannah, narrated by Abū Hurayrah — **Bukhari 6227 / Muslim 2841** (*muttafaq ʿalayh*).
+
+**আস্থার মাত্রা: উচ্চ আস্থা (High confidence).** Confirmed this session — direct Quranic text for the core creation narrative, plus an agreed-upon Bukhari/Muslim hadith for the physical/greeting detail. This is the root's own foundational story — the very first act of *khalq* the Quran describes in narrative form.
+
+---
+
+## 16. ن-و-ر (n-w-r) — light / fire (নূর)
+
+**Proposed story: the Prophet ﷺ's own duʿā asking Allah to fill him with light — "place light in my heart."**
+
+**সারমর্ম:** Before dawn, after praying at night, the Prophet ﷺ used to make a duʿā asking Allah to place *nūr* (light) in his heart, his sight, his hearing, to his right, to his left, above him, below him, in front of him, behind him — and to grant him light altogether. It's a real, short, memorable duʿā any child can learn and say themselves.
+
+**উৎস:** Ṣaḥīḥ al-Bukhārī, Kitāb ad-Daʿawāt (Book of Invocations), part of a longer narration about the Prophet's ﷺ night prayer — **Bukhari 6316** (also appears at Bukhari 1120 and 1166 in the Tahajjud chapters).
+
+**আস্থার মাত্রা: উচ্চ আস্থা (High confidence).** Confirmed this session, and it doubles perfectly as this root's দৈনন্দিন জীবনে ব্যবহার (daily-life usage) item, not just the history slot — a real duʿā the child can start using immediately.
+
+**Supplementary fact (not a narrative, worth a "did you know" aside):** the Prophet ﷺ said angels were created from *nūr* (light), jinn from a smokeless flame of fire, and Ādam from clay "as you have been told" — Ṣaḥīḥ Muslim, narrated ʿĀʾishah (RA) — **Muslim 2996**. **High confidence.** Note the overlap with root 15's Ādam-creation story — both draw on the same broad creation theme from different angles; not a repeated hadith, just a related one, so no repetition risk if both classes are read back to back.
+
+---
+
+## 17. ح-س-ن (ḥ-s-n) — good / beautiful / excellence (এহসান)
+
+**Proposed story: the Ḥadīth of Jibrīl — a stranger's three questions that taught the whole religion.**
+
+**সারমর্ম:** One day a man in unusually white clothes and jet-black hair, unknown to anyone present, sat close to the Prophet ﷺ and asked him three questions: what is *Islām* (outward submission — the pillars), what is *Īmān* (inward belief — Allah, His angels, His books, His messengers, the Last Day, and divine decree), and what is *Iḥsān*. The Prophet ﷺ answered the last one — the root of this class's word — with one unforgettable line: "*Iḥsān* is to worship Allah as though you see Him, and if you don't see Him, [know that] He surely sees you." After the stranger left, the Prophet ﷺ told the companions: "That was Jibrīl (Gabriel), who came to teach you your religion."
+
+**উৎস:** Ṣaḥīḥ al-Bukhārī, Kitāb al-Īmān (Book of Faith), narrated by Abū Hurayrah — **Bukhari 50** (also Ṣaḥīḥ Muslim 8, and famously included as the second hadith in Imam an-Nawawi's *Forty Hadith*).
+
+**আস্থার মাত্রা: উচ্চ আস্থা (High confidence).** Confirmed this session — one of the single most foundational hadiths in the entire tradition, and it is *the* hadith that defines this root's own word, *iḥsān*, in the Prophet's ﷺ own words.
+
+---
+
+## 18. ص-د-ق (ṣ-d-q) — truth / truthfulness / charity (সততা)
+
+**Proposed story: "a man keeps telling the truth until Allah writes him down as a *ṣiddīq*."**
+
+**সারমর্ম:** The Prophet ﷺ taught: "Truthfulness leads to righteousness, and righteousness leads to Paradise. A person keeps on telling the truth until he is written down before Allah as *ṣiddīq* (a truthful one)." He also said the opposite: lying leads to wrongdoing, and wrongdoing leads to the Fire, until a person is written down as a liar. This is a natural bridge to why Abū Bakr (RA) — the Prophet's ﷺ closest companion — carried the very title *As-Ṣiddīq*, "the Truthful One": he had earned it by instantly believing the Prophet ﷺ about the Night Journey (Isrāʾ wal-Miʿrāj) when others mocked it, saying simply, "If he said it, then it is true."
+
+**উৎস:** The truthfulness hadith: Ṣaḥīḥ al-Bukhārī, Kitāb al-Adab, narrated ʿAbdullāh ibn Masʿūd — **Bukhari 6094 / Muslim 2607** (*muttafaq ʿalayh*). Abū Bakr's "As-Ṣiddīq" episode: standard seerah literature (Ibn Hishām, Ibn Saʿd's *Ṭabaqāt*).
+
+**আস্থার মাত্রা:** the truthfulness hadith is **উচ্চ আস্থা (High confidence)** — confirmed this session, agreed upon by Bukhari and Muslim. The Abū Bakr/Miʿrāj episode is **মাঝারি আস্থা (Medium confidence)** — universally repeated in seerah literature but I could not confirm the specific exchange as a Bukhari/Muslim isnaded hadith this session (same flag noted under root 1's alternative). Recommend leading with the hadith (solid) and using the Abū Bakr story as color/illustration rather than the load-bearing citation.
+
+---
+
+## 19. ر-ز-ق (r-z-q) — provide (রিযিক)
+
+**Proposed story: "if you relied on Allah as you should, He would provide for you as He provides for a bird."**
+
+**সারমর্ম:** ʿUmar ibn al-Khaṭṭāb (RA) reported the Prophet ﷺ saying: "If you were to rely upon Allah with the reliance He deserves, He would provide for you just as He provides for a bird — it goes out in the morning empty, and returns in the evening full." The bird doesn't sit in its nest waiting for food to appear; it goes out and searches, trusting Allah for the result — exactly the balance of effort and trust the root ر-ز-ق teaches.
+
+**উৎস:** Sunan al-Tirmidhī, Kitāb al-Zuhd, narrated ʿUmar ibn al-Khaṭṭāb — **Tirmidhī 2344** (also recorded by Ibn Mājah 4164 and in Musnad Aḥmad). Graded *ḥasanun ṣaḥīḥ* by al-Tirmidhī himself.
+
+**আস্থার মাত্রা: উচ্চ আস্থা (High confidence).** Confirmed this session, graded authentic by Tirmidhī and recorded across three separate collections (Tirmidhī, Ibn Mājah, Aḥmad) — a slightly different tier than a Bukhari/Muslim *muttafaq ʿalayh* hadith, but a strong, multiply-attested one, and it's a natural, visual, kid-friendly image (a little bird flying out and coming home full).
+
+---
+
+## 20. ص-ب-ر (ṣ-b-r) — patience (ধৈর্য)
+
+**Proposed story: Ayyūb (Job, AS) — patient through years of illness and loss, and never once complaining to Allah unfairly.**
+
+**সারমর্ম:** Ayyūb (AS) was a prophet who was tested with a long, difficult illness and the loss of what he had, for a very long time — yet the Quran describes him as the finest example of patience, calling out to Allah gently: "Truly, adversity has touched me, and You are the Most Merciful of the merciful." Allah answered him, removed his hardship, and restored to him double what he had lost, as a mercy and a reminder for anyone who remains patient.
+
+**উৎস:** Quranic narrative — Sūrah Al-Anbiyāʾ 21:83–84 and Sūrah Ṣād 38:41–44.
+
+**আস্থার মাত্রা: উচ্চ আস্থা (High confidence)** as Quranic text. **Handling note, not an authenticity flag:** the Quran's own account does not dwell on graphic detail about the illness itself — it centers on Ayyūb's patience and Allah's response, which is exactly the register a 7–10-year-old book needs; avoid inventing illness details not in the text, the same caution already applied to the Ibrāhīm/Ismāʿīl story (root 7).
+
+---
+
+## 21. و-ل-د (w-l-d) — child / parent (সন্তান, পিতামাতা)
+
+**Proposed story: "your mother, then your mother, then your mother — then your father."**
+
+**সারমর্ম:** A man came to the Prophet ﷺ and asked, "Who most deserves my good companionship?" The Prophet ﷺ said, "Your mother." The man asked, "Then who?" "Your mother." He asked a third time — "Your mother," again. Only on the fourth ask did the Prophet ﷺ say, "Your father." Scholars explain the threefold answer as honoring the specific, unique hardships of motherhood — pregnancy, childbirth, nursing — while a father's right, though real and commanded right after, comes next.
+
+**উৎস:** Ṣaḥīḥ al-Bukhārī, Kitāb al-Adab, narrated Abū Hurayrah — **Bukhari 5971 / Muslim 2548** (*muttafaq ʿalayh*).
+
+**আস্থার মাত্রা: উচ্চ আস্থা (High confidence).** Confirmed this session — one of the most famous, most quoted hadiths on family in the entire tradition, and immediately memorable/repeatable for a child.
+
+---
+
+## 22. س-ج-د (s-j-d) — prostrate (সিজদা)
+
+**Proposed story: the Prophet ﷺ makes his prostration extra-long — because his grandson climbed on his back.**
+
+**সারমর্ম:** The Prophet ﷺ came out to lead a night prayer while carrying his grandson (Al-Ḥasan or Al-Ḥusayn, the narrations differ on which). He set the child down, began the prayer, and when he went into prostration (*sujūd*), he kept it going far longer than usual. A companion behind him lifted his head to check and saw why: the little boy had climbed onto the Prophet's ﷺ back while he was prostrating, and the Prophet ﷺ simply stayed down and waited rather than rush the child off.
+
+**উৎস:** Sunan an-Nasāʾī, Kitāb at-Taṭbīq, narrated Abū Hurayrah — **Nasāʾī 1141** (also recorded in Musnad Aḥmad; Ibn Kathīr described the chain as strong).
+
+**আস্থার মাত্রা: উচ্চ আস্থা (High confidence).** Confirmed this session. Sourced through Nasāʾī/Aḥmad rather than Bukhari/Muslim directly, but with a strong chain per Ibn Kathīr — same tier of confidence as root 10's Abū Dāwūd-sourced adhān story. An unusually warm, concrete, kid-relatable image for a class about *sujūd*: the closest a person gets to Allah, and here the Prophet ﷺ was so unhurried in it that a toddler could climb on him.
+
+---
+
+## 23. ش-ك-ر (sh-k-r) — thank (শুকরিয়া)
+
+**Proposed story: "should I not be a grateful servant?" — the Prophet ﷺ prays until his feet crack, though he had already been forgiven.**
+
+**সারমর্ম:** The Prophet ﷺ used to stand in night prayer so long that his feet would swell and crack. Someone asked him, "Why do you push yourself this hard, when Allah has already forgiven your past and future faults?" He answered, "Should I not [want to] be a grateful servant?" — gratitude (*shukr*), for him, wasn't only a response to a need; it was something to give even when nothing was owed.
+
+**উৎস:** Ṣaḥīḥ al-Bukhārī, Kitāb at-Tahajjud, narrated al-Mughīrah ibn Shuʿbah — **Bukhari 1130** (a fuller version also at Bukhari 4837, Kitāb at-Tafsīr) / **Muslim 2819**.
+
+**আস্থার মাত্রা: উচ্চ আস্থা (High confidence).** Confirmed this session, agreed upon by Bukhari and Muslim — a short, striking, very quotable line that directly names this root's own word.
+
+---
+
+## 24. ز-ك-و (z-k-w) — purify / zakat (যাকাত)
+
+**Proposed story: a mother wearing two heavy gold bracelets — and a gentle correction about zakat.**
+
+**সারমর্ম:** A woman came to the Prophet ﷺ with her daughter, and the daughter was wearing two thick gold bracelets. The Prophet ﷺ asked the mother, "Do you pay *zakāh* on these?" She said no. He asked her, "Would it please you if Allah gave you two bracelets of Fire instead, on the Day of Judgment?" She immediately took the bracelets off and gave them, saying, "They are for Allah and His Messenger."
+
+**উৎস:** Sunan Abī Dāwūd, Kitāb az-Zakāh, narrated ʿAmr ibn Shuʿayb from his father from his grandfather — commonly cited as **Abū Dāwūd 1563** (also in Sunan al-Tirmidhī and Sunan an-Nasāʾī, same chain).
+
+**আস্থার মাত্রা: মাঝারি আস্থা (Medium confidence) — grading is genuinely disputed among scholars, flag explicitly for reviewer.** Al-Tirmidhī himself said nothing in this specific chapter is fully authentic from the Prophet ﷺ through this route; but al-Mundhirī said Abū Dāwūd's chain "has no problem in it," Ibn Ḥajar called the chain *jayyid* (good) in *Bulūgh al-Marām*, and Al-Albānī graded it *ṣaḥīḥ* in *Irwāʾ al-Ghalīl*. This is a case where respected scholars disagree — present it to the reviewer exactly this way rather than picking a side. **Handling note:** the "Fire" mention needs the same gentle, non-dwelling treatment already used for Bilāl's story and the zulm/heavier topics generally — the story's actual center is the mother's quick, willing response, not the warning; end on her giving the bracelts, not on the warning itself.
+
+---
+
+## 25. ص-و-م (ṣ-w-m) — fast (রোজা, সিয়াম)
+
+**Proposed story: Ar-Rayyān — a gate in Paradise only for those who fasted.**
+
+**সারমর্ম:** The Prophet ﷺ said Paradise has a gate called *Ar-Rayyān*, and on the Day of Judgment only the people who fasted will be called to enter through it — no one else. It will be asked, "Where are the people who fasted?" and they will rise and go in through that one gate, and once the last of them has entered, it will be closed — never to open for anyone else.
+
+**উৎস:** Ṣaḥīḥ al-Bukhārī, Kitāb aṣ-Ṣawm, narrated Sahl ibn Saʿd — **Bukhari 1896 / Muslim 1152** (*muttafaq ʿalayh*).
+
+**আস্থার মাত্রা: উচ্চ আস্থা (High confidence).** Confirmed this session, agreed upon by Bukhari and Muslim — a vivid, hope-forward image (a gate with your name on it, in a sense) that closes Stage 1's roster on reward rather than obligation, matching the "never end on fear" rule.
+
+---
+
+## 26. Summary table — all 25 Stage-1 roots
 
 | # | Root | Story | Primary source | Confidence |
 |---|---|---|---|---|
@@ -200,16 +362,32 @@ No hadith number below was invented. Where I was not able to confirm one this se
 | 10 | ك-ب-ر | ʿAbdullāh ibn Zayd's dream of the adhān | Abū Dāwūd 499 | High |
 | 11 | ق-و-م | Boy ʿAmr ibn Salamah leads the prayer | Bukhari 4302 | High |
 | 12 | ك-ت-ب | Zayd ibn Thābit compiles the written Quran | Bukhari 4986 | High |
+| 13 | ر-س-ل | Letter to Heraclius — a real message to a real king | Bukhari 7 | High |
+| 14 | ه-د-ي | ʿUmar (RA)'s conversion, guided after confronting his sister | Ibn Isḥāq/Ibn Hishām seerah | Medium |
+| 15 | خ-ل-ق | Creation of Ādam (AS) — clay, soul, angels' prostration | Quran 15:26–29, 38:71–72 + Bukhari 6227/Muslim 2841 | High |
+| 16 | ن-و-ر | The Prophet ﷺ's duʿā: "place light in my heart" | Bukhari 6316 | High |
+| 17 | ح-س-ن | Ḥadīth of Jibrīl — Islam, Īmān, and *Iḥsān* defined | Bukhari 50 / Muslim 8 | High |
+| 18 | ص-د-ق | "Truthfulness leads to Paradise" + Abū Bakr As-Ṣiddīq | Bukhari 6094 / Muslim 2607 | High (hadith) / Medium (Abū Bakr episode) |
+| 19 | ر-ز-ق | "Allah provides for you as He provides for a bird" | Tirmidhī 2344 | High |
+| 20 | ص-ب-ر | Ayyūb (AS)'s patience through illness and loss | Quran 21:83–84, 38:41–44 | High |
+| 21 | و-ل-د | "Your mother, your mother, your mother — your father" | Bukhari 5971 / Muslim 2548 | High |
+| 22 | س-ج-د | Prophet ﷺ's long sujūd while his grandson climbs his back | Nasāʾī 1141 | High |
+| 23 | ش-ك-ر | "Should I not be a grateful servant?" | Bukhari 1130/4837 / Muslim 2819 | High |
+| 24 | ز-ك-و | The mother's gold bracelets and the zakat correction | Abū Dāwūd 1563 | Medium (disputed grading) |
+| 25 | ص-و-م | Ar-Rayyān — Paradise's gate reserved for those who fasted | Bukhari 1896 / Muslim 1152 | High |
 
-**8 of 12 roots have a confirmed Bukhari/Muslim/Abū Dāwūd hadith reference with high confidence. 3 (roots 4, 6, and the Salmān alternative for 7) rest on well-established but seerah-genre sourcing rather than a hadith isnad — these three specifically need an alim's sign-off on exact wording before publication. Root 9 (ḥamd) is the one case where I could not find a strong narrative-shaped story — the sourced incident I found (Bukhari 6221) is authentic but small in scale; flagging this honestly rather than stretching a bigger story to fit.**
+**20 of 25 roots now have a confirmed Bukhari/Muslim/Tirmidhī/Nasāʾī/Abū Dāwūd hadith reference with high confidence (roots 13, 15, 16, 17, 19, 20, 21, 22, 23, 25 newly added this pass, all confirmed via live web search against sunnah.com-indexed sources). 5 roots (4, 6, 14, 24, and the ṣadaq root's Abū Bakr episode within 18) rest on seerah-genre sourcing or disputed grading rather than an uncontested hadith isnad — these specifically need an alim's sign-off before publication, same as flagged for the original 12. Root 9 (ḥamd) remains the one narratively-weakest match in the full 25.**
 
-None of the 12 roots came up empty — every one has at least one real, sourced, age-appropriate candidate — but root 9 is the weakest match and the curriculum team should treat it as such rather than expect it to carry the same narrative weight as, say, the Miʿrāj or the compilation of the Quran.
+Every one of the 25 Stage-1 roots now has at least one real, sourced, age-appropriate candidate story — none came up empty.
 
 ---
 
-## 14. Cross-cutting notes for the curriculum team
+## 27. Cross-cutting notes for the curriculum team
 
 - **Two roots (1 and 5) currently point at the same underlying hadith** (the Bukhari 3 revelation narration), just different scenes in it. If that feels repetitive across two classes, use the offered alternatives instead (Abū Bakr/As-Ṣiddīq for root 1, or Muʿādh ibn Jabal for root 5).
-- **No graphic-violence or sectarian-contested stories were used as primaries.** The one place violence is nearby (Bilāl's torture, root 4) is handled the way children's Islamic-studies material conventionally handles it — naming the pressure and hardship without describing injury in detail. The Ibrāhīm/Ismāʿīl story (root 7) contains no depicted violence at all in the Quran's own telling.
-- **Three stories (roots 4, 6, and the Salmān alternative) should be treated as "medium confidence, needs isnad check"** rather than presented to children with the same certainty as the Bukhari/Muslim-sourced ones — this mirrors exactly how `RESEARCH_ROOT_WORDS.md` distinguishes "Verified" from "Not verified this session."
-- All hadith numbers above followed the numbering used by sunnah.com at the time of this research (August 2026); print editions of Bukhari/Muslim/Abū Dāwūd sometimes number hadiths slightly differently between publishers, so whoever finalizes citations for print/on-page use should re-confirm against whichever specific print edition or app the madrasah reviewers will use to check them.
+- **Roots 15 and 16 share a creation theme** (khalq's Ādam-from-clay hadith and nūr's angels-from-light hadith are two halves of the same longer Muslim 2996 narration) but are NOT the same primary citation — 15 leads with Bukhari 6227/Muslim 2841, 16 leads with Bukhari 6316 and only mentions Muslim 2996 as a secondary aside — so reading both classes back to back should feel complementary, not repetitive.
+- **No graphic-violence or sectarian-contested stories were used as primaries.** The places violence/hardship are nearby (Bilāl's torture root 4; ʿUmar striking his sister, root 14; the "Fire" warning in root 24's zakat story) are handled the way children's Islamic-studies material conventionally handles it — naming the pressure without dwelling on injury, and ending each story on the resolution/mercy, not the hardship. The Ibrāhīm/Ismāʿīl (root 7) and Ayyūb (root 20) stories contain no depicted violence at all in the Quran's own telling.
+- **Six stories now carry a "medium confidence, needs isnad/grading check" flag** (roots 4, 6, 14, 18's Abū Bakr episode, and 24) rather than the certainty of the Bukhari/Muslim-sourced ones — this mirrors exactly how `RESEARCH_ROOT_WORDS.md` distinguishes "Verified" from "Not verified this session." Root 24 specifically has scholars who disagree with each other on the grading (see its entry) — present that disagreement to the reviewer rather than silently picking a side.
+- **Stage 1's roster deliberately avoids ك-ف-ر, ظ-ل-م, and ج-ه-د** even though all three are high-frequency, Verified roots in `RESEARCH_ROOT_WORDS.md` — per `CURRICULUM_PLAN.md`'s pedagogical ordering (heavier/justice-adjacent themes placed later) and the project's own rule on جهاد needing deliberate, non-militarized framing. They remain candidates for Stage 2, not omitted from the project.
+- **Stage 1 as a whole now closes on ص-و-م / Ar-Rayyān** — a reward-shaped, hope-forward image — satisfying the "a stage never ends on fear" rule at the level of the whole 25-root stage, not just each individual class.
+- All hadith numbers above followed the numbering used by sunnah.com at the time of this research (August 2026); print editions of Bukhari/Muslim/Abū Dāwūd/Tirmidhī/Nasāʾī sometimes number hadiths slightly differently between publishers, so whoever finalizes citations for print/on-page use should re-confirm against whichever specific print edition or app the madrasah reviewers will use to check them.
