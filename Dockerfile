@@ -9,7 +9,7 @@
 FROM node:20-alpine AS build
 WORKDIR /src
 COPY scripts ./scripts
-RUN node scripts/build_site.js && node scripts/build_catalog.js && test -f site/index.html
+RUN node scripts/build_site.js && node scripts/build_site_arabic_roots.js && node scripts/build_catalog.js && test -f site/index.html
 
 # ── Stage 2: serve it ───────────────────────────────────────────────────
 FROM nginx:1.27-alpine
