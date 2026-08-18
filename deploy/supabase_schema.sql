@@ -51,3 +51,11 @@ create policy "insert own profile" on public.nd_profile
 drop policy if exists "update own profile" on public.nd_profile;
 create policy "update own profile" on public.nd_profile
   for update using (auth.uid() = user_id);
+
+-- Multi-book: nd_progress used to be one row per user. Now this Supabase
+-- project backs more than one book, so progress needs to say WHICH book.
+-- Existing rows backfill to 'noor-dwip-obhijan' via the column default --
+-- no student's progress is lost or reset by this migration. Safe to re-run.
+alter table public.nd_progress add column if not exists book_id text not null default 'noor-dwip-obhijan';
+alter table public.nd_progress drop constraint if exists nd_progress_pkey;
+alter table public.nd_progress add primary key (user_id, book_id);
