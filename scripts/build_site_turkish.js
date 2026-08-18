@@ -229,6 +229,18 @@ function sentencePatternTable(rows) {
       </table></div>`;
 }
 
+function qaTable(rows) {
+  const trs = rows.map((r) => `
+        <tr>
+          <td>${r.q}<br><span class="gloss">${r.qPron}</span></td>
+          <td>${r.a}<br><span class="gloss">${r.aPron}</span></td>
+          <td>${r.meaning}</td>
+        </tr>`).join('');
+  return `<div class="tbl-wrap"><table>
+        <tr><th>প্রশ্ন (উচ্চারণ)</th><th>উত্তর (উচ্চারণ)</th><th>বাংলা অর্থ</th></tr>${trs}
+      </table></div>`;
+}
+
 function wordFormationHtml(wf) {
   const trs = wf.examples.map((e) => `
         <tr>
@@ -302,6 +314,14 @@ function stationBody(s, idx) {
       <p>${s.ruleIntro}</p>
       ${sentencePatternTable(s.sentenceWords)}` : '';
 
+  const qaSection = s.qaPairs ? `
+      <h2>❓ প্রশ্ন ও উত্তর</h2>
+      <p>${s.ruleIntro}</p>
+      ${qaTable(s.qaPairs)}
+      ${s.presentTense ? `<h2>🏃 বর্তমান কালের ছোট বাক্য</h2>
+      <p class="gloss">${s.presentTenseIntro}</p>
+      ${vocabGroupTable(s.presentTense)}` : ''}` : '';
+
   const extrasSection = `
       ${s.cognates ? `<h2>🔗 বাংলার সাথে যোগসূত্র</h2>
       <p class="gloss">এই শব্দগুলো বাংলাতেও প্রায় হুবহু চলে — একই পুরনো ফারসি/আরবি উৎস থেকে দুই ভাষাতেই এসেছে। এগুলো মুখস্থ করতে হবে না, এমনিই মনে থাকবে।</p>
@@ -326,6 +346,7 @@ function stationBody(s, idx) {
       ${suffixSection}
       ${wordClassesSection}
       ${sentenceWordsSection}
+      ${qaSection}
       ${extrasSection}
 
       ${s.wordFormation ? `<h2>🔧 শব্দ গঠনের নিয়ম</h2>${wordFormationHtml(s.wordFormation)}` : ''}

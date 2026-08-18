@@ -277,6 +277,35 @@ const SIMPLE_SENTENCE_WORDS = [
   { word: 'Değil', pron: 'দে-ইল', meaning: 'নয়', ex: 'Bu doğru değil.', exPron: 'বু দো-রু দে-ইল', exMeaning: 'এটা ঠিক নয়।' },
 ];
 
+// ---------------------------------------------------------------------------
+// Station 5 -- ছোট প্রশ্ন-উত্তর ও ছোট বাক্য (dedup of the draft's TWO
+// পর্ব ৭ sections -- "Kısa Sorular ve Cevaplar" question-suffix content and
+// "Basit Cümle Kurulumu" present-tense sentence content). The second পর্ব ৭
+// also contained negative-sentence material (-me/-ma, değil, phonetic
+// contraction) -- that's moved to station 7 where it belongs thematically,
+// not repeated here, per CURRICULUM_PLAN.md §4's dedup note.
+// Neither source table gave a Bangla pronunciation column for these
+// sentences, so pronunciations here are derived mechanically from
+// ALPHABET's own letter-sound table, same method as earlier stations.
+// ---------------------------------------------------------------------------
+const QUESTION_ANSWER_PAIRS = [
+  { q: 'Sen öğrenci misin?', qPron: 'সেন ওরেন-জি মি-সিন', a: 'Evet, öğrenciyim.', aPron: 'এ-ভেত, ওরেন-জি-য়িম', meaning: 'তুমি কি ছাত্র? — হ্যাঁ, আমি ছাত্র।' },
+  { q: 'O doktor mu?', qPron: 'ও দোক-তোর মু', a: 'Hayır, doktor değil.', aPron: 'হা-ইর, দোক-তোর দে-ইল', meaning: 'সে কি ডাক্তার? — না, সে ডাক্তার নয়।' },
+  { q: 'Bu kitap masada mı?', qPron: 'বু কি-তাপ মা-সা-দা মি', a: 'Evet, masada.', aPron: 'এ-ভেত, মা-সা-দা', meaning: 'এই বই কি টেবিলে? — হ্যাঁ, টেবিলে।' },
+  { q: 'Ev burada mı?', qPron: 'এভ বু-রা-দা মি', a: 'Hayır, burada değil.', aPron: 'হা-ইর, বু-রা-দা দে-ইল', meaning: 'বাড়ি কি এখানে? — না, এখানে নয়।' },
+  { q: 'Ders şimdi mi?', qPron: 'দের্স শিম-দি মি', a: 'Evet, şimdi.', aPron: 'এ-ভেত, শিম-দি', meaning: 'ক্লাস কি এখন? — হ্যাঁ, এখন।' },
+  { q: 'Toplantı yarın mı?', qPron: 'তোপ-লান-তি ইয়া-রিন মি', a: 'Hayır, bugün.', aPron: 'হা-ইর, বু-গুন', meaning: 'মিটিং কি কাল? — না, আজ।' },
+];
+
+const PRESENT_TENSE_SENTENCES = [
+  ['Ben gidiyorum.', 'বেন গি-দি-য়ো-রুম', 'আমি যাচ্ছি।'],
+  ['Sen geliyorsun.', 'সেন গে-লি-য়োর-সুন', 'তুমি আসছ।'],
+  ['O çalışıyor.', 'ও চা-লি-শি-য়োর', 'সে কাজ করছে।'],
+  ['Biz okuyoruz.', 'বিজ ও-কু-য়ো-রুজ', 'আমরা পড়ছি।'],
+  ['Siz konuşuyorsunuz.', 'সিজ কো-নু-শু-য়োর-সু-নুজ', 'আপনারা কথা বলছেন।'],
+  ['Onlar oynuyorlar.', 'অন-লার অয়-নু-য়োর-লার', 'তারা খেলছে।'],
+];
+
 const STATIONS = [
   {
     n: 1,
@@ -556,6 +585,60 @@ const STATIONS = [
     },
     badge: 'ঘরের ব্যাজ — প্রথম নিজের বাক্য বলা হয়ে গেছে',
     next: 'পরের স্টেশনে প্রতিবেশীর সাথে দেখা হবে — আরও কিছু ছোট প্রশ্ন ও উত্তর।',
+  },
+  {
+    n: 5,
+    hue: 76,
+    title: 'ছোট প্রশ্ন-উত্তর ও ছোট বাক্য',
+    subtitle: 'Kısa Sorular ve Basit Cümleler',
+    scene: 'প্রতিবেশীর সাথে দেখা',
+    story: [
+      'সিঁড়িতে দেখা হলো এক প্রতিবেশীর সাথে — মাঝবয়সী, হাতে বাজারের ব্যাগ। এলিফকে চেনেন, হাসিমুখে জিজ্ঞেস করলেন কিছু একটা আপনার দিকে তাকিয়ে। এলিফ অনুবাদ করল, "জিজ্ঞেস করছেন, \'Sen öğrenci misin?\' (সেন ওরেন-জি মি-সিন) — তুমি কি ছাত্র?" আপনি মাথা নেড়ে বললেন, "Evet, öğrenciyim (এ-ভেত, ওরেন-জি-য়িম) — হ্যাঁ, আমি ছাত্র।"',
+      '"লক্ষ্য করেছেন?" এলিফ বলল। "বাক্যের শেষে ছোট্ট একটা suffix (-mı/-mi/-mu/-mü) লাগিয়ে দিলেই যেকোনো বাক্য প্রশ্ন হয়ে যায়। কোনটা লাগবে তা ঠিক হয় শেষ স্বরবর্ণ দিয়ে — ঠিক ভাওয়েল হারমনির নিয়মেই, স্টেশন ১-এর মতো।"',
+      'প্রতিবেশী তাড়াহুড়ো করে বললেন, "Ben gidiyorum (বেন গি-দি-য়ো-রুম) — আমি যাচ্ছি," আর হাত নাড়লেন। এলিফ বলল, "এটাই তুর্কি বাক্যের সবচেয়ে ছোট রূপ — [ব্যক্তি] + [ক্রিয়া]। Gidiyorum মানে যাচ্ছি — Git (যাওয়া) মূল ক্রিয়ার সাথে বর্তমান কালের suffix -iyor আর \'আমি\'-র suffix -um জোড়া লেগে গেছে।"',
+    ],
+    ruleIntro: 'প্রশ্ন suffix বাছাই — a, ı হলে -mı; e, i হলে -mi; o, u হলে -mu; ö, ü হলে -mü (স্টেশন ১-এর ভাওয়েল হারমনি এখানেও কাজ করছে)। নিচে ৬টা বাস্তব প্রশ্ন-উত্তরের জোড়া:',
+    qaPairs: QUESTION_ANSWER_PAIRS,
+    presentTense: PRESENT_TENSE_SENTENCES,
+    presentTenseIntro: 'তুর্কি বাক্যের সবচেয়ে ছোট রূপ: [ব্যক্তি] + [ক্রিয়ামূল + বর্তমান কালের suffix -iyor + ব্যক্তির suffix]। স্টেশন ৩-এর সর্বনামগুলো (Ben, Sen, O, Biz, Siz, Onlar) এখানে আবার কাজে লাগছে:',
+    wordFormation: {
+      rule: '-mı, -mi, -mu, -mü — চারটাই একই কাজ করে (বাক্যকে প্রশ্নে বদলায়), শুধু আগের শব্দের শেষ স্বরবর্ণ অনুযায়ী বাছাই হয়। এটা স্টেশন ২-এর accusative suffix (-ı/-i/-u/-ü)-এর একদম সমান্তরাল প্যাটার্ন — তুর্কিতে এই চার-রকম-ভ্যারিয়েশন বারবার ফিরে আসে।',
+      examples: [
+        { stem: 'öğrenci', stemMeaning: 'ছাত্র (স্টেম, i-শেষ)', suf: '-mi', result: 'öğrenci misin?', pron: 'ওরেন-জি মি-সিন', meaning: 'তুমি কি ছাত্র?' },
+        { stem: 'doktor', stemMeaning: 'ডাক্তার (স্টেম, o-শেষ)', suf: '-mu', result: 'doktor mu?', pron: 'দোক-তোর মু', meaning: 'সে কি ডাক্তার?' },
+        { stem: 'masada', stemMeaning: 'টেবিলে (স্টেম, a-শেষ)', suf: '-mı', result: 'masada mı?', pron: 'মা-সা-দা মি', meaning: 'কি টেবিলে?' },
+      ],
+    },
+    exercises: [
+      '"তুমি কি ছাত্র?" আর তার উত্তর "হ্যাঁ, আমি ছাত্র" — তুর্কিতে উচ্চারণসহ লিখুন।',
+      'Ben, Sen, O, Biz, Siz, Onlar — প্রতিটার সাথে "যাচ্ছি/আসছ/করছে..." জাতীয় একটা করে বর্তমান কালের বাক্য বলুন।',
+      '-mı, -mi, -mu, -mü — কখন কোনটা বসে, নিয়মটা নিজের ভাষায় বলুন।',
+    ],
+    retrieval: {
+      prompt: 'সঠিক প্রশ্ন-suffix বেছে নিন।',
+      items: [
+        { q: 'Bu güzel ___? (এটা কি সুন্দর?)', a: 'mi (güzel-এর শেষ স্বরবর্ণ e, ফ্রন্ট)' },
+        { q: 'O evde ___? (সে কি বাড়িতে?)', a: 'mi (evde-র শেষ স্বরবর্ণ e)' },
+        { q: 'Sen okulda ___? (তুমি কি স্কুলে?)', a: 'mı (okulda-র শেষ স্বরবর্ণ a)' },
+      ],
+    },
+    miniExam: {
+      title: 'মিনি পরীক্ষা — স্টেশন ৫',
+      passRule: '১০/১৩ বা তার বেশি ঠিক হলে প্রস্তুত।',
+      items: [
+        { q: '-mı, -mi, -mu, -mü বাছাইয়ের নিয়মটা লিখুন।', a: 'a,ı→mı; e,i→mi; o,u→mu; ö,ü→mü' },
+        { q: '"তুমি কি ছাত্র?"-র তুর্কি ও উচ্চারণ কী?', a: 'Sen öğrenci misin? (সেন ওরেন-জি মি-সিন)' },
+        { q: '"হ্যাঁ, আমি ছাত্র" উচ্চারণসহ লিখুন।', a: 'Evet, öğrenciyim. (এ-ভেত, ওরেন-জি-য়িম)' },
+        { q: '"সে কি ডাক্তার? না, সে ডাক্তার নয়।" — তুর্কি ও উচ্চারণ লিখুন।', a: 'O doktor mu? Hayır, doktor değil. (ও দোক-তোর মু? হা-ইর, দোক-তোর দে-ইল)' },
+        { q: 'Ben gidiyorum — গঠন ভেঙে দেখান (মূল ক্রিয়া + suffix)।', a: 'Git (মূল) + -iyor (বর্তমান কাল) + -um (আমি)' },
+        { q: 'Sen geliyorsun, O çalışıyor — উচ্চারণ ও অর্থ লিখুন।', a: 'সেন গে-লি-য়োর-সুন (তুমি আসছ), ও চা-লি-শি-য়োর (সে কাজ করছে)' },
+        { q: 'Biz okuyoruz, Onlar oynuyorlar — উচ্চারণ ও অর্থ লিখুন।', a: 'বিজ ও-কু-য়ো-রুজ (আমরা পড়ছি), অন-লার অয়-নু-য়োর-লার (তারা খেলছে)' },
+        { q: '"ক্লাস কি এখন? হ্যাঁ, এখন।" — তুর্কি ও উচ্চারণ লিখুন।', a: 'Ders şimdi mi? Evet, şimdi. (দের্স শিম-দি মি? এ-ভেত, শিম-দি)' },
+        { q: 'öğrenci শব্দের শেষ স্বরবর্ণ কী, তাই কোন suffix বসবে?', a: 'i (ফ্রন্ট) — তাই -mi' },
+      ],
+    },
+    badge: 'প্রতিবেশীর ব্যাজ — প্রথম প্রশ্ন-উত্তর করা হয়ে গেছে',
+    next: 'পরের স্টেশনে দোকানে গিয়ে আরও প্রশ্ন বাক্য শেখা হবে — কী, কোথায়, কখন, কেন।',
   },
 ];
 
