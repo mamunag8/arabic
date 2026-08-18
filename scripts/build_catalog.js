@@ -18,8 +18,12 @@ const { accountModal } = require('./lib/account.js');
 const { SUPABASE_ANON_KEY, SITE_ORIGIN } = require('./lib/config.js');
 
 const OUT = path.join(__dirname, '..', 'site');
-const SITE_TITLE = 'আরবি ও কুরআন লাইব্রেরি';
-const SITE_TAG = 'একই লগইনে একাধিক বই ও গেম দিয়ে আরবি আর কুরআন শেখা';
+// Broadened from "আরবি ও কুরআন লাইব্রেরি" once a non-Arabic/Quran book
+// (turkish, "সেতু") joined the catalog -- see
+// Turkish_Bangla_Book/CURRICULUM_PLAN.md §2খ for why the old name no longer
+// covered every book on the shelf.
+const SITE_TITLE = 'কাসবপ্রো লাইব্রেরি';
+const SITE_TAG = 'একই লগইনে একাধিক বই ও গেম দিয়ে আরবি, কুরআন ও ভাষা শেখা';
 
 const mkdir = (p) => fs.mkdirSync(p, { recursive: true });
 const write = (rel, txt) => {
@@ -49,6 +53,15 @@ const BOOKS = [
     emoji: '🌱',
     color1: '#8a5a2b',
     color2: '#e2b455',
+    live: true,
+  },
+  {
+    id: 'turkish',
+    title: 'সেতু',
+    tagline: 'এলিফের সাথে ধাপে ধাপে তুর্কি ভাষা — এখনো লেখা হচ্ছে, স্টেজ ১-এর ১৯টার মধ্যে ২টা স্টেশন তৈরি।',
+    emoji: '🌉',
+    color1: '#8c1d2e',
+    color2: '#e0a85a',
     live: true,
   },
 ];
