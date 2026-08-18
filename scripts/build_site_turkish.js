@@ -146,10 +146,10 @@ function alphabetTable(letters) {
         <tr>
           <td class="tr-letter">${l.tr}</td>
           <td>${l.name}</td>
-          <td>${l.ex.map((e) => `${e[0]} <span class="gloss">(${e[1]})</span>`).join(', ')}</td>
+          <td>${l.ex.map((e) => `${e[0]} <span class="gloss">(${e[1]} — ${e[2]})</span>`).join(', ')}</td>
         </tr>`).join('');
   return `<div class="tbl-wrap"><table>
-        <tr><th>অক্ষর</th><th>উচ্চারণ</th><th>উদাহরণ</th></tr>${rows}
+        <tr><th>অক্ষর</th><th>উচ্চারণ</th><th>উদাহরণ (শব্দ / উচ্চারণ / অর্থ)</th></tr>${rows}
       </table></div>`;
 }
 
@@ -167,11 +167,11 @@ function softConsonantTable(rows) {
   const trs = rows.map((r) => r.ex.map((e) => `
         <tr>
           <td class="tr-letter">${r.hard} → ${r.soft}</td>
-          <td>${e[0]} → <strong>${e[1]}</strong></td>
-          <td>${e[2]}</td>
+          <td>${e[0]} <span class="gloss">(${e[1]})</span> → <strong>${e[2]}</strong> <span class="gloss">(${e[3]})</span></td>
+          <td>${e[4]}</td>
         </tr>`).join('')).join('');
   return `<div class="tbl-wrap"><table>
-        <tr><th>পরিবর্তন</th><th>শব্দ</th><th>অর্থ</th></tr>${trs}
+        <tr><th>পরিবর্তন</th><th>শব্দ (উচ্চারণ)</th><th>অর্থ</th></tr>${trs}
       </table></div>`;
 }
 
@@ -180,16 +180,16 @@ function overviewTable(rows) {
         <tr>
           <td class="tr-letter">${r.suf}</td>
           <td>${r.role}</td>
-          <td>${r.ex} <span class="gloss">(${r.gloss})</span></td>
+          <td>${r.base} <span class="gloss">(${r.basePron})</span> → <strong>${r.result}</strong> <span class="gloss">(${r.resultPron})</span> · ${r.gloss}</td>
         </tr>`).join('');
   return `<div class="tbl-wrap"><table>
-        <tr><th>Suffix</th><th>কাজ</th><th>উদাহরণ</th></tr>${trs}
+        <tr><th>Suffix</th><th>কাজ</th><th>উদাহরণ (শব্দ / উচ্চারণ / অর্থ)</th></tr>${trs}
       </table></div>`;
 }
 
 function cognatesHtml(rows) {
   const items = rows.map((r) => `
-        <li><span class="tr-letter">${r.tr}</span> ↔ <strong>${r.bn}</strong> — ${r.note}</li>`).join('');
+        <li><span class="tr-letter">${r.tr}</span> <span class="gloss">(${r.pron})</span> ↔ <strong>${r.bn}</strong> — ${r.note}</li>`).join('');
   return `<ul class="cognate-list">${items}</ul>`;
 }
 
@@ -213,13 +213,13 @@ function accusativeTable(rows) {
   const trs = rows.map((r) => `
         <tr>
           <td class="tr-letter">${r.change}</td>
-          <td>${r.word} <span class="gloss">(${r.meaning})</span></td>
+          <td>${r.word} <span class="gloss">(${r.basePron} — ${r.meaning})</span></td>
           <td>${r.suf}</td>
           <td><strong>${r.result}</strong> <span class="gloss">(${r.pron})</span></td>
           <td>${r.resultMeaning}</td>
         </tr>`).join('');
   return `<div class="tbl-wrap"><table>
-        <tr><th>পরিবর্তন</th><th>মূল শব্দ</th><th>Suffix</th><th>নতুন শব্দ</th><th>অর্থ</th></tr>${trs}
+        <tr><th>পরিবর্তন</th><th>মূল শব্দ (উচ্চারণ)</th><th>Suffix</th><th>নতুন শব্দ (উচ্চারণ)</th><th>অর্থ</th></tr>${trs}
       </table></div>`;
 }
 
