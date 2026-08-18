@@ -17,7 +17,11 @@ const path = require('path');
 const crypto = require('crypto');
 const { accountModal } = require('./lib/account.js');
 const { SUPABASE_ANON_KEY, SITE_ORIGIN } = require('./lib/config.js');
-const { BOOK, CLASSES, STAGE_1_TOTAL } = require('./arabic_roots_content.js');
+const {
+  BOOK, CLASSES, STAGE_1_TOTAL,
+  QURAN_TOTAL_WORD_TOKENS, QURAN_UNIQUE_WORD_FORMS,
+  ARABIC_LEXICON_ROOTS, ARABIC_LEXICON_LEMMAS,
+} = require('./arabic_roots_content.js');
 
 const OUT = path.join(__dirname, '..', 'site', 'books', BOOK.id);
 const BOOK_URL_PREFIX = `${SITE_ORIGIN}/books/${BOOK.id}/`;
@@ -134,6 +138,7 @@ const landingBody = `
     <div class="roadmap">
       ${roadmapHtml}
     </div>
+    ${CLASSES.length === STAGE_1_TOTAL ? '<p style="margin-top:1rem"><a href="stage-1-summary/">📊 স্টেজ ১ সম্পন্ন — পুরো সারাংশ দেখো →</a></p>' : ''}
   </section>`;
 
 write('index.html', page({
@@ -153,10 +158,61 @@ function fruitsTable(c) {
           <td>${f.kind}</td>
           <td class="ar fruit-ar">${f.ar}</td>
           <td>${f.translit} — ${f.meaning}</td>
+          <td class="fruit-en">${f.en ? f.en : ''}</td>
         </tr>`).join('');
   return `<div class="tbl-wrap"><table>
-        <tr><th>আকার</th><th>ধরন</th><th>আরবি</th><th>মানে</th></tr>${rows}
+        <tr><th>আকার</th><th>ধরন</th><th>আরবি</th><th>উচ্চারণ ও অর্থ</th><th>English</th></tr>${rows}
       </table></div>`;
+}
+
+// Radial network diagram: root at the centre, every practice word as a node
+// around it, spokes as the "relationship" lines. Positions are computed
+// (angle = i * 360/n), not hand-placed, so it never breaks if a class gets
+// more or fewer practice words later. Clicking/tapping a node highlights the
+// matching row in the practice-words list below via shared JS (assets/app.js)
+// keyed on the same data-i index -- the map and the word list are one data
+// set shown two ways, not two disconnected components.
+function mindmapSvg(c) {
+  const words = c.practiceWords;
+  const cx = 210;
+  const cy = 210;
+  const R = 168;
+  const nodeR = 30;
+  const nodes = words.map((w, i) => {
+    const angle = (i / words.length) * 2 * Math.PI - Math.PI / 2;
+    return { ...w, i, x: cx + R * Math.cos(angle), y: cy + R * Math.sin(angle) };
+  });
+  const lines = nodes.map((n) => `<line class="mm-line" x1="${cx}" y1="${cy}" x2="${n.x.toFixed(1)}" y2="${n.y.toFixed(1)}"/>`).join('');
+  const nodeEls = nodes.map((n) => `
+      <g class="mm-node" data-i="${n.i}" tabindex="0" role="button" aria-label="${n.translit} — ${n.en}">
+        <circle cx="${n.x.toFixed(1)}" cy="${n.y.toFixed(1)}" r="${nodeR}"/>
+        <text class="mm-ar" x="${n.x.toFixed(1)}" y="${(n.y - 5).toFixed(1)}">${n.ar}</text>
+        <text class="mm-tr" x="${n.x.toFixed(1)}" y="${(n.y + 13).toFixed(1)}">${n.translit}</text>
+      </g>`).join('');
+  return `<div class="mindmap-wrap">
+    <svg class="mindmap" viewBox="0 0 420 420" style="--hue:${c.hue}" role="img" aria-label="${c.root} শিকড়ের শব্দ-নেটওয়ার্ক, ${bn(words.length)}টা শব্দ">
+      <g class="mm-lines">${lines}</g>
+      <circle class="mm-root" cx="${cx}" cy="${cy}" r="46"/>
+      <text class="mm-root-label" x="${cx}" y="${cy}">${c.root}</text>
+      ${nodeEls}
+    </svg>
+    <p class="gloss center mm-hint">গাছের যেকোনো ফলে ক্লিক করো — নিচের তালিকায় সেই শব্দটা জ্বলে উঠবে।</p>
+  </div>`;
+}
+
+function practiceWordsHtml(c) {
+  const cards = c.practiceWords.map((w, i) => `
+      <li class="pw-row" data-i="${i}">
+        <div class="pw-head">
+          <span class="ar pw-ar">${w.ar}</span>
+          <span class="pw-translit">${w.translit}</span>
+          <span class="pw-en">${w.en}</span>
+        </div>
+        <p class="pw-use">🗣️ ${w.use}</p>
+        <p class="pw-tip">💡 ${w.tip}</p>
+        <p class="pw-ref">${w.ref}</p>
+      </li>`).join('');
+  return `<ul class="pw-list">${cards}</ul>`;
 }
 
 function dailyUseHtml(c) {
@@ -169,6 +225,35 @@ function dailyUseHtml(c) {
 function puzzleHtml(c) {
   const items = c.puzzle.map((p) => `<li>${p.q} <span class="answer">(${p.a})</span></li>`).join('');
   return `<ol class="puzzle-list">${items}</ol>`;
+}
+
+// "impact" stat strip: this root's own Quranic frequency, plus a running
+// total across every class up to and including this one. The cumulative sum
+// skips any class whose freq is null (not verified this session -- see
+// arabic_roots_content.js) rather than guessing, so the percentage stays
+// honest even though it under-counts by whatever those roots are actually
+// worth. avgLemmasPerRoot replaces the unsourced "1,000-2,000 words per
+// root" figure with the real, live-verified average from a modern Arabic
+// lexicon (see arabic_roots_content.js's own comment on this).
+function statStripHtml(c, idx) {
+  const upToHere = CLASSES.slice(0, idx + 1);
+  const known = upToHere.filter((x) => typeof x.freq === 'number');
+  const skipped = upToHere.length - known.length;
+  const sum = known.reduce((a, x) => a + x.freq, 0);
+  const pct = (sum / QURAN_TOTAL_WORD_TOKENS) * 100;
+  const pctStr = bn(pct.toFixed(1)).replace('.', '.');
+  const avgLemmasPerRoot = (ARABIC_LEXICON_LEMMAS / ARABIC_LEXICON_ROOTS).toFixed(1);
+  const freqLine = typeof c.freq === 'number'
+    ? `এই শিকড় থেকে গজানো শব্দগুলো কুরআনে মোট <strong>${bn(c.freq)}</strong> বার এসেছে।`
+    : `এই শিকড়ের মোট সংখ্যা এই সেশনে যাচাই করা হয়নি, তাই নিচের হিসাবে যোগ করা হয়নি — সততার খাতিরে।`;
+  const skipNote = skipped > 0
+    ? ` (${bn(skipped)}টা শিকড়ের সংখ্যা অযাচাইকৃত বলে এই হিসাবে বাদ, তাই আসল শতাংশ আরও বেশি।)`
+    : '';
+  return `<div class="callout stat-strip">
+    <p>📊 ${freqLine}</p>
+    <p>এ পর্যন্ত <strong>${bn(idx + 1)}</strong>টা শিকড় শেখা হয়েছে — মিলিয়ে কুরআনের মোট ৭৭,৪৩০টা শব্দের প্রায় <strong>${pctStr}%</strong> এখন তোমার চেনা।${skipNote}</p>
+    <p class="gloss">💡 তুলনার জন্য: আধুনিক আরবি অভিধানে ${bn(ARABIC_LEXICON_ROOTS.toLocaleString('en-US'))}টা শিকড় থেকে মোট ${bn(ARABIC_LEXICON_LEMMAS.toLocaleString('en-US'))}টা শব্দ তৈরি হয়েছে — গড়ে একটা শিকড় থেকে প্রায় ${bn(avgLemmasPerRoot)}টা শব্দ। এই বইয়ের শিকড়গুলো বেছে নেওয়া হয়েছে কুরআনে সবচেয়ে বেশি ব্যবহৃতগুলোর মধ্যে থেকে, তাই এগুলো থেকে গড়ের চেয়ে ঢের বেশি শব্দ গজায়।</p>
+  </div>`;
 }
 
 function classBody(c, idx) {
@@ -192,11 +277,18 @@ function classBody(c, idx) {
       <div class="callout tip">💡 ${c.reveal.honestyNote}</div>
 
       <h2>🧩 শব্দ গঠনের নিয়ম</h2>
+      <p class="section-lead">প্রথমে চারটা প্যাটার্ন-আকার চিনে নাও, তারপর পুরো গাছের নেটওয়ার্ক দেখো, শেষে ${bn(c.practiceWords.length)}টা শব্দ নিয়ে অনুশীলন করো।</p>
       ${fruitsTable(c)}
       <p class="gloss">${c.missingShape}</p>
 
+      <h3>🕸️ শব্দ-নেটওয়ার্ক (মাইন্ডম্যাপ)</h3>
+      ${mindmapSvg(c)}
+
+      <h3>📝 ${bn(c.practiceWords.length)}টা শব্দ অনুশীলন</h3>
+      ${practiceWordsHtml(c)}
+
       <div class="arabic-big">${c.ayah.ar}</div>
-      <p class="gloss center">${c.ayah.meaning} — ${c.ayah.ref}</p>
+      <p class="gloss center">${c.ayah.translit ? c.ayah.translit + ' — ' : ''}${c.ayah.meaning} — ${c.ayah.ref}${c.ayah.en ? ` <span class="gloss-en">(${c.ayah.en})</span>` : ''}</p>
 
       <h2>🏠 দৈনন্দিন জীবনে</h2>
       ${dailyUseHtml(c)}
@@ -211,11 +303,15 @@ function classBody(c, idx) {
       <h2>⭐ মিশন</h2>
       <ul class="mission">${c.mission.map((m) => `<li>${m}</li>`).join('')}</ul>
       <div class="badge-strip"><span class="swatch"></span> শিকড় ব্যাজ #${bn(c.n)} — <span class="ar">${c.root}</span></div>
+
+      <h2>📊 এই গাছের প্রভাব</h2>
+      ${statStripHtml(c, idx)}
     </div>
   </article>
   <nav class="class-pager">
     ${prev ? `<a href="../class-${prev.n}/">← ক্লাস ${bn(prev.n)}</a>` : '<span></span>'}
-    ${next ? `<a href="../class-${next.n}/">ক্লাস ${bn(next.n)} →</a>` : '<span class="next-locked">পরের ক্লাস এখনো লেখা হয়নি</span>'}
+    ${next ? `<a href="../class-${next.n}/">ক্লাস ${bn(next.n)} →</a>`
+      : (CLASSES.length === STAGE_1_TOTAL ? '<a href="../stage-1-summary/">স্টেজ ১ সারাংশ →</a>' : '<span class="next-locked">পরের ক্লাস এখনো লেখা হয়নি</span>')}
   </nav>`;
 }
 
@@ -228,6 +324,75 @@ CLASSES.forEach((c, idx) => {
     bodyHtml: classBody(c, idx),
   }));
 });
+
+// ---------------------------------------------------------------------------
+// stage-completion summary -- only built once every class in the stage
+// exists (checks CLASSES.length against STAGE_1_TOTAL rather than hardcoding
+// "25", so this keeps working unmodified when Stage 2 uses the same script
+// pattern with a different total). Every number here is computed from the
+// same CLASSES data + sourced constants the per-class stat strip uses --
+// nothing hand-typed, so it can't drift out of sync with the classes.
+// ---------------------------------------------------------------------------
+if (CLASSES.length === STAGE_1_TOTAL) {
+  const known = CLASSES.filter((c) => typeof c.freq === 'number');
+  const skipped = CLASSES.length - known.length;
+  const sumFreq = known.reduce((a, c) => a + c.freq, 0);
+  const pct = ((sumFreq / QURAN_TOTAL_WORD_TOKENS) * 100).toFixed(1);
+  const totalPracticeWords = CLASSES.reduce((a, c) => a + c.practiceWords.length, 0);
+  const rootListHtml = CLASSES.map((c) => `
+      <li style="--hue:${c.hue}"><span class="ar sum-root">${c.root}</span> <span class="sum-title">${c.title}</span></li>`).join('');
+  const dailyPhrases = [
+    'বিসমিল্লাহ (আমিন, রাহমান, রাহীম -- ২টা শিকড়)',
+    'আলহামদুলিল্লাহ (হামদ)',
+    'আস্তাগফিরুল্লাহ (গফুর)',
+    'আসসালামু আলাইকুম (সালাম)',
+    'আল্লাহু আকবার (কবির)',
+    'সুবহানাল্লাহ (কাছাকাছি -- জিকির-এর অংশ)',
+    'জাযাকাল্লাহ-এর ভাব (শুকর)',
+    'ইনশাআল্লাহ ও মাশাআল্লাহ-এর ভাবটাও এই শিকড়গুলোর জ্ঞান দিয়ে গভীর হয়',
+  ];
+  const summaryBody = `
+  <section class="hero">
+    <p class="eyebrow">স্টেজ ১ সম্পন্ন 🎉</p>
+    <h1>২৫টা গাছ, একটা বাগান</h1>
+    <p class="lead">সুয়াইবা নানার বাগানের প্রথম ধাপ ঘুরে দেখা শেষ করল। ২৫টা শিকড়, ২৫০টা অনুশীলন-শব্দ, ২৫টা ইতিহাসের গল্প।</p>
+  </section>
+
+  <section>
+    <h2 class="section-h">📊 সংখ্যায় স্টেজ ১</h2>
+    <div class="callout stat-strip" style="--hue:0">
+      <p>এই ২৫টা শিকড় থেকে গজানো শব্দ কুরআনে মোট (<strong>${bn(sumFreq.toLocaleString('en-US'))}</strong> বার) এসেছে -- কুরআনের ৭৭,৪৩০টা মোট শব্দের প্রায় <strong>${bn(pct)}%</strong>।</p>
+      <p class="gloss">${skipped > 0 ? `(${bn(skipped)}টা শিকড়ের সংখ্যা অযাচাইকৃত বলে বাদ -- আসল শতাংশ আরও বেশি।)` : ''} গবেষণায় দেখা যায়, কুরআনের প্রায় ৩০০-৫০০টা শিকড় মিলিয়ে পুরো কুরআনের ৮০% শব্দ-ব্যবহার কভার করে -- তার মানে তুমি এখন সেই সবচেয়ে গুরুত্বপূর্ণ শিকড়গুলোর একটা বড় অংশ চেনো।</p>
+      <p>মোট <strong>${bn(totalPracticeWords)}</strong>টা আরবি শব্দ অনুশীলন করেছ, ইংরেজি ও বাংলা অর্থ, দৈনন্দিন ব্যবহার আর মনে রাখার টিপসসহ।</p>
+    </div>
+  </section>
+
+  <section>
+    <h2 class="section-h">🏠 দৈনন্দিন জীবনে কতটা বদলে গেল?</h2>
+    <p class="gloss">এখানে কোনো শতাংশ বসানো হয়নি -- দৈনন্দিন বাংলা-আরবি মিশ্র ব্যবহারের কোনো নির্ভরযোগ্য গণনার উৎস নেই, তাই একটা সংখ্যা বানিয়ে বসানো এই বইয়ের নিজের নিয়মের বিরুদ্ধে যেত। তার বদলে, তুমি রোজ যা বলো তার একটা তালিকা:</p>
+    <ul class="mission">${dailyPhrases.map((p) => `<li>${p}</li>`).join('')}</ul>
+  </section>
+
+  <section>
+    <h2 class="section-h">🌳 বাগানের প্রথম ২৫টা গাছ</h2>
+    <ul class="roadmap sum-roots">${rootListHtml}</ul>
+  </section>
+
+  <section>
+    <h2 class="section-h">🤲 বন্ধ করার আগে</h2>
+    <p>নানা বাগানের গেটে দাঁড়িয়ে বললেন, "২৫টা গাছ চিনেছ। কিন্তু এই বাগানের আরও অনেক গাছ বাকি -- হাজার হাজার শিকড়, কুরআনের প্রতিটা কোণায়। আজ এটুকুই যথেষ্ট। আল্লাহ যা শিখিয়েছেন, তার জন্য শুকরিয়া -- আর যা এখনো বাকি, তার জন্য ধৈর্য।"</p>
+    <p>সুয়াইবা বাগানের গেট দিয়ে বেরিয়ে এল, কিন্তু এবার আর আগের মতো না -- প্রতিটা "বিসমিল্লাহ," প্রতিটা "আলহামদুলিল্লাহ," এখন তার কাছে একটা গল্প, একটা গাছ, একটা পরিবার।</p>
+  </section>
+
+  <div class="next-up chrome">পরের ধাপ (স্টেজ ২) নিয়ে এখনো কোনো নির্দিষ্ট সময়সীমা ঠিক করা হয়নি -- কাজ চলবে ধাপে ধাপে, ঠিক এই ২৫টা গাছের মতোই।</div>`;
+
+  write('stage-1-summary/index.html', page({
+    title: `স্টেজ ১ সম্পন্ন — ${bn(STAGE_1_TOTAL)}টা শিকড় শেখা হলো · ${BOOK.title}`,
+    description: `২৫টা শিকড়ের সারাংশ — কুরআনের প্রায় ${pct}% শব্দ-ব্যবহার এখন চেনা।`,
+    canonical: `${BOOK_URL_PREFIX}stage-1-summary/`,
+    bodyHtml: summaryBody,
+  }));
+}
 
 // ---------------------------------------------------------------------------
 // styles -- same base tokens as build_catalog.js's :root block (platform-wide
@@ -311,7 +476,9 @@ h2{font-size:1.05rem;margin:1.7rem 0 .6rem}
 .class-head .root-mark{border:1px solid currentColor;border-radius:6px;padding:.05rem .4rem;font-size:1.05rem}
 .class-body{padding:1.2rem 1.4rem 1.6rem}
 .class-body h2{color:hsl(var(--hue) var(--root-s) var(--root-l))}
+.class-body h3{font-size:.95rem;margin:1.5rem 0 .7rem;color:var(--fg)}
 .class-body p{margin:.75em 0}
+.section-lead{color:var(--mut);font-size:.9rem;margin-top:-.2em}
 
 .root-letters{text-align:center;font-size:2rem;font-weight:700;margin:.7em 0;
   color:hsl(var(--hue) var(--root-s) var(--root-l));letter-spacing:.08em}
@@ -326,12 +493,45 @@ h2{font-size:1.05rem;margin:1.7rem 0 .6rem}
   background:transparent;border:1px dashed var(--line)}
 .confidence{font-weight:700;font-size:.72rem;padding:.1rem .5rem;border-radius:999px;
   background:hsl(var(--hue) var(--root-s) var(--root-l) / .16);color:hsl(var(--hue) var(--root-s) var(--root-l))}
+.stat-strip{border-inline-start:4px solid hsl(var(--hue) var(--root-s) var(--root-l))}
+.stat-strip p{margin:.5em 0}
+.stat-strip strong{color:hsl(var(--hue) var(--root-s) var(--root-l))}
 
 .tbl-wrap{overflow-x:auto}
 table{width:100%;border-collapse:collapse;margin:1rem 0;font-size:.92rem}
 th,td{border-bottom:1px solid var(--line);padding:.55rem .5rem;text-align:left;vertical-align:middle}
 th{font-size:.72rem;text-transform:uppercase;letter-spacing:.03em;color:var(--mut)}
 .fruit-ar{font-size:1.2rem;color:hsl(var(--hue) var(--root-s) var(--root-l));font-weight:700}
+.fruit-en{font-size:.82rem;color:var(--mut);font-style:italic}
+.gloss-en{font-style:italic}
+
+/* -------- mindmap: root-centred network of a class's practice words -------- */
+.mindmap-wrap{margin:.8rem 0 1.2rem}
+.mindmap{display:block;width:100%;max-width:26rem;margin:0 auto;overflow:visible}
+.mm-hint{margin-top:.6rem}
+.mm-line{stroke:hsl(var(--hue) var(--root-s) var(--root-l) / .3);stroke-width:1.5;transition:stroke .15s}
+.mm-root{fill:hsl(var(--hue) var(--root-s) var(--root-l));stroke:var(--card);stroke-width:3}
+.mm-root-label{font-size:1.1rem;font-weight:700;fill:var(--card);text-anchor:middle;dominant-baseline:middle;direction:rtl}
+.mm-node{cursor:pointer}
+.mm-node circle{fill:var(--card);stroke:hsl(var(--hue) var(--root-s) var(--root-l) / .55);stroke-width:1.5;transition:fill .15s,stroke .15s}
+.mm-node .mm-ar{font-size:.98rem;font-weight:700;fill:hsl(var(--hue) var(--root-s) var(--root-l));text-anchor:middle;direction:rtl}
+.mm-node .mm-tr{font-size:.5rem;fill:var(--mut);text-anchor:middle;font-family:system-ui,sans-serif}
+.mm-node:hover circle,.mm-node:focus-visible circle,.mm-node.active circle{
+  fill:hsl(var(--hue) var(--root-s) var(--root-l));stroke:hsl(var(--hue) var(--root-s) var(--root-l))}
+.mm-node:hover .mm-ar,.mm-node:focus-visible .mm-ar,.mm-node.active .mm-ar{fill:var(--card)}
+.mm-node:hover .mm-tr,.mm-node:focus-visible .mm-tr,.mm-node.active .mm-tr{fill:var(--card)}
+.mm-node:focus-visible{outline:none}
+
+/* -------- practice word cards -------- */
+.pw-list{list-style:none;margin:0;padding:0;display:grid;gap:.7rem}
+.pw-row{border:1px solid var(--line);border-radius:10px;padding:.85rem 1rem;transition:background .2s,border-color .2s}
+.pw-row.hl{background:hsl(var(--hue) var(--root-s) var(--root-l) / .1);border-color:hsl(var(--hue) var(--root-s) var(--root-l) / .5)}
+.pw-head{display:flex;align-items:baseline;gap:.6rem;flex-wrap:wrap;margin-bottom:.35rem}
+.pw-ar{font-size:1.3rem;color:hsl(var(--hue) var(--root-s) var(--root-l));font-weight:700}
+.pw-translit{font-weight:700}
+.pw-en{font-size:.82rem;color:var(--mut);font-style:italic}
+.pw-use,.pw-tip{font-size:.88rem;margin:.3em 0}
+.pw-ref{font-size:.72rem;color:var(--mut);margin:.3em 0 0}
 
 .puzzle-list{padding-inline-start:1.3em}
 .puzzle-list li{margin:.5em 0}
@@ -351,6 +551,15 @@ th{font-size:.72rem;text-transform:uppercase;letter-spacing:.03em;color:var(--mu
 .class-pager .next-locked{color:var(--mut);font-style:italic;font-size:.85rem}
 
 .badge{display:inline-block;padding:.2rem .6rem;border-radius:999px;font-size:.75rem;font-weight:600}
+
+.next-up{margin:1.6rem 0 0;padding:1rem 1.2rem;border:1px dashed var(--line);border-radius:var(--rad);
+  color:var(--mut);font-size:.9rem;font-style:italic}
+
+.sum-roots{flex-direction:column;align-items:stretch;gap:.5rem}
+.sum-roots li{display:flex;align-items:baseline;gap:.6rem;padding:.6rem .8rem;border-radius:8px;
+  background:hsl(var(--hue) var(--root-s) var(--root-l) / .08);border-inline-start:3px solid hsl(var(--hue) var(--root-s) var(--root-l))}
+.sum-root{font-size:1.15rem;font-weight:700;color:hsl(var(--hue) var(--root-s) var(--root-l));min-width:4.5em}
+.sum-title{color:var(--fg);font-size:.92rem}
 ${ACCOUNT.css}
 `;
 write('assets/style.css', css);
@@ -369,6 +578,26 @@ if(tb) tb.addEventListener('click',function(){
   var next = cur==='dark' ? 'light' : cur==='light' ? '' : 'dark';
   if(next) root.setAttribute('data-theme',next); else root.removeAttribute('data-theme');
   try{ next?localStorage.setItem(KEY,next):localStorage.removeItem(KEY); }catch(e){}
+});
+
+// mindmap <-> practice-word list: one data set, two views. Clicking a node
+// highlights and scrolls to its matching card (data-i keys them together);
+// clicking the same node again clears the highlight instead of no-op'ing.
+document.addEventListener('click', function(e){
+  var node = e.target.closest('.mm-node');
+  if(!node) return;
+  var already = node.classList.contains('active');
+  document.querySelectorAll('.mm-node.active').forEach(function(n){ n.classList.remove('active'); });
+  document.querySelectorAll('.pw-row.hl').forEach(function(r){ r.classList.remove('hl'); });
+  if(already) return;
+  node.classList.add('active');
+  var row = document.querySelector('.pw-row[data-i="'+node.getAttribute('data-i')+'"]');
+  if(row){ row.classList.add('hl'); row.scrollIntoView({behavior:'smooth', block:'center'}); }
+});
+document.addEventListener('keydown', function(e){
+  if((e.key==='Enter' || e.key===' ') && e.target.classList && e.target.classList.contains('mm-node')){
+    e.preventDefault(); e.target.dispatchEvent(new MouseEvent('click', {bubbles:true}));
+  }
 });
 ${ACCOUNT.js}
 })();
