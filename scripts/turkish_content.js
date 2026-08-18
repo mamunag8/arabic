@@ -306,6 +306,29 @@ const PRESENT_TENSE_SENTENCES = [
   ['Onlar oynuyorlar.', 'অন-লার অয়-নু-য়োর-লার', 'তারা খেলছে।'],
 ];
 
+// ---------------------------------------------------------------------------
+// Station 6 -- প্রশ্ন বাক্য (Soru Cümleleri)
+// Source: draft পর্ব ১১'s WH-question-word table and its across-tense
+// question-suffix examples (Geliyor mu? / Geldi mi? / Gelecek mi?). The
+// draft's own deeper case-suffix-in-questions material (Nereden, Nereye,
+// Nerelisin, Kiminle) belongs to later stations (9/10/15) and isn't
+// repeated here, per CURRICULUM_PLAN.md's per-station scope. No
+// pronunciation column in this source section -- derived mechanically.
+// ---------------------------------------------------------------------------
+const WH_EXAMPLES = [
+  { word: 'Ne', pron: 'নে', meaning: 'কী?', ex: 'Ne yapıyorsun?', exPron: 'নে ইয়া-পি-য়োর-সুন', exMeaning: 'তুমি কী করছ?' },
+  { word: 'Kim', pron: 'কিম', meaning: 'কে?', ex: 'Kim geldi?', exPron: 'কিম গেল-দি', exMeaning: 'কে এসেছিল?' },
+  { word: 'Ne zaman', pron: 'নে জা-মান', meaning: 'কখন?', ex: 'Ne zaman gidiyoruz?', exPron: 'নে জা-মান গি-দি-য়ো-রুজ', exMeaning: 'আমরা কখন যাচ্ছি?' },
+  { word: 'Neden', pron: 'নে-দেন', meaning: 'কেন?', ex: 'Neden bekliyorsun?', exPron: 'নে-দেন বেক-লি-য়োর-সুন', exMeaning: 'তুমি কেন অপেক্ষা করছ?' },
+  { word: 'Nasıl', pron: 'না-সিল', meaning: 'কীভাবে?', ex: 'Nasıl gidiyorsun?', exPron: 'না-সিল গি-দি-য়োর-সুন', exMeaning: 'তুমি কীভাবে যাচ্ছ?' },
+];
+
+const TENSE_QUESTIONS = [
+  ['Geliyor mu?', 'গে-লি-য়োর মু', 'সে কি আসছে? (বর্তমান)'],
+  ['Geldi mi?', 'গেল-দি মি', 'সে কি এসেছিল? (অতীত)'],
+  ['Gelecek mi?', 'গে-লে-জেক মি', 'সে কি আসবে? (ভবিষ্যৎ)'],
+];
+
 const STATIONS = [
   {
     n: 1,
@@ -639,6 +662,62 @@ const STATIONS = [
     },
     badge: 'প্রতিবেশীর ব্যাজ — প্রথম প্রশ্ন-উত্তর করা হয়ে গেছে',
     next: 'পরের স্টেশনে দোকানে গিয়ে আরও প্রশ্ন বাক্য শেখা হবে — কী, কোথায়, কখন, কেন।',
+  },
+  {
+    n: 6,
+    hue: 95,
+    title: 'প্রশ্ন বাক্য',
+    subtitle: 'Soru Cümleleri',
+    scene: 'দোকানে জিজ্ঞাসা',
+    story: [
+      'ছোট্ট মুদি দোকানের সামনে এলিফ থামল। "চলুন প্র্যাকটিস করি। এখানে সবাই ছয়টা প্রশ্ন-শব্দ দিয়ে প্রায় সবকিছু জিজ্ঞেস করে — Ne? (নে) কী, Kim? (কিম) কে, Nerede? (নে-রে-দে) কোথায়, Ne zaman? (নে জা-মান) কখন, Neden? (নে-দেন) কেন, Nasıl? (না-সিল) কীভাবে।"',
+      'দোকানি জিজ্ঞেস করলেন, "Ne yapıyorsun?" (নে ইয়া-পি-য়োর-সুন) — "তুমি কী করছ?" — দেখে বোঝা যাচ্ছিল আপনি তাকে ঠিক বুঝতে পারছেন কিনা। এলিফ হেসে বলল, "চিন্তা করবেন না, আমিও নতুন ছিলাম একদিন।"',
+      '"এই suffix (mı/mi/mu/mü) শুধু সাধারণ বাক্যেই বসে না," এলিফ যোগ করল, "যেকোনো কালেই বসে — Geliyor mu? (গে-লি-য়োর মু) সে কি আসছে, Geldi mi? (গেল-দি মি) সে কি এসেছিল, Gelecek mi? (গে-লে-জেক মি) সে কি আসবে। কালটা বদলায়, প্রশ্ন-suffix থেকেই যায়।"',
+    ],
+    ruleIntro: 'ছয়টা প্রশ্ন-শব্দ (Wh-questions) এবং তাদের বাস্তব ব্যবহার নিচে:',
+    sentenceWordsTitle: 'প্রশ্নসূচক শব্দ (Wh-Questions)',
+    sentenceWords: WH_EXAMPLES,
+    extraVocab: {
+      icon: '⏳',
+      title: 'একই suffix, তিন কাল',
+      intro: 'প্রশ্ন suffix (mı/mi/mu/mü) বর্তমান, অতীত, ভবিষ্যৎ — তিন কালেই একইভাবে কাজ করে:',
+      words: TENSE_QUESTIONS,
+    },
+    wordFormation: {
+      rule: 'প্রশ্ন-suffix সবসময় বাক্যের সবচেয়ে শেষে বসে — ক্রিয়ার কাল যা-ই হোক না কেন, তার পরে। [ক্রিয়া + কাল-suffix] + [প্রশ্ন-suffix]।',
+      examples: [
+        { stem: 'Gel-iyor', stemMeaning: 'আসছে (বর্তমান কাল পর্যন্ত)', suf: '+ mu', result: 'Geliyor mu?', pron: 'গে-লি-য়োর মু', meaning: 'সে কি আসছে?' },
+        { stem: 'Gel-di', stemMeaning: 'এসেছিল (অতীত কাল পর্যন্ত)', suf: '+ mi', result: 'Geldi mi?', pron: 'গেল-দি মি', meaning: 'সে কি এসেছিল?' },
+        { stem: 'Gel-ecek', stemMeaning: 'আসবে (ভবিষ্যৎ কাল পর্যন্ত)', suf: '+ mi', result: 'Gelecek mi?', pron: 'গে-লে-জেক মি', meaning: 'সে কি আসবে?' },
+      ],
+    },
+    exercises: [
+      'ছয়টা Wh-question শব্দ মুখস্থ বলুন, উচ্চারণসহ।',
+      '"তুমি কী করছ?" আর "তুমি কেন অপেক্ষা করছ?" — উচ্চারণসহ লিখুন।',
+      'Geliyor mu?, Geldi mi?, Gelecek mi? — তিনটার পার্থক্য ব্যাখ্যা করুন।',
+    ],
+    retrieval: {
+      prompt: 'কোন প্রশ্ন-শব্দ বসবে?',
+      items: [
+        { q: '___ gidiyoruz? (আমরা কখন যাচ্ছি?)', a: 'Ne zaman (নে জা-মান)' },
+        { q: '___ bekliyorsun? (তুমি কেন অপেক্ষা করছ?)', a: 'Neden (নে-দেন)' },
+        { q: '___ gidiyorsun? (তুমি কীভাবে যাচ্ছ?)', a: 'Nasıl (না-সিল)' },
+      ],
+    },
+    miniExam: {
+      title: 'মিনি পরীক্ষা — স্টেশন ৬',
+      passRule: '৯/১২ বা তার বেশি ঠিক হলে প্রস্তুত।',
+      items: [
+        { q: 'ছয়টা Wh-question শব্দ উচ্চারণসহ লিখুন।', a: 'নে (কী), কিম (কে), নে-রে-দে (কোথায়), নে জা-মান (কখন), নে-দেন (কেন), না-সিল (কীভাবে)' },
+        { q: '"তুমি কী করছ?" তুর্কিতে ও উচ্চারণসহ লিখুন।', a: 'Ne yapıyorsun? (নে ইয়া-পি-য়োর-সুন)' },
+        { q: '"কে এসেছিল?" তুর্কিতে ও উচ্চারণসহ লিখুন।', a: 'Kim geldi? (কিম গেল-দি)' },
+        { q: 'Geliyor mu?, Geldi mi?, Gelecek mi? — অর্থ ও কাল লিখুন।', a: 'সে কি আসছে (বর্তমান), এসেছিল (অতীত), আসবে (ভবিষ্যৎ)' },
+        { q: 'প্রশ্ন-suffix বাক্যের কোথায় বসে?', a: 'সবচেয়ে শেষে, ক্রিয়া+কাল-suffix-এর পরে' },
+        { q: '"তুমি কীভাবে যাচ্ছ?" তুর্কিতে ও উচ্চারণসহ লিখুন।', a: 'Nasıl gidiyorsun? (না-সিল গি-দি-য়োর-সুন)' },
+      ],
+    },
+    badge: 'দোকানের ব্যাজ — ছয়টা প্রশ্ন-শব্দ শেখা হয়ে গেছে',
+    next: 'পরের স্টেশনে একটা ছোট্ট ভুল বোঝাবুঝি সামলাতে হবে — নেতিবাচক বাক্য দিয়ে।',
   },
 ];
 
