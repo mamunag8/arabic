@@ -187,6 +187,28 @@ function overviewTable(rows) {
       </table></div>`;
 }
 
+function cognatesHtml(rows) {
+  const items = rows.map((r) => `
+        <li><span class="tr-letter">${r.tr}</span> ↔ <strong>${r.bn}</strong> — ${r.note}</li>`).join('');
+  return `<ul class="cognate-list">${items}</ul>`;
+}
+
+function prideHtml(p) {
+  return `<div class="pride-box">
+      ${p.text.map((t) => `<p>${t}</p>`).join('\n        ')}
+      <div class="callout source">📚 ${p.source} <span class="confidence">${p.confidence}</span></div>
+    </div>`;
+}
+
+function miniExamHtml(exam) {
+  const items = exam.items.map((it, i) => `
+        <li><span class="mx-q">${i + 1}. ${it.q}</span> <span class="answer">উত্তর: ${it.a}</span></li>`).join('');
+  return `<div class="mini-exam">
+      <p class="gloss">${exam.passRule}</p>
+      <ol class="mx-list">${items}</ol>
+    </div>`;
+}
+
 function accusativeTable(rows) {
   const trs = rows.map((r) => `
         <tr>
@@ -215,7 +237,11 @@ function stationBody(s, idx) {
       <p class="gloss">${s.vowelHarmony.note}</p>
       <h2>🥜 কঠিন ব্যঞ্জনবর্ণ (Fıstıkçı Şahap)</h2>
       <p>${s.softConsonants.intro}</p>
-      ${softConsonantTable(s.softConsonants.table)}` : '';
+      ${softConsonantTable(s.softConsonants.table)}
+      <h2>🔗 বাংলার সাথে যোগসূত্র</h2>
+      <p class="gloss">এই শব্দগুলো বাংলাতেও প্রায় হুবহু চলে — একই পুরনো ফারসি/আরবি উৎস থেকে দুই ভাষাতেই এসেছে। এগুলো মুখস্থ করতে হবে না, এমনিই মনে থাকবে।</p>
+      ${cognatesHtml(s.cognates)}
+      ${s.pride ? `<h2>🕌 হারানো গৌরবের গল্প: ${s.pride.title}</h2>${prideHtml(s.pride)}` : ''}` : '';
 
   const suffixSection = s.overview ? `
       <h2>🧩 ছয়টা মূল Suffix — পরিচয়</h2>
@@ -249,6 +275,9 @@ function stationBody(s, idx) {
       <h2>🎮 আজকের ধাঁধা</h2>
       <p class="gloss">${s.retrieval.prompt}</p>
       <ol class="puzzle-list">${retrievalItems}</ol>
+
+      <h2>📝 ${s.miniExam.title}</h2>
+      ${miniExamHtml(s.miniExam)}
 
       <div class="badge-strip"><span class="swatch"></span> ${s.badge}</div>
       <p class="gloss">${s.next}</p>
@@ -356,6 +385,11 @@ h2{font-size:1.05rem;margin:1.7rem 0 .6rem}
 .vg-row strong{color:hsl(var(--hue) var(--st-s) var(--st-l))}
 
 .callout{background:var(--chip);border-radius:10px;padding:.9rem 1.05rem;margin:1.1rem 0;font-size:.94rem}
+.callout.source{font-size:.85rem;color:var(--mut);display:flex;align-items:baseline;gap:.5rem;flex-wrap:wrap;
+  background:transparent;border:1px dashed var(--line)}
+.confidence{font-weight:600;font-size:.78rem;color:var(--mut)}
+.pride-box{border-inline-start:4px solid var(--acc2);background:var(--chip);border-radius:10px;padding:1rem 1.1rem;margin:1rem 0}
+.pride-box p{margin:.6em 0}
 
 .tbl-wrap{overflow-x:auto}
 table{width:100%;border-collapse:collapse;margin:1rem 0;font-size:.92rem}
@@ -366,6 +400,17 @@ th{font-size:.72rem;text-transform:uppercase;letter-spacing:.03em;color:var(--mu
 .puzzle-list{padding-inline-start:1.3em}
 .puzzle-list li{margin:.5em 0}
 .answer{color:var(--mut);font-size:.9em}
+
+.cognate-list{list-style:none;margin:0;padding:0;display:grid;gap:.6rem}
+.cognate-list li{background:var(--chip);border-radius:10px;padding:.7rem .9rem;font-size:.92rem}
+
+.mini-exam{background:var(--chip);border-radius:var(--rad);padding:1rem 1.1rem;
+  border-inline-start:4px solid hsl(var(--hue) var(--st-s) var(--st-l))}
+.mx-list{list-style:none;margin:.6rem 0 0;padding:0;display:grid;gap:.8rem}
+.mx-list li{display:flex;flex-direction:column;gap:.25rem;font-size:.94rem;
+  border-bottom:1px dashed var(--line);padding-bottom:.7rem}
+.mx-list li:last-child{border-bottom:none;padding-bottom:0}
+.mx-q{font-weight:600}
 
 .mission{list-style:none;margin:0;padding:0;display:grid;gap:.5rem}
 .mission li{display:flex;align-items:flex-start;gap:.6rem;font-size:.94rem}
