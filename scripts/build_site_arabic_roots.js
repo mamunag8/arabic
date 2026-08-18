@@ -159,6 +159,56 @@ function fruitsTable(c) {
       </table></div>`;
 }
 
+// Radial network diagram: root at the centre, every practice word as a node
+// around it, spokes as the "relationship" lines. Positions are computed
+// (angle = i * 360/n), not hand-placed, so it never breaks if a class gets
+// more or fewer practice words later. Clicking/tapping a node highlights the
+// matching row in the practice-words list below via shared JS (assets/app.js)
+// keyed on the same data-i index -- the map and the word list are one data
+// set shown two ways, not two disconnected components.
+function mindmapSvg(c) {
+  const words = c.practiceWords;
+  const cx = 210;
+  const cy = 210;
+  const R = 168;
+  const nodeR = 30;
+  const nodes = words.map((w, i) => {
+    const angle = (i / words.length) * 2 * Math.PI - Math.PI / 2;
+    return { ...w, i, x: cx + R * Math.cos(angle), y: cy + R * Math.sin(angle) };
+  });
+  const lines = nodes.map((n) => `<line class="mm-line" x1="${cx}" y1="${cy}" x2="${n.x.toFixed(1)}" y2="${n.y.toFixed(1)}"/>`).join('');
+  const nodeEls = nodes.map((n) => `
+      <g class="mm-node" data-i="${n.i}" tabindex="0" role="button" aria-label="${n.translit} — ${n.en}">
+        <circle cx="${n.x.toFixed(1)}" cy="${n.y.toFixed(1)}" r="${nodeR}"/>
+        <text class="mm-ar" x="${n.x.toFixed(1)}" y="${(n.y - 5).toFixed(1)}">${n.ar}</text>
+        <text class="mm-tr" x="${n.x.toFixed(1)}" y="${(n.y + 13).toFixed(1)}">${n.translit}</text>
+      </g>`).join('');
+  return `<div class="mindmap-wrap">
+    <svg class="mindmap" viewBox="0 0 420 420" style="--hue:${c.hue}" role="img" aria-label="${c.root} শিকড়ের শব্দ-নেটওয়ার্ক, ${bn(words.length)}টা শব্দ">
+      <g class="mm-lines">${lines}</g>
+      <circle class="mm-root" cx="${cx}" cy="${cy}" r="46"/>
+      <text class="mm-root-label" x="${cx}" y="${cy}">${c.root}</text>
+      ${nodeEls}
+    </svg>
+    <p class="gloss center mm-hint">গাছের যেকোনো ফলে ক্লিক করো — নিচের তালিকায় সেই শব্দটা জ্বলে উঠবে।</p>
+  </div>`;
+}
+
+function practiceWordsHtml(c) {
+  const cards = c.practiceWords.map((w, i) => `
+      <li class="pw-row" data-i="${i}">
+        <div class="pw-head">
+          <span class="ar pw-ar">${w.ar}</span>
+          <span class="pw-translit">${w.translit}</span>
+          <span class="pw-en">${w.en}</span>
+        </div>
+        <p class="pw-use">🗣️ ${w.use}</p>
+        <p class="pw-tip">💡 ${w.tip}</p>
+        <p class="pw-ref">${w.ref}</p>
+      </li>`).join('');
+  return `<ul class="pw-list">${cards}</ul>`;
+}
+
 function dailyUseHtml(c) {
   return c.dailyUse.map((d) => {
     if (typeof d === 'string') return `<p>${d}</p>`;
@@ -192,8 +242,15 @@ function classBody(c, idx) {
       <div class="callout tip">💡 ${c.reveal.honestyNote}</div>
 
       <h2>🧩 শব্দ গঠনের নিয়ম</h2>
+      <p class="section-lead">প্রথমে চারটা প্যাটার্ন-আকার চিনে নাও, তারপর পুরো গাছের নেটওয়ার্ক দেখো, শেষে ${bn(c.practiceWords.length)}টা শব্দ নিয়ে অনুশীলন করো।</p>
       ${fruitsTable(c)}
       <p class="gloss">${c.missingShape}</p>
+
+      <h3>🕸️ শব্দ-নেটওয়ার্ক (মাইন্ডম্যাপ)</h3>
+      ${mindmapSvg(c)}
+
+      <h3>📝 ${bn(c.practiceWords.length)}টা শব্দ অনুশীলন</h3>
+      ${practiceWordsHtml(c)}
 
       <div class="arabic-big">${c.ayah.ar}</div>
       <p class="gloss center">${c.ayah.meaning} — ${c.ayah.ref}</p>
@@ -311,7 +368,9 @@ h2{font-size:1.05rem;margin:1.7rem 0 .6rem}
 .class-head .root-mark{border:1px solid currentColor;border-radius:6px;padding:.05rem .4rem;font-size:1.05rem}
 .class-body{padding:1.2rem 1.4rem 1.6rem}
 .class-body h2{color:hsl(var(--hue) var(--root-s) var(--root-l))}
+.class-body h3{font-size:.95rem;margin:1.5rem 0 .7rem;color:var(--fg)}
 .class-body p{margin:.75em 0}
+.section-lead{color:var(--mut);font-size:.9rem;margin-top:-.2em}
 
 .root-letters{text-align:center;font-size:2rem;font-weight:700;margin:.7em 0;
   color:hsl(var(--hue) var(--root-s) var(--root-l));letter-spacing:.08em}
@@ -332,6 +391,34 @@ table{width:100%;border-collapse:collapse;margin:1rem 0;font-size:.92rem}
 th,td{border-bottom:1px solid var(--line);padding:.55rem .5rem;text-align:left;vertical-align:middle}
 th{font-size:.72rem;text-transform:uppercase;letter-spacing:.03em;color:var(--mut)}
 .fruit-ar{font-size:1.2rem;color:hsl(var(--hue) var(--root-s) var(--root-l));font-weight:700}
+
+/* -------- mindmap: root-centred network of a class's practice words -------- */
+.mindmap-wrap{margin:.8rem 0 1.2rem}
+.mindmap{display:block;width:100%;max-width:26rem;margin:0 auto;overflow:visible}
+.mm-hint{margin-top:.6rem}
+.mm-line{stroke:hsl(var(--hue) var(--root-s) var(--root-l) / .3);stroke-width:1.5;transition:stroke .15s}
+.mm-root{fill:hsl(var(--hue) var(--root-s) var(--root-l));stroke:var(--card);stroke-width:3}
+.mm-root-label{font-size:1.1rem;font-weight:700;fill:var(--card);text-anchor:middle;dominant-baseline:middle;direction:rtl}
+.mm-node{cursor:pointer}
+.mm-node circle{fill:var(--card);stroke:hsl(var(--hue) var(--root-s) var(--root-l) / .55);stroke-width:1.5;transition:fill .15s,stroke .15s}
+.mm-node .mm-ar{font-size:.98rem;font-weight:700;fill:hsl(var(--hue) var(--root-s) var(--root-l));text-anchor:middle;direction:rtl}
+.mm-node .mm-tr{font-size:.5rem;fill:var(--mut);text-anchor:middle;font-family:system-ui,sans-serif}
+.mm-node:hover circle,.mm-node:focus-visible circle,.mm-node.active circle{
+  fill:hsl(var(--hue) var(--root-s) var(--root-l));stroke:hsl(var(--hue) var(--root-s) var(--root-l))}
+.mm-node:hover .mm-ar,.mm-node:focus-visible .mm-ar,.mm-node.active .mm-ar{fill:var(--card)}
+.mm-node:hover .mm-tr,.mm-node:focus-visible .mm-tr,.mm-node.active .mm-tr{fill:var(--card)}
+.mm-node:focus-visible{outline:none}
+
+/* -------- practice word cards -------- */
+.pw-list{list-style:none;margin:0;padding:0;display:grid;gap:.7rem}
+.pw-row{border:1px solid var(--line);border-radius:10px;padding:.85rem 1rem;transition:background .2s,border-color .2s}
+.pw-row.hl{background:hsl(var(--hue) var(--root-s) var(--root-l) / .1);border-color:hsl(var(--hue) var(--root-s) var(--root-l) / .5)}
+.pw-head{display:flex;align-items:baseline;gap:.6rem;flex-wrap:wrap;margin-bottom:.35rem}
+.pw-ar{font-size:1.3rem;color:hsl(var(--hue) var(--root-s) var(--root-l));font-weight:700}
+.pw-translit{font-weight:700}
+.pw-en{font-size:.82rem;color:var(--mut);font-style:italic}
+.pw-use,.pw-tip{font-size:.88rem;margin:.3em 0}
+.pw-ref{font-size:.72rem;color:var(--mut);margin:.3em 0 0}
 
 .puzzle-list{padding-inline-start:1.3em}
 .puzzle-list li{margin:.5em 0}
@@ -369,6 +456,26 @@ if(tb) tb.addEventListener('click',function(){
   var next = cur==='dark' ? 'light' : cur==='light' ? '' : 'dark';
   if(next) root.setAttribute('data-theme',next); else root.removeAttribute('data-theme');
   try{ next?localStorage.setItem(KEY,next):localStorage.removeItem(KEY); }catch(e){}
+});
+
+// mindmap <-> practice-word list: one data set, two views. Clicking a node
+// highlights and scrolls to its matching card (data-i keys them together);
+// clicking the same node again clears the highlight instead of no-op'ing.
+document.addEventListener('click', function(e){
+  var node = e.target.closest('.mm-node');
+  if(!node) return;
+  var already = node.classList.contains('active');
+  document.querySelectorAll('.mm-node.active').forEach(function(n){ n.classList.remove('active'); });
+  document.querySelectorAll('.pw-row.hl').forEach(function(r){ r.classList.remove('hl'); });
+  if(already) return;
+  node.classList.add('active');
+  var row = document.querySelector('.pw-row[data-i="'+node.getAttribute('data-i')+'"]');
+  if(row){ row.classList.add('hl'); row.scrollIntoView({behavior:'smooth', block:'center'}); }
+});
+document.addEventListener('keydown', function(e){
+  if((e.key==='Enter' || e.key===' ') && e.target.classList && e.target.classList.contains('mm-node')){
+    e.preventDefault(); e.target.dispatchEvent(new MouseEvent('click', {bubbles:true}));
+  }
 });
 ${ACCOUNT.js}
 })();
