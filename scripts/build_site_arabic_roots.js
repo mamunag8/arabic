@@ -18,7 +18,7 @@ const crypto = require('crypto');
 const { accountModal } = require('./lib/account.js');
 const { SUPABASE_ANON_KEY, SITE_ORIGIN } = require('./lib/config.js');
 const {
-  BOOK, CLASSES, STAGE_1_TOTAL, STAGE_2_TOTAL, TOTAL_ROOTS_PLANNED,
+  BOOK, CLASSES, STAGE_1_TOTAL, STAGE_2_TOTAL, STAGE_3_TOTAL, TOTAL_ROOTS_PLANNED,
   QURAN_TOTAL_WORD_TOKENS, QURAN_UNIQUE_WORD_FORMS,
   ARABIC_LEXICON_ROOTS, ARABIC_LEXICON_LEMMAS,
 } = require('./arabic_roots_content.js');
@@ -39,6 +39,9 @@ const bn = (n) => String(n).replace(/\d/g, (d) => '০১২৩৪৫৬৭৮�
 function stageInfo(n) {
   if (n <= STAGE_1_TOTAL) return { stage: 1, pos: n, total: STAGE_1_TOTAL };
   if (n <= STAGE_1_TOTAL + STAGE_2_TOTAL) return { stage: 2, pos: n - STAGE_1_TOTAL, total: STAGE_2_TOTAL };
+  if (n <= STAGE_1_TOTAL + STAGE_2_TOTAL + STAGE_3_TOTAL) {
+    return { stage: 3, pos: n - STAGE_1_TOTAL - STAGE_2_TOTAL, total: STAGE_3_TOTAL };
+  }
   return { stage: null, pos: n, total: TOTAL_ROOTS_PLANNED };
 }
 function stageLabel(n) {
@@ -166,6 +169,7 @@ const landingBody = `
     </div>
     ${CLASSES.length >= STAGE_1_TOTAL + STAGE_2_TOTAL ? '<p style="margin-top:1rem"><a href="stage-2-summary/">📊 স্টেজ ২ সম্পন্ন — ৭৫টা গাছের পুরো সারাংশ দেখো →</a></p>'
       : (CLASSES.length >= STAGE_1_TOTAL ? '<p style="margin-top:1rem"><a href="stage-1-summary/">📊 স্টেজ ১ সম্পন্ন — পুরো সারাংশ দেখো →</a></p>' : '')}
+    <p style="margin-top:.5rem"><a href="word-index/">📖 পূর্ণ শব্দ-সূচি — সব শিকড় ও শাখা-শব্দ একসাথে →</a></p>
   </section>`;
 
 write('index.html', page({
@@ -499,6 +503,79 @@ if (CLASSES.length >= STAGE_1_TOTAL + STAGE_2_TOTAL) {
 }
 
 // ---------------------------------------------------------------------------
+// word-index -- full glossary, one entry per root + every derived/branch word
+// under it (from fruits[] and practiceWords[]), Bangla + English meaning and
+// pronunciation, each linking back to its class. Per CURRICULUM_PLAN.md §6/§9
+// -- computed entirely from CLASSES so it grows automatically with every new
+// batch rather than being a one-time hand-built page written once at the very
+// end. Dedupes a word appearing in both fruits[] and practiceWords[] (fruits
+// entries are a subset of the same words, tagged with their pattern-shape) by
+// preferring the practiceWords[] version (it carries a fuller "use" example)
+// and only falling back to the fruits[] entry when a shape-word never made it
+// into practiceWords[].
+// ---------------------------------------------------------------------------
+{
+  // fruits[] carries a clean, standalone Bangla meaning (.meaning) alongside
+  // English (.en) -- that's the authoritative glossary line per word.
+  // practiceWords[] only stores a full Bangla example sentence (.use), not a
+  // discrete gloss, so those entries are listed separately with their English
+  // gloss + the sourced sentence as context, rather than inventing a clean
+  // Bangla one-liner that was never actually written for them.
+  const rootSections = CLASSES.map((c) => {
+    const fruitArSet = new Set(c.fruits.map((f) => f.ar));
+    const extraWords = c.practiceWords.filter((w) => !fruitArSet.has(w.ar));
+    return { c, fruits: c.fruits, extraWords };
+  });
+
+  const indexBody = `
+  <section class="hero">
+    <p class="eyebrow">পূর্ণ শব্দ-সূচি</p>
+    <h1>প্রতিটা শিকড়, প্রতিটা শাখা-শব্দ</h1>
+    <p class="lead">এ পর্যন্ত লেখা ${bn(CLASSES.length)}টা শিকড়ের সবগুলো শাখা-শব্দ, বাংলা ও ইংরেজি অর্থ এবং উচ্চারণসহ, এক জায়গায়। প্রতিটা শব্দ তার নিজের ক্লাসের সাথে লিংক করা।</p>
+  </section>
+  <section>
+    <div class="word-index">
+      ${rootSections.map(({ c, fruits, extraWords }) => `
+      <article class="wi-root" id="root-${c.n}" style="--hue:${c.hue}">
+        <a class="wi-root-head" href="class-${c.n}/">
+          <span class="ar wi-root-ar">${c.root}</span>
+          <span class="wi-root-meta">শিকড় #${bn(c.n)} · ${c.reveal.meaning} · ${stageLabel(c.n)}</span>
+        </a>
+        <ul class="wi-words">
+          ${fruits.map((f) => `
+          <li class="wi-word">
+            <span class="ar wi-word-ar">${f.ar}</span>
+            <span class="wi-word-translit">${f.translit}</span>
+            <span class="wi-word-bn">${f.meaning}</span>
+            <span class="wi-word-en">${f.en ? `(${f.en})` : ''}</span>
+          </li>`).join('')}
+        </ul>
+        ${extraWords.length ? `
+        <details class="wi-extra">
+          <summary>আরও ${bn(extraWords.length)}টা শব্দ এই শিকড় থেকে</summary>
+          <ul class="wi-words wi-words-extra">
+            ${extraWords.map((w) => `
+            <li class="wi-word">
+              <span class="ar wi-word-ar">${w.ar}</span>
+              <span class="wi-word-translit">${w.translit}</span>
+              <span class="wi-word-en">${w.en ? `(${w.en})` : ''}</span>
+              <span class="wi-word-use">${w.use}</span>
+            </li>`).join('')}
+          </ul>
+        </details>` : ''}
+      </article>`).join('')}
+    </div>
+  </section>`;
+
+  write('word-index/index.html', page({
+    title: `পূর্ণ শব্দ-সূচি — সব শিকড় ও শাখা-শব্দ · ${BOOK.title}`,
+    description: `এ পর্যন্ত লেখা ${CLASSES.length}টা শিকড়ের সবগুলো শাখা-শব্দ, বাংলা+ইংরেজি অর্থ ও উচ্চারণসহ।`,
+    canonical: `${BOOK_URL_PREFIX}word-index/`,
+    bodyHtml: indexBody,
+  }));
+}
+
+// ---------------------------------------------------------------------------
 // styles -- same base tokens as build_catalog.js's :root block (platform-wide
 // visual consistency, per CURRICULUM_PLAN.md §6), plus this book's own
 // pattern-shape/root-color layer on top.
@@ -664,6 +741,25 @@ th{font-size:.72rem;text-transform:uppercase;letter-spacing:.03em;color:var(--mu
   background:hsl(var(--hue) var(--root-s) var(--root-l) / .08);border-inline-start:3px solid hsl(var(--hue) var(--root-s) var(--root-l))}
 .sum-root{font-size:1.15rem;font-weight:700;color:hsl(var(--hue) var(--root-s) var(--root-l));min-width:4.5em}
 .sum-title{color:var(--fg);font-size:.92rem}
+
+.word-index{display:flex;flex-direction:column;gap:1rem}
+.wi-root{border:1px solid var(--line);border-radius:var(--rad);overflow:hidden;background:var(--card)}
+.wi-root-head{display:flex;flex-wrap:wrap;align-items:baseline;gap:.5rem;padding:.8rem 1rem;
+  text-decoration:none;color:var(--fg);background:hsl(var(--hue) var(--root-s) var(--root-l) / .1);
+  border-inline-start:4px solid hsl(var(--hue) var(--root-s) var(--root-l))}
+.wi-root-ar{font-size:1.3rem;font-weight:700;color:hsl(var(--hue) var(--root-s) var(--root-l))}
+.wi-root-meta{color:var(--mut);font-size:.83rem}
+.wi-words{list-style:none;margin:0;padding:.4rem .9rem;display:flex;flex-direction:column;gap:.35rem}
+.wi-word{display:flex;flex-wrap:wrap;align-items:baseline;gap:.5rem;padding:.35rem 0;
+  border-bottom:1px solid var(--line);font-size:.88rem}
+.wi-word:last-child{border-bottom:none}
+.wi-word-ar{font-size:1.05rem;min-width:5em}
+.wi-word-translit{color:var(--fg);font-weight:600}
+.wi-word-bn{color:var(--fg)}
+.wi-word-en,.wi-word-use{color:var(--mut);font-size:.85em}
+.wi-extra{padding:0 .9rem .7rem}
+.wi-extra summary{cursor:pointer;color:var(--acc);font-size:.85rem;padding:.4rem 0}
+.wi-words-extra{padding-top:.2rem}
 ${ACCOUNT.css}
 `;
 write('assets/style.css', css);
@@ -736,7 +832,7 @@ written.filter((f) => f.endsWith('.html')).forEach((rel) => {
 console.log(`
   arabic-roots built
   ------------------------------------------
-  classes    ${CLASSES.length} / ${TOTAL_ROOTS_PLANNED} (stage 1: ${Math.min(CLASSES.length, STAGE_1_TOTAL)}/${STAGE_1_TOTAL}, stage 2: ${Math.max(0, CLASSES.length - STAGE_1_TOTAL)}/${STAGE_2_TOTAL})
+  classes    ${CLASSES.length} / ${TOTAL_ROOTS_PLANNED} (stage 1: ${Math.min(CLASSES.length, STAGE_1_TOTAL)}/${STAGE_1_TOTAL}, stage 2: ${Math.max(0, Math.min(CLASSES.length, STAGE_1_TOTAL + STAGE_2_TOTAL) - STAGE_1_TOTAL)}/${STAGE_2_TOTAL}, stage 3: ${Math.max(0, CLASSES.length - STAGE_1_TOTAL - STAGE_2_TOTAL)}/${STAGE_3_TOTAL})
   pages      ${written.length}
   -> ${OUT}
 `);
