@@ -93,37 +93,39 @@ Re-derived directly from `RESEARCH_ROOT_WORDS.md` §2's table (not from memory) 
 
 **Three sensitive roots are included in Stage 2** (per §7 rule 4's own instruction that جهد belongs "in the second batch") but placed last, deliberately, so Stage 2 doesn't end on them: **ك-ف-ر** (disbelieve — paired as أمن's antonym, per `RESEARCH_ROOT_WORDS.md`'s own note to keep this "purely definitional, not judgmental"), **ظ-ل-م** (wrong/darkness — pairs naturally with عدل, root #61 below), **ج-ه-د** (strive — framed as personal/spiritual effort, explicitly non-militarized, closing Stage 2 on growth rather than conflict). All three need reviewer sign-off on framing before publishing, same as §7 already requires generally.
 
-Stage 2 order (39 Verified, by `RESEARCH_ROOT_WORDS.md`'s own frequency ranking, then 11 fresh-verify, then the 3 sensitive roots last):
+Stage 2 order (40 Verified, by `RESEARCH_ROOT_WORDS.md`'s own frequency ranking, then 11 fresh-verify, then the 3 sensitive roots last):
+
+*(Correction, 2026-08-19: an earlier version of this table left rows 49-50 blank with a dangling "see below" note that pointed nowhere, and separately omitted ع-د-ل entirely. Both were caught while writing classes 46-50 — the locked roster in `scripts/arabic_roots_content.js` had already resolved this correctly by filling 49-50 with ك-ل-م / ع-ق-ل and placing ع-د-ل at 58, so this table below is now regenerated to match that roster exactly, the actual source of truth.)*
 
 | # | Root | Meaning | Freq. | # | Root | Meaning | Freq. |
 |---|---|---|---:|---|---|---|---:|
-| 26 | أ-ر-ض | earth | 461 | 51 | ك-ل-م | speak/word | 75 |
-| 27 | س-م-و | sky/name | 381 | 52 | ع-ق-ل | reason/intellect | 49 |
-| 28 | ع-م-ل | deed/work | 360 | 53 | ع-ه-د | covenant | 46 |
-| 29 | ح-ق-ق | truth/right | 287 | 54 | ب-ح-ر | sea | 42 |
-| 30 | و-ق-ي | guard/taqwā | 258 | 55 | ج-ب-ل | mountain | 41 |
-| 31 | أ-م-ر | command/matter | 248 | 56 | ح-ج-ج | pilgrimage/argue | 33 |
-| 32 | ح-ك-م | wisdom/judge | 210 | 57 | ش-م-س | sun | 33 |
-| 33 | م-ل-ك | king/angel/own | 206 | 58 | ط-ه-ر | purity | 31 |
-| 34 | ج-ن-ن | garden/hidden | 201 | 59 | ط-ي-ر | bird/fly | 29 |
-| 35 | خ-ي-ر | good/best | 196 | 60 | ق-م-ر | moon | 27 |
-| 36 | س-م-ع | hear | 185 | 61 | ش-ج-ر | tree | 27 |
-| 37 | ح-ي-ي | life | 184 | 62 | ن-ج-م | star | 13 |
-| 38 | ق-ل-ب | heart/turn | 168 | 63 | ق-و-ل | say | *fresh-verify* |
-| 39 | م-و-ت | death | 165 | 64 | ق-ر-أ | recite/read | *fresh-verify* |
-| 40 | ن-ص-ر | help/victory | 158 | 65 | أ-ي-ي | sign (āyah) | *fresh-verify* |
-| 41 | ب-ص-ر | see | 148 | 66 | ن-ب-أ | news/prophet | *fresh-verify* |
-| 42 | ق-د-ر | power/decree | 132 | 67 | ب-ش-ر | human/glad tidings | *fresh-verify* |
-| 43 | خ-و-ف | fear | 124 | 68 | س-ب-ل | path/way | *fresh-verify* |
-| 44 | ج-ز-ي | reward/repay | 118 | 69 | م-و-ه | water | *fresh-verify* |
-| 45 | ح-ب-ب | love | 95 | 70 | ل-ي-ل | night | *fresh-verify* |
-| 46 | س-ب-ح | glorify | 92 | 71 | ر-و-ح | spirit/wind | *fresh-verify* |
-| 47 | ت-و-ب | repent/turn | 87 | 72 | ي-و-م | day | *fresh-verify* |
-| 48 | ح-ر-م | forbid/sacred | 83 | 73 | ن-ف-س | soul/self | *fresh-verify* |
-| 49 | — | *(row 49 intentionally blank — see below)* | | 74 | ظ-ل-م | wrong/darkness | 315 (sensitive, placed last) |
-| 50 | — | | | 75 | ك-ف-ر / ج-ه-د | disbelieve / strive | 525 / 41 (sensitive, closes the stage) |
+| 26 | أ-ر-ض | earth | 461 | 51 | ع-ه-د | covenant | 46 |
+| 27 | س-م-و | sky/name | 381 | 52 | ب-ح-ر | sea | 42 |
+| 28 | ع-م-ل | deed/work | 360 | 53 | ج-ب-ل | mountain | 41 |
+| 29 | ح-ق-ق | truth/right | 287 | 54 | ح-ج-ج | pilgrimage/argue | 33 |
+| 30 | و-ق-ي | guard/taqwā | 258 | 55 | ش-م-س | sun | 33 |
+| 31 | أ-م-ر | command/matter | 248 | 56 | ط-ه-ر | purity | 31 |
+| 32 | ح-ك-م | wisdom/judge | 210 | 57 | ط-ي-ر | bird/fly | 29 |
+| 33 | م-ل-ك | king/angel/own | 206 | 58 | ع-د-ل | justice | 28 |
+| 34 | ج-ن-ن | garden/hidden | 201 | 59 | ق-م-ر | moon | 27 |
+| 35 | خ-ي-ر | good/best | 196 | 60 | ش-ج-ر | tree | 27 |
+| 36 | س-م-ع | hear | 185 | 61 | ن-ج-م | star | 13 |
+| 37 | ح-ي-ي | life | 184 | 62 | ق-و-ل | say | *fresh-verify* |
+| 38 | ق-ل-ب | heart/turn | 168 | 63 | ق-ر-أ | recite/read | *fresh-verify* |
+| 39 | م-و-ت | death | 165 | 64 | أ-ي-ي | sign (āyah) | *fresh-verify* |
+| 40 | ن-ص-ر | help/victory | 158 | 65 | ن-ب-أ | news/prophet | *fresh-verify* |
+| 41 | ب-ص-ر | see | 148 | 66 | ب-ش-ر | human/glad tidings | *fresh-verify* |
+| 42 | ق-د-ر | power/decree | 132 | 67 | س-ب-ل | path/way | *fresh-verify* |
+| 43 | خ-و-ف | fear | 124 | 68 | م-و-ه | water | *fresh-verify* |
+| 44 | ج-ز-ي | reward/repay | 118 | 69 | ل-ي-ل | night | *fresh-verify* |
+| 45 | ح-ب-ب | love | 95 | 70 | ر-و-ح | spirit/wind | *fresh-verify* |
+| 46 | س-ب-ح | glorify | 92 | 71 | ي-و-م | day | *fresh-verify* |
+| 47 | ت-و-ب | repent/turn | 87 | 72 | ن-ف-س | soul/self | *fresh-verify* |
+| 48 | ح-ر-م | forbid/sacred | 83 | 73 | ظ-ل-م | wrong/darkness | 315 (sensitive) |
+| 49 | ك-ل-م | speak/word | 75 | 74 | ك-ف-ر | disbelieve | 525 (sensitive) |
+| 50 | ع-ق-ل | reason/intellect | 49 | 75 | ج-ه-د | strive | 41 (sensitive, closes the stage) |
 
-(Table compressed to fit two sensitive roots in the final row rather than leaving the table ragged — ك-ف-ر and ج-ه-د are both placed at the very end of Stage 2, ج-ه-د last of all so the stage closes on personal growth, not disbelief.)
+(ظ-ل-م، ك-ف-ر، ج-ه-د are the three sensitive roots, deliberately placed at the very end of Stage 2, ج-ه-د last of all so the stage closes on personal growth, not disbelief.)
 
 Next step per the same order-of-work §9 used for Stage 1: research history stories for these 50 (extending `HISTORY_STORIES.md`), live-verify the 11 fresh roots' practice-word citations, then write classes in batches — reported as completed in batches, not promised on a timeline.
 
