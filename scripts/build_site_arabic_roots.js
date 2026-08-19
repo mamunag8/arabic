@@ -164,7 +164,8 @@ const landingBody = `
     <div class="roadmap">
       ${roadmapHtml}
     </div>
-    ${CLASSES.length >= STAGE_1_TOTAL ? '<p style="margin-top:1rem"><a href="stage-1-summary/">📊 স্টেজ ১ সম্পন্ন — পুরো সারাংশ দেখো →</a></p>' : ''}
+    ${CLASSES.length >= STAGE_1_TOTAL + STAGE_2_TOTAL ? '<p style="margin-top:1rem"><a href="stage-2-summary/">📊 স্টেজ ২ সম্পন্ন — ৭৫টা গাছের পুরো সারাংশ দেখো →</a></p>'
+      : (CLASSES.length >= STAGE_1_TOTAL ? '<p style="margin-top:1rem"><a href="stage-1-summary/">📊 স্টেজ ১ সম্পন্ন — পুরো সারাংশ দেখো →</a></p>' : '')}
   </section>`;
 
 write('index.html', page({
@@ -286,6 +287,7 @@ function classBody(c, idx) {
   const prev = idx > 0 ? CLASSES[idx - 1] : null;
   const next = idx < CLASSES.length - 1 ? CLASSES[idx + 1] : null;
   const isStage1Finale = c.n === STAGE_1_TOTAL;
+  const isStage2Finale = c.n === STAGE_1_TOTAL + STAGE_2_TOTAL;
   return `
   <article class="class-card" style="--hue:${c.hue}">
     <div class="class-card-bar"></div>
@@ -334,12 +336,14 @@ function classBody(c, idx) {
       <h2>📊 এই গাছের প্রভাব</h2>
       ${statStripHtml(c, idx)}
       ${isStage1Finale ? '<p class="next-up chrome">🎉 এটাই স্টেজ ১-এর শেষ গাছ। <a href="../stage-1-summary/">পুরো সারাংশ দেখো →</a></p>' : ''}
+      ${isStage2Finale ? '<p class="next-up chrome">🎉 এটাই স্টেজ ২-এর শেষ গাছ, ৭৫টা গাছ সম্পূর্ণ! <a href="../stage-2-summary/">পুরো সারাংশ দেখো →</a></p>' : ''}
     </div>
   </article>
   <nav class="class-pager">
     ${prev ? `<a href="../class-${prev.n}/">← ক্লাস ${bn(prev.n)}</a>` : '<span></span>'}
     ${next ? `<a href="../class-${next.n}/">ক্লাস ${bn(next.n)} →</a>`
-      : (isStage1Finale ? '<a href="../stage-1-summary/">স্টেজ ১ সারাংশ →</a>' : '<span class="next-locked">পরের ক্লাস এখনো লেখা হয়নি</span>')}
+      : (isStage2Finale ? '<a href="../stage-2-summary/">স্টেজ ২ সারাংশ →</a>'
+        : (isStage1Finale ? '<a href="../stage-1-summary/">স্টেজ ১ সারাংশ →</a>' : '<span class="next-locked">পরের ক্লাস এখনো লেখা হয়নি</span>'))}
   </nav>`;
 }
 
@@ -423,6 +427,74 @@ if (CLASSES.length >= STAGE_1_TOTAL) {
     description: `২৫টা শিকড়ের সারাংশ — কুরআনের প্রায় ${pct}% শব্দ-ব্যবহার এখন চেনা।`,
     canonical: `${BOOK_URL_PREFIX}stage-1-summary/`,
     bodyHtml: summaryBody,
+  }));
+}
+
+// ---------------------------------------------------------------------------
+// stage-2-completion summary -- same pattern as stage-1's above, scoped to
+// classes 26-75 (Stage 2's own 50), only built once every Stage 2 class
+// exists. Also reports the combined Stage 1+2 total since 75/75 is the
+// bigger milestone a reader actually feels at this point.
+// ---------------------------------------------------------------------------
+if (CLASSES.length >= STAGE_1_TOTAL + STAGE_2_TOTAL) {
+  const stage2Classes = CLASSES.slice(STAGE_1_TOTAL, STAGE_1_TOTAL + STAGE_2_TOTAL);
+  const known2 = stage2Classes.filter((c) => typeof c.freq === 'number');
+  const skipped2 = stage2Classes.length - known2.length;
+  const sumFreq2 = known2.reduce((a, c) => a + c.freq, 0);
+  const pct2 = ((sumFreq2 / QURAN_TOTAL_WORD_TOKENS) * 100).toFixed(1);
+  const totalPracticeWords2 = stage2Classes.reduce((a, c) => a + c.practiceWords.length, 0);
+
+  const allKnown = CLASSES.filter((c) => typeof c.freq === 'number');
+  const allSkipped = CLASSES.length - allKnown.length;
+  const sumFreqAll = allKnown.reduce((a, c) => a + c.freq, 0);
+  const pctAll = ((sumFreqAll / QURAN_TOTAL_WORD_TOKENS) * 100).toFixed(1);
+  const totalPracticeWordsAll = CLASSES.reduce((a, c) => a + c.practiceWords.length, 0);
+
+  const rootListHtml2 = stage2Classes.map((c) => `
+      <li style="--hue:${c.hue}"><span class="ar sum-root">${c.root}</span> <span class="sum-title">${c.title}</span></li>`).join('');
+
+  const summaryBody2 = `
+  <section class="hero">
+    <p class="eyebrow">স্টেজ ২ সম্পন্ন 🎉</p>
+    <h1>৭৫টা গাছ, একটা পুরো বাগান</h1>
+    <p class="lead">সুয়াইবা, সামিহা আর মাহদী নানার বাগানের প্রথম দুই ধাপ ঘুরে দেখা শেষ করল। স্টেজ ১-এর ২৫টা আর স্টেজ ২-এর ৫০টা মিলিয়ে মোট ৭৫টা শিকড়, ৭৫টা গাছ, শত শত অনুশীলন-শব্দ।</p>
+  </section>
+
+  <section>
+    <h2 class="section-h">📊 সংখ্যায় স্টেজ ২</h2>
+    <div class="callout stat-strip" style="--hue:180">
+      <p>শুধু স্টেজ ২-এর ৫০টা শিকড় থেকে গজানো শব্দ কুরআনে মোট (<strong>${bn(sumFreq2.toLocaleString('en-US'))}</strong> বার) এসেছে -- কুরআনের ৭৭,৪৩০টা মোট শব্দের প্রায় <strong>${bn(pct2)}%</strong>।</p>
+      <p class="gloss">${skipped2 > 0 ? `(${bn(skipped2)}টা শিকড়ের সংখ্যা অযাচাইকৃত বলে বাদ -- আসল শতাংশ আরও বেশি।)` : ''}</p>
+      <p>স্টেজ ২-তে মোট <strong>${bn(totalPracticeWords2)}</strong>টা আরবি শব্দ অনুশীলন করেছ।</p>
+    </div>
+  </section>
+
+  <section>
+    <h2 class="section-h">🌳 মিলিয়ে ৭৫টা গাছ (স্টেজ ১ + স্টেজ ২)</h2>
+    <div class="callout stat-strip" style="--hue:40">
+      <p>দুই স্টেজ মিলিয়ে ৭৫টা শিকড় থেকে গজানো শব্দ কুরআনে মোট (<strong>${bn(sumFreqAll.toLocaleString('en-US'))}</strong> বার) এসেছে -- কুরআনের মোট শব্দের প্রায় <strong>${bn(pctAll)}%</strong>।</p>
+      <p class="gloss">${allSkipped > 0 ? `(${bn(allSkipped)}টা শিকড়ের সংখ্যা অযাচাইকৃত বলে বাদ -- আসল শতাংশ আরও বেশি।)` : ''} মোট <strong>${bn(totalPracticeWordsAll)}</strong>টা আরবি শব্দ অনুশীলন করা হয়েছে, দুই স্টেজ মিলিয়ে।</p>
+    </div>
+  </section>
+
+  <section>
+    <h2 class="section-h">🌳 বাগানের পরের ৫০টা গাছ (স্টেজ ২)</h2>
+    <ul class="roadmap sum-roots">${rootListHtml2}</ul>
+  </section>
+
+  <section>
+    <h2 class="section-h">🤲 বাগানের গেটে দাঁড়িয়ে</h2>
+    <p>নানা পুরো পরিবারকে নিয়ে বাগানের গেটে দাঁড়ালেন। "৭৫টা গাছ। শুরুতে সুয়াইবা যখন এই বাগানের দরজা খুঁজে পেয়েছিল, তখন সে জানত না এত বড় একটা জগৎ তার অপেক্ষায় আছে। কিন্তু এটাও তো এখনো শুরু -- কুরআনের হাজার হাজার শিকড়ের মধ্যে এই ৭৫টা মাত্র প্রথম কয়েকটা গাছ।"</p>
+    <p>সুয়াইবা বলল, "তাহলে পরের ধাপ কবে?" নানা হাসলেন। "যখন প্রস্তুত হবে, তখন। প্রতিটা গাছ একটা করে এসেছে, তাড়াহুড়ো ছাড়া। ধৈর্যই তো এই বাগানের প্রথম শিক্ষা।"</p>
+  </section>
+
+  <div class="next-up chrome">পরের ধাপ (স্টেজ ৩) নিয়ে এখনো কোনো নির্দিষ্ট পরিকল্পনা বা সময়সীমা ঠিক করা হয়নি -- কাজ চলবে ধাপে ধাপে, ঠিক এই ৭৫টা গাছের মতোই।</div>`;
+
+  write('stage-2-summary/index.html', page({
+    title: `স্টেজ ২ সম্পন্ন — ৭৫টা শিকড় শেখা হলো · ${BOOK.title}`,
+    description: `৭৫টা শিকড়ের (স্টেজ ১+২) সারাংশ — কুরআনের প্রায় ${pctAll}% শব্দ-ব্যবহার এখন চেনা।`,
+    canonical: `${BOOK_URL_PREFIX}stage-2-summary/`,
+    bodyHtml: summaryBody2,
   }));
 }
 
