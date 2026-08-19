@@ -306,6 +306,285 @@ const PRESENT_TENSE_SENTENCES = [
   ['Onlar oynuyorlar.', 'অন-লার অয়-নু-য়োর-লার', 'তারা খেলছে।'],
 ];
 
+// ---------------------------------------------------------------------------
+// Station 6 -- প্রশ্ন বাক্য (Soru Cümleleri)
+// Source: draft পর্ব ১১'s WH-question-word table and its across-tense
+// question-suffix examples (Geliyor mu? / Geldi mi? / Gelecek mi?). The
+// draft's own deeper case-suffix-in-questions material (Nereden, Nereye,
+// Nerelisin, Kiminle) belongs to later stations (9/10/15) and isn't
+// repeated here, per CURRICULUM_PLAN.md's per-station scope. No
+// pronunciation column in this source section -- derived mechanically.
+// ---------------------------------------------------------------------------
+const WH_EXAMPLES = [
+  { word: 'Ne', pron: 'নে', meaning: 'কী?', ex: 'Ne yapıyorsun?', exPron: 'নে ইয়া-পি-য়োর-সুন', exMeaning: 'তুমি কী করছ?' },
+  { word: 'Kim', pron: 'কিম', meaning: 'কে?', ex: 'Kim geldi?', exPron: 'কিম গেল-দি', exMeaning: 'কে এসেছিল?' },
+  { word: 'Ne zaman', pron: 'নে জা-মান', meaning: 'কখন?', ex: 'Ne zaman gidiyoruz?', exPron: 'নে জা-মান গি-দি-য়ো-রুজ', exMeaning: 'আমরা কখন যাচ্ছি?' },
+  { word: 'Neden', pron: 'নে-দেন', meaning: 'কেন?', ex: 'Neden bekliyorsun?', exPron: 'নে-দেন বেক-লি-য়োর-সুন', exMeaning: 'তুমি কেন অপেক্ষা করছ?' },
+  { word: 'Nasıl', pron: 'না-সিল', meaning: 'কীভাবে?', ex: 'Nasıl gidiyorsun?', exPron: 'না-সিল গি-দি-য়োর-সুন', exMeaning: 'তুমি কীভাবে যাচ্ছ?' },
+];
+
+const TENSE_QUESTIONS = [
+  ['Geliyor mu?', 'গে-লি-য়োর মু', 'সে কি আসছে? (বর্তমান)'],
+  ['Geldi mi?', 'গেল-দি মি', 'সে কি এসেছিল? (অতীত)'],
+  ['Gelecek mi?', 'গে-লে-জেক মি', 'সে কি আসবে? (ভবিষ্যৎ)'],
+];
+
+// ---------------------------------------------------------------------------
+// Station 7 -- নেতিবাচক বাক্য (Olumsuz Cümleler)
+// Source: draft পর্ব ১২ (the -ma/-me negative suffix across all three
+// tenses, negative+question combos, değil for non-verb negation) plus the
+// Bilmek->Bilmiyorum phonetic-contraction explanation that was embedded in
+// the draft's second পর্ব ৭ (deliberately deferred here at station 5,
+// see CURRICULUM_PLAN.md §4's dedup note -- this is where it belongs
+// thematically). No pronunciation column in either source section --
+// derived mechanically from ALPHABET's letter-sound table throughout.
+// ---------------------------------------------------------------------------
+const NEGATIVE_SENTENCES = [
+  ['Ben gelmiyorum.', 'বেন গেল-মি-য়ো-রুম', 'আমি আসছি না। (বর্তমান)'],
+  ['O okumuyor.', 'ও ও-কু-মু-য়োর', 'সে পড়ছে না। (বর্তমান)'],
+  ['Onlar oynamıyorlar.', 'অন-লার অয়-না-মি-য়োর-লার', 'তারা খেলছে না। (বর্তমান)'],
+  ['Gitmedim.', 'গিত-মে-দিম', 'আমি যাইনি। (অতীত)'],
+  ['Görmedi.', 'গোর-মে-দি', 'সে দেখেনি। (অতীত)'],
+  ['Beklemediler.', 'বেক-লে-মে-দি-লের', 'তারা অপেক্ষা করেনি। (অতীত)'],
+  ['Gitmeyeceğim.', 'গিত-মে-য়ে-জে-ইম', 'আমি যাব না। (ভবিষ্যৎ)'],
+  ['Görmeyeceksin.', 'গোর-মে-য়ে-জেক-সিন', 'তুমি দেখবে না। (ভবিষ্যৎ)'],
+];
+
+const NEGATIVE_QUESTIONS = [
+  ['Gitmiyor musun?', 'গিত-মি-য়োর মু-সুন', 'তুমি কি যাচ্ছ না?'],
+  ['Okumadı mı?', 'ও-কু-মা-দি মি', 'সে কি পড়েনি?'],
+  ['Yapmayacak mıyız?', 'ইয়াপ-মা-য়া-জাক মি-য়িজ', 'আমরা কি করব না?'],
+];
+
+const DEGIL_SENTENCES = [
+  ['Ben evde değilim.', 'বেন এভ-দে দে-ই-লিম', 'আমি বাড়িতে নেই।'],
+  ['O okulda değil.', 'ও ও-কুল-দা দে-ইল', 'সে স্কুলে নেই।'],
+  ['Biz parkta değiliz.', 'বিজ পার্ক-তা দে-ই-লিজ', 'আমরা পার্কে নেই।'],
+];
+
+// ---------------------------------------------------------------------------
+// Station 8 -- কাল (Tense)
+// Source: draft পর্ব ৫'s tense section -- Geniş Zaman (aorist), Şimdiki
+// Zaman (present continuous, already used heavily since station 5 -- kept
+// brief here as revision), Geçmiş Zaman (past), Gelecek Zaman (future).
+// Construction rules and example sentences transcribed from the draft's
+// own tables; no pronunciation column given for any of the four tense
+// sections, so all pronunciations here are derived mechanically.
+// ---------------------------------------------------------------------------
+const AORIST_SENTENCES = [
+  ['Ben yaparım.', 'বেন ইয়া-পা-রিম', 'আমি করি/করব।'],
+  ['Sen gidersin.', 'সেন গি-দের-সিন', 'তুমি যাও।'],
+  ['O alır.', 'ও আ-লির', 'সে নেয়।'],
+  ['Biz uyuruz.', 'বিজ উ-য়ু-রুজ', 'আমরা ঘুমাই।'],
+  ['Onlar oynarlar.', 'অন-লার অয়-নার-লার', 'তারা খেলে।'],
+];
+
+const PRESENT_CONT_REVISION = [
+  ['Ben bakıyorum.', 'বেন বা-কি-য়ো-রুম', 'আমি দেখছি।'],
+  ['O görüyor.', 'ও গো-রু-য়োর', 'সে দেখছে।'],
+];
+
+const PAST_SENTENCES = [
+  ['Ben baktım.', 'বেন বাক-তিম', 'আমি দেখেছিলাম।'],
+  ['Ben yemek yedim.', 'বেন ইয়ে-মেক ইয়ে-দিম', 'আমি খাবার খেয়েছিলাম।'],
+  ['O kitap okudu.', 'ও কি-তাপ ও-কু-দু', 'সে বই পড়েছিল।'],
+  ['Biz Türkiye\'ye gittik.', 'বিজ তুর-কি-য়ে-য়ে গিত-তিক', 'আমরা তুরস্কে গিয়েছিলাম।'],
+];
+
+const FUTURE_SENTENCES = [
+  ['Ben yiyeceğim.', 'বেন ইয়ি-য়ে-জে-ইম', 'আমি খাব।'],
+  ['O kitap okuyacak.', 'ও কি-তাপ ও-কু-য়া-জাক', 'সে বই পড়বে।'],
+  ['Yarın hava güzel olacak.', 'ইয়া-রিন হা-ভা গু-জেল ও-লা-জাক', 'আগামীকাল আবহাওয়া ভালো হবে।'],
+  ['Biz Türkiye\'ye gideceğiz.', 'বিজ তুর-কি-য়ে-য়ে গি-দে-জে-ইজ', 'আমরা তুরস্কে যাব।'],
+];
+
+// ---------------------------------------------------------------------------
+// Station 9 -- Suffix দিয়ে নতুন শব্দভাণ্ডার তৈরি (Kelime Hazinesi)
+// Source: draft পর্ব ৫ (vocabulary-building suffixes) -- the -suz/-süz/
+// -sız/-siz ("without X") table (fully sourced with pronunciation, ~20
+// words in the draft, 10 selected here) and the -lı/-li/-lu/-lü ("with
+// X" / origin) mini-section (no pronunciation given, derived). Both
+// share the root "Şeker" (sugar) -> Şekerli/Şekersiz, a genuine opposite-
+// suffix pair straight from the draft, used as this station's word-
+// formation highlight.
+// ---------------------------------------------------------------------------
+const WITHOUT_SUFFIX_WORDS = [
+  ['Tuz → Tuzsuz', 'তুজ-সুজ', 'লবণ → লবণহীন'],
+  ['Şeker → Şekersiz', 'শে-কের-সিজ', 'চিনি → চিনিহীন'],
+  ['Sorun → Sorunsuz', 'সো-রুন-সুজ', 'সমস্যা → সমস্যাহীন'],
+  ['Su → Susuz', 'সু-সুজ', 'পানি → পানিহীন'],
+  ['Ev → Evsiz', 'এভ-সিজ', 'বাড়ি → গৃহহীন'],
+  ['İş → İşsiz', 'ইশ-সিজ', 'কাজ → বেকার'],
+  ['Umut → Umutsuz', 'উ-মুত-সুজ', 'আশা → নিরাশ'],
+  ['Para → Parasız', 'পা-রা-সিজ', 'টাকা → অর্থহীন'],
+  ['Işık → Işıksız', 'ঈ-শিক-সিজ', 'আলো → আলোহীন'],
+  ['Hayat → Hayatsız', 'হা-ইয়াত-সিজ', 'জীবন → প্রাণহীন'],
+];
+
+const WITH_SUFFIX_WORDS = [
+  ['Şeker → Şekerli', 'শে-কের-লি', 'চিনি → চিনিযুক্ত'],
+  ['Bangladeş → Bangladeşli', 'বাং-লা-দেশ-লি', 'বাংলাদেশ → বাংলাদেশি'],
+  ['Dağ → Dağlı', 'দা-লি', 'পাহাড় → পাহাড়ি'],
+  ['Köy → Köylü', 'কোই-লু', 'গ্রাম → গ্রামবাসী'],
+];
+
+// ---------------------------------------------------------------------------
+// Station 10 -- Suffix এর ব্যবহার: ile/dan/da/-lı (dedup of the draft's
+// THREE overlapping পর্ব ৬ sections). Two of those five suffixes (-dan/-den
+// ablative, -lı property/origin) are already fully taught at stations 2
+// and 9 -- repeating them here would just be noise, so this station's real
+// new content is "ile/la/le" (with/by/using), the one suffix none of the
+// earlier stations covered, plus a one-line cross-reference back to the
+// other four for revision. No pronunciation given in the source for these
+// sentences -- derived mechanically as usual.
+// ---------------------------------------------------------------------------
+const ILE_SENTENCES = [
+  ['Kalemle yazı yazdım.', 'কা-লেম-লে ইয়া-জি ইয়াজ-দিম', 'কলম দিয়ে লিখেছি।'],
+  ['Annemle birlikte yürüyüş yaptık.', 'আন-নেম-লে বির-লিক-তে ইউ-রু-ইউশ ইয়াপ-তিক', 'মায়ের সাথে হেঁটেছি।'],
+  ['Otobüsle İstanbul\'a gittim.', 'ও-তো-বুস-লে ইস-তান-বু-লা গিত-তিম', 'বাসে করে ইস্তাম্বুল গিয়েছি।'],
+  ['Ekmekle zeytin kahvaltıda iyi olur.', 'এক-মেক-লে জে-ই-তিন কাহ-ভাল-তি-দা ই-ই ও-লুর', 'রুটির সাথে জলপাই নাস্তায় ভালো লাগে।'],
+  ['Hızla koşu yaptım.', 'হিজ-লা কো-শু ইয়াপ-তিম', 'দ্রুতগতিতে দৌড়েছি।'],
+  ['Kardeşimle tatil çok eğlenceli oldu.', 'কার-দে-শিম-লে তা-তিল চোক এয়-লেন-জে-লি ওল-দু', 'ভাইয়ের সাথে ছুটিটা খুব আনন্দের হলো।'],
+];
+
+// ---------------------------------------------------------------------------
+// Station 11 -- দিন, মাস, বছর, ঋতু, আবহাওয়া
+// Source: draft's unnumbered পর্ব on days/months/years/seasons/weather.
+// No pronunciation column anywhere in this source section -- all
+// pronunciations derived mechanically from ALPHABET's letter-sound table.
+// ---------------------------------------------------------------------------
+const DAY_WORDS = [
+  { word: 'Gün', pron: 'গুন', meaning: 'দিন', ex: 'Bugün hava çok güzel.', exPron: 'বু-গুন হা-ভা চোক গু-জেল', exMeaning: 'আজকের আবহাওয়া খুব সুন্দর।' },
+  { word: 'Dün', pron: 'দুন', meaning: 'গতকাল', ex: 'Dün yağmur yağdı.', exPron: 'দুন ইয়াগ-মুর ইয়াগ-দি', exMeaning: 'গতকাল বৃষ্টি হয়েছিল।' },
+  { word: 'Yarın', pron: 'ইয়া-রিন', meaning: 'আগামীকাল', ex: 'Yarın hava sıcak olacak.', exPron: 'ইয়া-রিন হা-ভা সি-জাক ও-লা-জাক', exMeaning: 'আগামীকাল আবহাওয়া গরম হবে।' },
+];
+
+const MONTH_WORDS = [
+  { word: 'Ocak', pron: 'ও-জাক', meaning: 'জানুয়ারি', ex: 'Ocakta hava soğuk olur.', exPron: 'ও-জাক-তা হা-ভা সো-উক ও-লুর', exMeaning: 'জানুয়ারিতে আবহাওয়া ঠান্ডা থাকে।' },
+  { word: 'Nisan', pron: 'নি-সান', meaning: 'এপ্রিল', ex: 'Nisanda çiçekler açar.', exPron: 'নি-সান-দা চি-চেক-লের আ-চার', exMeaning: 'এপ্রিলে ফুল ফোটে।' },
+  { word: 'Aralık', pron: 'আ-রা-লিক', meaning: 'ডিসেম্বর', ex: 'Aralık ayında kar yağar.', exPron: 'আ-রা-লিক আ-য়িন-দা কার ইয়া-আর', exMeaning: 'ডিসেম্বর মাসে তুষারপাত হয়।' },
+];
+
+const YEAR_SEASON_WEATHER = [
+  ['Yıl', 'ইল', 'বছর'],
+  ['Bu yıl', 'বু ইল', 'এই বছর'],
+  ['İlkbahar', 'ইল্ক-বা-হার', 'বসন্ত'],
+  ['Yaz', 'ইয়াজ', 'গ্রীষ্ম'],
+  ['Sonbahar', 'সোন-বা-হার', 'শরৎ'],
+  ['Kış', 'কিশ', 'শীত'],
+  ['Hava', 'হা-ভা', 'আবহাওয়া'],
+  ['Yağmur', 'ইয়াগ-মুর', 'বৃষ্টি'],
+  ['Kar', 'কার', 'তুষার'],
+];
+
+// ---------------------------------------------------------------------------
+// Station 12 -- Possessive Suffix (İyelik Ekleri)
+// Source: draft's İyelik Ekleri section (within the পর্ব ৬ region, line
+// ~6402) -- a structured person x vowel-harmony-class table. 8 examples
+// selected across Benim/Senin/Onun/Bizim, reusing familiar words (Ev,
+// Kalem, Okul, Kitap, Çocuk) from earlier stations for reinforcement. No
+// pronunciation column in the source; derived mechanically, except
+// Kitabı and Çocuğu which reuse the exact pronunciations already sourced
+// at stations 1-2's accusative/soft-consonant tables (same surface form).
+// ---------------------------------------------------------------------------
+const POSSESSIVE_WORDS = [
+  ['Ev → Evim', 'এ-ভিম', 'বাড়ি → আমার বাড়ি'],
+  ['Kalem → Kalemim', 'কা-লে-মিম', 'কলম → আমার কলম'],
+  ['Okul → Okulum', 'ও-কু-লুম', 'স্কুল → আমার স্কুল'],
+  ['Ev → Evin', 'এ-ভিন', 'বাড়ি → তোমার বাড়ি'],
+  ['Kalem → Kalemin', 'কা-লে-মিন', 'কলম → তোমার কলম'],
+  ['Kitap → Kitabı', 'কি-তা-বি', 'বই → তার বই'],
+  ['Çocuk → Çocuğu', 'চজুগু', 'সন্তান → তার সন্তান (স্টেশন ১-এর "শিশুটি"-র মতো একই শব্দ)'],
+  ['Ev → Evimiz', 'এ-ভি-মিজ', 'বাড়ি → আমাদের বাড়ি'],
+];
+
+// ---------------------------------------------------------------------------
+// Station 13 -- তামলামা (Tamlama)
+// Source: draft পর্ব ১৪ (Belirtili/Belirtisiz/Zincirleme Tamlama). No
+// pronunciation column in the source; derived mechanically as usual.
+// ---------------------------------------------------------------------------
+const BELIRTILI_TAMLAMA = [
+  ['Kitabın kapağı', 'কি-তা-বিন কা-পা-ঈ', 'বইয়ের মলাট'],
+  ['Evimizin anahtarı', 'এ-ভি-মি-জিন আ-নাহ-তা-রি', 'আমাদের বাড়ির চাবি'],
+  ['Arabamın tekeri', 'আ-রা-বা-মিন তে-কে-রি', 'আমার গাড়ির চাকা'],
+  ['Okulun kapısı', 'ও-কু-লুন কা-পি-সি', 'স্কুলের দরজা'],
+];
+
+const BELIRTISIZ_TAMLAMA = [
+  ['Ev kapısı', 'এভ কা-পি-সি', 'বাড়ির দরজা'],
+  ['Okul bahçesi', 'ও-কুল বাহ-চে-সি', 'স্কুলের বাগান'],
+  ['Kitap sayfası', 'কি-তাপ সাই-ফা-সি', 'বইয়ের পৃষ্ঠা'],
+  ['Çocuk odası', 'চো-জুক ও-দা-সি', 'বাচ্চার ঘর'],
+];
+
+const ZINCIRLEME_TAMLAMA = [
+  ['İstanbul\'un deniz manzarası', 'ইস-তান-বু-লুন দে-নিজ মান-জা-রা-সি', 'ইস্তাম্বুলের সমুদ্র দৃশ্য'],
+  ['Üniversitenin öğrenci yemekhanesi', 'উ-নি-ভের-সি-তে-নিন ও-রেন-জি ইয়ে-মেক-হা-নে-সি', 'বিশ্ববিদ্যালয়ের ছাত্রদের ক্যাফেটেরিয়া'],
+  ['Evin mutfak dolabı', 'এ-ভিন মুত-ফাক দো-লা-বি', 'বাড়ির রান্নাঘরের আলমারি'],
+];
+
+// ---------------------------------------------------------------------------
+// Station 14 -- শর্তসূচক বাক্য (Koşul Cümleleri)
+// Source: draft পর্ব ১৩ (-sa/-se conditional suffix). No pronunciation
+// column in the source; derived mechanically as usual.
+// ---------------------------------------------------------------------------
+const CONDITIONAL_SENTENCES = [
+  ['Gelirse, görüşürüz.', 'গে-লির-সে, গো-রু-শু-রুজ', 'যদি সে আসে, আমরা দেখা করব।'],
+  ['Okursa, öğrenir.', 'ও-কুর-সা, ও-রে-নির', 'যদি সে পড়ে, সে শিখবে।'],
+  ['Gidersek, erken döneriz.', 'গি-দের-সেক, এর-কেন দো-নে-রিজ', 'যদি আমরা যাই, আমরা তাড়াতাড়ি ফিরব।'],
+  ['Gelmezse, üzülürüm.', 'গেল-মেজ-সে, উ-জু-লু-রুম', 'যদি সে না আসে, আমি দুঃখ পাব।'],
+  ['Okumazsan, öğrenemezsin.', 'ও-কু-মাজ-সান, ও-রে-নে-মেজ-সিন', 'যদি তুমি না পড়ো, তুমি শিখতে পারবে না।'],
+  ['Eğer hava güzel olursa, pikniğe gideceğiz.', 'এ-য়ের হা-ভা গু-জেল ও-লুর-সা, পিক-নি-য়ে গি-দে-জে-ইজ', 'যদি আবহাওয়া ভালো থাকে, আমরা পিকনিকে যাব।'],
+  ['Eğer para kazanırsam, araba alacağım.', 'এ-য়ের পা-রা কা-জা-নির-সাম, আ-রা-বা আ-লা-জা-ইম', 'যদি আমি টাকা উপার্জন করি, আমি একটা গাড়ি কিনব।'],
+];
+
+// ---------------------------------------------------------------------------
+// Station 15 -- সময় ও স্থান নির্দেশ (Zaman ve Yer Edatları)
+// Source: draft পর্ব ১৫ -- its genuinely new content is the "önce/sonra"
+// (before/after) time-clause construction; the spatial -den/-e content in
+// this same section largely revises station 2's ablative/dative, so only
+// one fresh spatial example (Bahçeden içeri gir) is included alongside a
+// station-2 callback. No pronunciation column in the source; derived
+// mechanically as usual.
+// ---------------------------------------------------------------------------
+const TIME_CLAUSES = [
+  ['Gitmeden önce bir şey söyle.', 'গিত-মে-দেন ও-নজে বির শে-ই সোই-লে', 'যাওয়ার আগে কিছু বলো।'],
+  ['Yemekten önce ellerini yıka.', 'ইয়ে-মেক-তেন ও-নজে এল-লে-রি-নি ইয়ি-কা', 'খাবারের আগে হাত ধুয়ে নাও।'],
+  ['Yaptıktan sonra biraz dinlen.', 'ইয়াপ-তিক-তান সোন-রা বি-রাজ দিন-লেন', 'করার পরে একটু বিশ্রাম নাও।'],
+  ['Ders bittikten sonra eve gideceğim.', 'দের্স বিত-তিক-তেন সোন-রা এ-ভে গি-দে-জে-ইম', 'ক্লাস শেষ হলে আমি বাড়ি যাব।'],
+  ['Okuldan sonra eve döneceğim.', 'ও-কুল-দান সোন-রা এ-ভে দো-নে-জে-ইম', 'স্কুলের পরে আমি বাড়ি ফিরব।'],
+];
+
+const SPACE_CLAUSES = [
+  ['Evden çık.', 'এভ-দেন চিক', 'বাড়ি থেকে বের হও। (স্টেশন ২ রিভিশন)'],
+  ['Bahçeden içeri gir.', 'বাহ-চে-দেন ই-চে-রি গির', 'বাগান থেকে ভেতরে আসো।'],
+];
+
+// ---------------------------------------------------------------------------
+// Station 16 -- ক্রিয়ার Çatı (Fiil Çatıları)
+// Source: draft পর্ব ১৬ (Active/Passive/Reflexive/Reciprocal verbs). No
+// pronunciation column in the source; derived mechanically as usual.
+// ---------------------------------------------------------------------------
+const ACTIVE_VERBS = [
+  ['Yapıyor.', 'ইয়া-পি-য়োর', 'সে করছে। (Active)'],
+  ['Yazıyorum.', 'ইয়া-জি-য়ো-রুম', 'আমি লিখছি। (Active)'],
+];
+
+const PASSIVE_VERBS = [
+  ['Yapılıyor.', 'ইয়া-পি-লি-য়োর', 'এটি করা হচ্ছে। (Passive)'],
+  ['Kapı açıldı.', 'কা-পি আ-চিল-দি', 'দরজা খোলা হয়েছিল। (Passive)'],
+];
+
+const REFLEXIVE_VERBS = [
+  ['Yıkanıyorum.', 'ইয়ি-কা-নি-য়ো-রুম', 'আমি নিজেকে ধুচ্ছি। (Reflexive)'],
+  ['Hazırlanıyoruz.', 'হা-জির-লা-নি-য়ো-রুজ', 'আমরা নিজেরা প্রস্তুত হচ্ছি। (Reflexive)'],
+];
+
+const RECIPROCAL_VERBS = [
+  ['Buluşuyoruz.', 'বু-লু-শু-য়ো-রুজ', 'আমরা একে অপরের সঙ্গে দেখা করছি। (Reciprocal)'],
+  ['Konuşuyorlar.', 'কো-নু-শু-য়োর-লার', 'তারা কথা বলছে। (Reciprocal)'],
+];
+
 const STATIONS = [
   {
     n: 1,
@@ -639,6 +918,588 @@ const STATIONS = [
     },
     badge: 'প্রতিবেশীর ব্যাজ — প্রথম প্রশ্ন-উত্তর করা হয়ে গেছে',
     next: 'পরের স্টেশনে দোকানে গিয়ে আরও প্রশ্ন বাক্য শেখা হবে — কী, কোথায়, কখন, কেন।',
+  },
+  {
+    n: 6,
+    hue: 95,
+    title: 'প্রশ্ন বাক্য',
+    subtitle: 'Soru Cümleleri',
+    scene: 'দোকানে জিজ্ঞাসা',
+    story: [
+      'ছোট্ট মুদি দোকানের সামনে এলিফ থামল। "চলুন প্র্যাকটিস করি। এখানে সবাই ছয়টা প্রশ্ন-শব্দ দিয়ে প্রায় সবকিছু জিজ্ঞেস করে — Ne? (নে) কী, Kim? (কিম) কে, Nerede? (নে-রে-দে) কোথায়, Ne zaman? (নে জা-মান) কখন, Neden? (নে-দেন) কেন, Nasıl? (না-সিল) কীভাবে।"',
+      'দোকানি জিজ্ঞেস করলেন, "Ne yapıyorsun?" (নে ইয়া-পি-য়োর-সুন) — "তুমি কী করছ?" — দেখে বোঝা যাচ্ছিল আপনি তাকে ঠিক বুঝতে পারছেন কিনা। এলিফ হেসে বলল, "চিন্তা করবেন না, আমিও নতুন ছিলাম একদিন।"',
+      '"এই suffix (mı/mi/mu/mü) শুধু সাধারণ বাক্যেই বসে না," এলিফ যোগ করল, "যেকোনো কালেই বসে — Geliyor mu? (গে-লি-য়োর মু) সে কি আসছে, Geldi mi? (গেল-দি মি) সে কি এসেছিল, Gelecek mi? (গে-লে-জেক মি) সে কি আসবে। কালটা বদলায়, প্রশ্ন-suffix থেকেই যায়।"',
+    ],
+    ruleIntro: 'ছয়টা প্রশ্ন-শব্দ (Wh-questions) এবং তাদের বাস্তব ব্যবহার নিচে:',
+    sentenceWordsTitle: 'প্রশ্নসূচক শব্দ (Wh-Questions)',
+    sentenceWords: WH_EXAMPLES,
+    extraVocab: {
+      icon: '⏳',
+      title: 'একই suffix, তিন কাল',
+      intro: 'প্রশ্ন suffix (mı/mi/mu/mü) বর্তমান, অতীত, ভবিষ্যৎ — তিন কালেই একইভাবে কাজ করে:',
+      words: TENSE_QUESTIONS,
+    },
+    wordFormation: {
+      rule: 'প্রশ্ন-suffix সবসময় বাক্যের সবচেয়ে শেষে বসে — ক্রিয়ার কাল যা-ই হোক না কেন, তার পরে। [ক্রিয়া + কাল-suffix] + [প্রশ্ন-suffix]।',
+      examples: [
+        { stem: 'Gel-iyor', stemMeaning: 'আসছে (বর্তমান কাল পর্যন্ত)', suf: '+ mu', result: 'Geliyor mu?', pron: 'গে-লি-য়োর মু', meaning: 'সে কি আসছে?' },
+        { stem: 'Gel-di', stemMeaning: 'এসেছিল (অতীত কাল পর্যন্ত)', suf: '+ mi', result: 'Geldi mi?', pron: 'গেল-দি মি', meaning: 'সে কি এসেছিল?' },
+        { stem: 'Gel-ecek', stemMeaning: 'আসবে (ভবিষ্যৎ কাল পর্যন্ত)', suf: '+ mi', result: 'Gelecek mi?', pron: 'গে-লে-জেক মি', meaning: 'সে কি আসবে?' },
+      ],
+    },
+    exercises: [
+      'ছয়টা Wh-question শব্দ মুখস্থ বলুন, উচ্চারণসহ।',
+      '"তুমি কী করছ?" আর "তুমি কেন অপেক্ষা করছ?" — উচ্চারণসহ লিখুন।',
+      'Geliyor mu?, Geldi mi?, Gelecek mi? — তিনটার পার্থক্য ব্যাখ্যা করুন।',
+    ],
+    retrieval: {
+      prompt: 'কোন প্রশ্ন-শব্দ বসবে?',
+      items: [
+        { q: '___ gidiyoruz? (আমরা কখন যাচ্ছি?)', a: 'Ne zaman (নে জা-মান)' },
+        { q: '___ bekliyorsun? (তুমি কেন অপেক্ষা করছ?)', a: 'Neden (নে-দেন)' },
+        { q: '___ gidiyorsun? (তুমি কীভাবে যাচ্ছ?)', a: 'Nasıl (না-সিল)' },
+      ],
+    },
+    miniExam: {
+      title: 'মিনি পরীক্ষা — স্টেশন ৬',
+      passRule: '৯/১২ বা তার বেশি ঠিক হলে প্রস্তুত।',
+      items: [
+        { q: 'ছয়টা Wh-question শব্দ উচ্চারণসহ লিখুন।', a: 'নে (কী), কিম (কে), নে-রে-দে (কোথায়), নে জা-মান (কখন), নে-দেন (কেন), না-সিল (কীভাবে)' },
+        { q: '"তুমি কী করছ?" তুর্কিতে ও উচ্চারণসহ লিখুন।', a: 'Ne yapıyorsun? (নে ইয়া-পি-য়োর-সুন)' },
+        { q: '"কে এসেছিল?" তুর্কিতে ও উচ্চারণসহ লিখুন।', a: 'Kim geldi? (কিম গেল-দি)' },
+        { q: 'Geliyor mu?, Geldi mi?, Gelecek mi? — অর্থ ও কাল লিখুন।', a: 'সে কি আসছে (বর্তমান), এসেছিল (অতীত), আসবে (ভবিষ্যৎ)' },
+        { q: 'প্রশ্ন-suffix বাক্যের কোথায় বসে?', a: 'সবচেয়ে শেষে, ক্রিয়া+কাল-suffix-এর পরে' },
+        { q: '"তুমি কীভাবে যাচ্ছ?" তুর্কিতে ও উচ্চারণসহ লিখুন।', a: 'Nasıl gidiyorsun? (না-সিল গি-দি-য়োর-সুন)' },
+      ],
+    },
+    badge: 'দোকানের ব্যাজ — ছয়টা প্রশ্ন-শব্দ শেখা হয়ে গেছে',
+    next: 'পরের স্টেশনে একটা ছোট্ট ভুল বোঝাবুঝি সামলাতে হবে — নেতিবাচক বাক্য দিয়ে।',
+  },
+  {
+    n: 7,
+    hue: 114,
+    title: 'নেতিবাচক বাক্য',
+    subtitle: 'Olumsuz Cümleler',
+    scene: 'ভুল বোঝাবুঝি সামলানো',
+    story: [
+      'সন্ধ্যায় নানা রেগে ডাকলেন — মনে হচ্ছিল আপনি নাকি কিছু একটা করেছেন যা করার কথা ছিল না। ভয় পেয়ে গেলেন। এলিফ দৌড়ে এলো। "কী হয়েছে?"',
+      'বোঝা গেল ভুল বোঝাবুঝি — নানা ভেবেছিলেন আপনি বাজারের দরজা খোলা রেখে গেছেন। আপনি বলতে চাইলেন এটা আপনি করেননি, কিন্তু শব্দ খুঁজে পাচ্ছিলেন না। এলিফ শিখিয়ে দিল, "Ben yapmadım (বেন ইয়াপ-মা-দিম) — আমি করিনি। ক্রিয়ার মূলে -ma/-me suffix লাগালেই negative হয়ে যায়।"',
+      'নানা শুনে থামলেন, তারপর হাসলেন। "Tamam, tamam (ঠিক আছে, ঠিক আছে)," বললেন, আর মাথা নেড়ে দরজার দিকে ইশারা করলেন — আসলে দোষ ছিল বিড়ালটার। এলিফ বলল, "দেখলেন? এই একটা suffix (-ma/-me) দিয়ে আপনি নিজেকে বাঁচাতে পারলেন। এটাই ভাষার আসল কাজ — শুধু বাক্য বানানো না, নিজেকে বোঝাতে পারা।"',
+    ],
+    ruleIntro: '-ma/-me suffix ক্রিয়ার মূলে বসে বাক্যকে নেতিবাচক করে — ব্যাক ভাওয়েল হলে -ma, ফ্রন্ট ভাওয়েল হলে -me (ঠিক স্টেশন ১-এর ভাওয়েল হারমনির নিয়মেই)। গঠন: [ক্রিয়ামূল] + [-ma/-me] + [কাল-suffix] + [ব্যক্তি-suffix]। তিন কালেই একই নিয়ম কাজ করে:',
+    wordClasses: [
+      { icon: '🚫', title: 'তিন কালে নেতিবাচক বাক্য', words: NEGATIVE_SENTENCES },
+      { icon: '❓', title: 'নেতিবাচক প্রশ্ন', words: NEGATIVE_QUESTIONS },
+      { icon: '➖', title: '"değil" — বিশেষ্য/বিশেষণ নেতিবাচক করতে', words: DEGIL_SENTENCES },
+    ],
+    wordFormation: {
+      rule: 'কিছু ক্রিয়ায় negative suffix (-me) আর present-tense suffix (-iyor) পাশাপাশি বসলে দুটো স্বরবর্ণ (e + i) সংঘর্ষ এড়াতে একটা "ধ্বনি সংকোচন" ঘটে — Bilme + iyor উচ্চারণে জটিল, তাই সংকুচিত হয়ে হয়ে যায় Bilmiyor। এটা তুর্কি ভাষার একটা মৌলিক, বারবার-ঘটা নিয়ম।',
+      examples: [
+        { stem: 'Bil-me-iyor', stemMeaning: '(তাত্ত্বিক রূপ — উচ্চারণে কঠিন)', suf: '→ সংকোচন', result: 'Bilmiyor', pron: 'বিল-মি-য়োর', meaning: 'সে জানে না' },
+        { stem: 'Bilmiyorum', stemMeaning: '(Bil + me + iyor + um)', suf: '', result: 'Bilmiyorum', pron: 'বিল-মি-য়ো-রুম', meaning: 'আমি জানি না' },
+        { stem: 'Gel-me-iyor', stemMeaning: '(তাত্ত্বিক রূপ)', suf: '→ সংকোচন', result: 'Gelmiyor', pron: 'গেল-মি-য়োর', meaning: 'সে আসছে না' },
+      ],
+    },
+    exercises: [
+      '"আমি করিনি" — তুর্কিতে ও উচ্চারণসহ লিখুন।',
+      'değil কখন ব্যবহার হয়, আর -ma/-me কখন? পার্থক্য লিখুন।',
+      'Bilmiyorum শব্দটা কোন কোন টুকরো দিয়ে তৈরি, ভেঙে দেখান।',
+    ],
+    retrieval: {
+      prompt: 'বাক্যটা নেতিবাচক করুন।',
+      items: [
+        { q: 'O çalışıyor. (সে কাজ করছে।)', a: 'O çalışmıyor. (ও চা-লিশ-মি-য়োর) — সে কাজ করছে না।' },
+        { q: 'Ben evdeyim. (আমি বাড়িতে আছি।)', a: 'Ben evde değilim. (বেন এভ-দে দে-ই-লিম) — আমি বাড়িতে নেই।' },
+        { q: 'Onlar gelecek. (তারা আসবে।)', a: 'Onlar gelmeyecek. (অন-লার গেল-মে-য়ে-জেক) — তারা আসবে না।' },
+      ],
+    },
+    miniExam: {
+      title: 'মিনি পরীক্ষা — স্টেশন ৭',
+      passRule: '৯/১২ বা তার বেশি ঠিক হলে প্রস্তুত।',
+      items: [
+        { q: '-ma/-me suffix কোথায় বসে, আর কোনটা কখন?', a: 'ক্রিয়ামূলে, কাল-suffix-এর আগে — ব্যাক ভাওয়েলে -ma, ফ্রন্ট ভাওয়েলে -me' },
+        { q: '"আমি আসছি না" তুর্কিতে ও উচ্চারণসহ লিখুন।', a: 'Ben gelmiyorum. (বেন গেল-মি-য়ো-রুম)' },
+        { q: '"সে দেখেনি" তুর্কিতে ও উচ্চারণসহ লিখুন।', a: 'Görmedi. (গোর-মে-দি)' },
+        { q: '"আমি যাব না" তুর্কিতে ও উচ্চারণসহ লিখুন।', a: 'Gitmeyeceğim. (গিত-মে-য়ে-জে-ইম)' },
+        { q: '"তুমি কি যাচ্ছ না?" তুর্কিতে ও উচ্চারণসহ লিখুন।', a: 'Gitmiyor musun? (গিত-মি-য়োর মু-সুন)' },
+        { q: 'değil কোন ধরনের বাক্যে ব্যবহার হয় — ক্রিয়ায় নাকি বিশেষ্য/বিশেষণে?', a: 'বিশেষ্য/বিশেষণ (to be) বাক্যে, ক্রিয়ায় নয়' },
+        { q: '"সে স্কুলে নেই" তুর্কিতে ও উচ্চারণসহ লিখুন।', a: 'O okulda değil. (ও ও-কুল-দা দে-ইল)' },
+        { q: 'Bilmiyorum শব্দটা কীভাবে তৈরি হলো, ধাপে ধাপে লিখুন।', a: 'Bil (মূল) + me (নেতিবাচক) + iyor (বর্তমান) + um (আমি) → ধ্বনি সংকোচনে Bilmiyorum' },
+      ],
+    },
+    badge: 'সমঝোতার ব্যাজ — প্রথম নেতিবাচক বাক্য দিয়ে নিজেকে বোঝানো হয়ে গেছে',
+    next: 'পরের স্টেশনে দিনের রুটিন বর্ণনা করতে গিয়ে শেখা হবে তুর্কি ভাষার চারটা কাল।',
+  },
+  {
+    n: 8,
+    hue: 133,
+    title: 'কাল (Tense)',
+    subtitle: 'Zamanlar',
+    scene: 'দিনের রুটিন বর্ণনা',
+    story: [
+      'সকালের নাস্তায় নানা জিজ্ঞেস করলেন আপনার দিনটা কেমন কাটে। এলিফ অনুবাদের ফাঁকে বলল, "এই একটা প্রশ্নেই তুর্কির চারটা কাল লাগবে — কী রোজ করেন (অভ্যাস), কী এখন করছেন, কী গতকাল করেছিলেন, আর কী আগামীকাল করবেন।"',
+      '"রোজকার অভ্যাসের জন্য," এলিফ বলল, "Geniş Zaman — Ben yaparım (বেন ইয়া-পা-রিম), মানে আমি রোজ করি। এখন যা হচ্ছে তার জন্য Şimdiki Zaman — এটা তো আমরা প্রথম দিন থেকেই ব্যবহার করছি, মনে আছে? Ben bakıyorum (বেন বা-কি-য়ো-রুম)।"',
+      '"গতকাল যা হয়েছে তার জন্য Geçmiş Zaman — Ben baktım (বেন বাক-তিম)। আর আগামীকালের জন্য Gelecek Zaman — Ben yiyeceğim (বেন ইয়ি-য়ে-জে-ইম)। চারটাই এক ক্রিয়ামূলে চারটা আলাদা suffix — এটাই তুর্কি ব্যাকরণের আসল কাঠামো।"',
+    ],
+    ruleIntro: 'চারটা কাল, চারটা suffix — নিচে প্রতিটার গঠন-নিয়ম আর বাস্তব উদাহরণ:',
+    wordClasses: [
+      { icon: '🔁', title: 'Geniş Zaman (সাধারণ/অভ্যাসগত কাল) — মূল + -ar/-er + ব্যক্তি', words: AORIST_SENTENCES },
+      { icon: '⏳', title: 'Şimdiki Zaman (বর্তমান কাল) — মূল + -yor + ব্যক্তি (রিভিশন)', words: PRESENT_CONT_REVISION },
+      { icon: '⬅️', title: 'Geçmiş Zaman (অতীত কাল) — মূল + -dı/-di/-du/-dü + ব্যক্তি', words: PAST_SENTENCES },
+      { icon: '➡️', title: 'Gelecek Zaman (ভবিষ্যৎ কাল) — মূল + -acak/-ecek + ব্যক্তি', words: FUTURE_SENTENCES },
+    ],
+    wordFormation: {
+      rule: 'একই ক্রিয়ামূল "Git" (যাওয়া) চারটা কালের suffix দিয়ে চার রকম রূপ নেয় — এই একটা প্যাটার্নই সব ক্রিয়ায় খাটে।',
+      examples: [
+        { stem: 'Git', stemMeaning: 'যাওয়া (মূল)', suf: '-er', result: 'Gider', pron: 'গি-দের', meaning: 'সে যায় (অভ্যাস)' },
+        { stem: 'Git', stemMeaning: 'যাওয়া (মূল)', suf: '-iyor', result: 'Gidiyor', pron: 'গি-দি-য়োর', meaning: 'সে যাচ্ছে (বর্তমান)' },
+        { stem: 'Git', stemMeaning: 'যাওয়া (মূল)', suf: '-ti', result: 'Gitti', pron: 'গিত-তি', meaning: 'সে গিয়েছিল (অতীত)' },
+        { stem: 'Git', stemMeaning: 'যাওয়া (মূল)', suf: '-ecek', result: 'Gidecek', pron: 'গি-দে-জেক', meaning: 'সে যাবে (ভবিষ্যৎ)' },
+      ],
+    },
+    exercises: [
+      'চারটা কালের নাম আর তাদের suffix মুখস্থ বলুন।',
+      '"আমি করি" (অভ্যাস), "আমি করছি" (এখন), "আমি করেছিলাম" (অতীত), "আমি করব" (ভবিষ্যৎ) — Yapmak (করা) ক্রিয়া দিয়ে চারটা রূপ বানানোর চেষ্টা করুন।',
+      'নিজের আজকের দিনের রুটিন নিয়ে চার কালে চারটা বাক্য বলুন।',
+    ],
+    retrieval: {
+      prompt: 'কোন কাল ব্যবহার হয়েছে — Geniş, Şimdiki, Geçmiş, নাকি Gelecek?',
+      items: [
+        { q: 'Biz uyuruz. (আমরা ঘুমাই।)', a: 'Geniş Zaman (অভ্যাসগত)' },
+        { q: 'O kitap okudu. (সে বই পড়েছিল।)', a: 'Geçmiş Zaman (অতীত)' },
+        { q: 'Yarın hava güzel olacak. (আগামীকাল আবহাওয়া ভালো হবে।)', a: 'Gelecek Zaman (ভবিষ্যৎ)' },
+      ],
+    },
+    miniExam: {
+      title: 'মিনি পরীক্ষা — স্টেশন ৮',
+      passRule: '১০/১৩ বা তার বেশি ঠিক হলে প্রস্তুত।',
+      items: [
+        { q: 'চারটা কালের তুর্কি নাম কী কী?', a: 'Geniş Zaman, Şimdiki Zaman, Geçmiş Zaman, Gelecek Zaman' },
+        { q: 'Geniş Zaman-এর suffix কী?', a: '-ar/-er' },
+        { q: 'Şimdiki Zaman-এর suffix কী?', a: '-yor' },
+        { q: 'Geçmiş Zaman-এর suffix কী?', a: '-dı/-di/-du/-dü' },
+        { q: 'Gelecek Zaman-এর suffix কী?', a: '-acak/-ecek' },
+        { q: '"Ben yaparım" — উচ্চারণ, অর্থ ও কাল লিখুন।', a: 'বেন ইয়া-পা-রিম — আমি করি (Geniş Zaman)' },
+        { q: '"Ben baktım" — উচ্চারণ, অর্থ ও কাল লিখুন।', a: 'বেন বাক-তিম — আমি দেখেছিলাম (Geçmiş Zaman)' },
+        { q: '"Ben yiyeceğim" — উচ্চারণ, অর্থ ও কাল লিখুন।', a: 'বেন ইয়ি-য়ে-জে-ইম — আমি খাব (Gelecek Zaman)' },
+        { q: 'Git (যাওয়া) মূল থেকে চারটা কালের রূপ লিখুন।', a: 'Gider, Gidiyor, Gitti, Gidecek' },
+      ],
+    },
+    badge: 'রুটিনের ব্যাজ — চারটা কাল শেখা হয়ে গেছে',
+    next: 'পরের স্টেশনে বাজারে গিয়ে suffix দিয়ে কীভাবে নতুন শব্দ তৈরি হয় তা শেখা হবে।',
+  },
+  {
+    n: 9,
+    hue: 152,
+    title: 'Suffix দিয়ে নতুন শব্দভাণ্ডার',
+    subtitle: 'Kelime Hazinesi',
+    scene: 'বাজারে নতুন শব্দ শেখা',
+    story: [
+      'সাপ্তাহিক বাজারে এলিফের সাথে হাঁটছেন। চায়ের দোকানে থামলেন। "Şekerli mi, şekersiz mi?" (শে-কের-লি মি, শে-কের-সিজ মি) — দোকানি জিজ্ঞেস করলেন। এলিফ হাসল, "চিনি দিয়ে, নাকি চিনি ছাড়া? — জিজ্ঞেস করছেন।"',
+      '"লক্ষ্য করুন," এলিফ বলল, "একই শব্দ Şeker (চিনি), কিন্তু দুইটা উল্টো suffix — -li মানে \'সহ/যুক্ত\', -siz মানে \'ছাড়া/হীন\'। এই দুইটা suffix শিখে ফেললে আপনি যেকোনো শব্দকে তার বিপরীত অর্থে বদলে ফেলতে পারবেন।"',
+      'আপনি বললেন, "Şekersiz, lütfen (শে-কের-সিজ, লুতফেন) — চিনি ছাড়া, দয়া করে।" দোকানি হাসিমুখে মাথা নাড়লেন। এলিফ বলল, "প্রথমবার একদম নিজে থেকে suffix ব্যবহার করে বললেন — এটাই আসল অগ্রগতি।"',
+    ],
+    ruleIntro: 'দুইটা বিপরীত suffix — একটা কিছু "নেই" বোঝাতে, আরেকটা কিছু "আছে/সহ" বোঝাতে। ভাওয়েল হারমনি অনুযায়ী রূপ বদলায় (a,ı→suz/lı; e,i→siz/li; o,u→suz/lu; ö,ü→süz/lü):',
+    wordClasses: [
+      { icon: '🚫', title: '-suz/-süz/-sız/-siz — "...হীন/ছাড়া"', words: WITHOUT_SUFFIX_WORDS },
+      { icon: '✅', title: '-lı/-li/-lu/-lü — "...সহ/যুক্ত" বা উৎস/জাতীয়তা', words: WITH_SUFFIX_WORDS },
+    ],
+    wordFormation: {
+      rule: 'একই root শব্দে দুইটা উল্টো suffix লাগিয়ে বিপরীত অর্থের জোড়া শব্দ বানানো যায় — Şeker (চিনি) থেকে দুই দিকেই: Şekerli (চিনিযুক্ত) আর Şekersiz (চিনিহীন)। এই "root + বিপরীত suffix" কৌশলটা মনে রাখলে অনেক নতুন শব্দ নিজে থেকেই বানিয়ে ফেলা যায়।',
+      examples: [
+        { stem: 'Şeker', stemMeaning: 'চিনি (root)', suf: '-li', result: 'Şekerli', pron: 'শে-কের-লি', meaning: 'চিনিযুক্ত' },
+        { stem: 'Şeker', stemMeaning: 'চিনি (root)', suf: '-siz', result: 'Şekersiz', pron: 'শে-কের-সিজ', meaning: 'চিনিহীন' },
+      ],
+    },
+    exercises: [
+      'Tuz (লবণ) শব্দ থেকে "লবণহীন" বানান, উচ্চারণসহ।',
+      '-suz/-süz/-sız/-siz — চারটা রূপের ভাওয়েল হারমনি নিয়মটা লিখুন।',
+      'Bangladeşli মানে কী, আর এই একই suffix দিয়ে "এরজুরুমের মানুষ" কীভাবে বলবেন (আন্দাজ করুন)?',
+    ],
+    retrieval: {
+      prompt: 'সঠিক suffix বেছে নিন — -siz/-suz নাকি -li/-lı?',
+      items: [
+        { q: 'Ev (বাড়ি) + ___ = গৃহহীন', a: '-siz → Evsiz (এভ-সিজ)' },
+        { q: 'Dağ (পাহাড়) + ___ = পাহাড়ি', a: '-lı → Dağlı (দা-লি)' },
+        { q: 'İş (কাজ) + ___ = বেকার', a: '-siz → İşsiz (ইশ-সিজ)' },
+      ],
+    },
+    miniExam: {
+      title: 'মিনি পরীক্ষা — স্টেশন ৯',
+      passRule: '৯/১২ বা তার বেশি ঠিক হলে প্রস্তুত।',
+      items: [
+        { q: '-suz/-süz/-sız/-siz suffix-এর অর্থ কী?', a: '"...হীন/ছাড়া" — কিছুর অভাব বোঝায়' },
+        { q: '-lı/-li/-lu/-lü suffix-এর অর্থ কী?', a: '"...সহ/যুক্ত" অথবা উৎস/জাতীয়তা' },
+        { q: 'Tuzsuz, Susuz — উচ্চারণ ও অর্থ লিখুন।', a: 'তুজ-সুজ (লবণহীন), সু-সুজ (পানিহীন)' },
+        { q: 'İşsiz, Parasız — উচ্চারণ ও অর্থ লিখুন।', a: 'ইশ-সিজ (বেকার), পা-রা-সিজ (অর্থহীন)' },
+        { q: 'Şekerli আর Şekersiz — দুইটার অর্থ ও পার্থক্য লিখুন।', a: 'শে-কের-লি (চিনিযুক্ত) ↔ শে-কের-সিজ (চিনিহীন) — উল্টো অর্থ, একই root' },
+        { q: 'Bangladeşli শব্দটা কীভাবে তৈরি হলো?', a: 'Bangladeş (বাংলাদেশ) + -li = বাংলাদেশি (উৎস/জাতীয়তা)' },
+        { q: 'Köylü শব্দের অর্থ কী?', a: 'গ্রামবাসী (Köy গ্রাম + lü)' },
+      ],
+    },
+    badge: 'বাজারের ব্যাজ — বিপরীত suffix-জোড়া শেখা হয়ে গেছে',
+    next: 'পরের স্টেশনে বাসে যেতে যেতে শেখা হবে ile, dan, da, -lı suffix-এর আরও ব্যবহার।',
+  },
+  {
+    n: 10,
+    hue: 171,
+    title: 'Suffix-এর ব্যবহার — ile · dan · da · -lı',
+    subtitle: 'Ekler: ile, dan, da, -lı',
+    scene: 'বাসে/পথে যাতায়াত',
+    story: [
+      'বাস স্টপে দাঁড়িয়ে এলিফ বলল, "Otobüsle gidiyoruz (ও-তো-বুস-লে গি-দি-য়ো-রুজ) — বাসে করে যাচ্ছি। লক্ষ্য করুন — Otobüs (বাস) শব্দের সাথে -le যোগ হয়েছে, মানে \'দিয়ে/করে\'। এটাই ile suffix — একটা নতুন, চতুর্থ ধরনের suffix, যা এখনও শেখা হয়নি।"',
+      'বাসে বসে এলিফ ব্যাগ থেকে একটা রুটি আর জলপাই বের করল। "Ekmekle zeytin (এক-মেক-লে জে-ই-তিন) — রুটির সাথে জলপাই, নাস্তায় দারুণ লাগে," বলে ভাগ করে দিল। "Annemle her sabah böyle yaparız (আন-নেম-লে হের সা-বাহ বোই-লে ইয়া-পা-রিজ) — মায়ের সাথে প্রতি সকালে এভাবেই করি।"',
+      '"এতদিনে আপনি চারটা বড় suffix-পরিবার শিখে ফেলেছেন," এলিফ গুনে দেখাল। "-dan/-den (থেকে, স্টেশন ২), -da/-de (তে/য়, স্টেশন ২), -lı/-li (সহ/যুক্ত, স্টেশন ৯), আর আজকের -ile/-le (দিয়ে/সাথে)। এই চারটা দিয়েই তুর্কি বাক্যের বেশিরভাগ সম্পর্ক বোঝানো যায়।"',
+    ],
+    ruleIntro: '"ile" (সাথে/দিয়ে/দ্বারা) — শব্দের সাথে সরাসরি -le/-la হিসেবে জোড়া লাগে (ভাওয়েল হারমনি: a,ı→la; e,i→le)। ৬টা বাস্তব উদাহরণ:',
+    wordClasses: [
+      { icon: '🤝', title: '"ile/la/le" — সাথে, দিয়ে, দ্বারা', words: ILE_SENTENCES },
+    ],
+    wordFormation: {
+      rule: 'চারটা suffix-পরিবারের একসাথে রিভিশন — একই ধরনের শব্দে ভিন্ন ভিন্ন suffix লাগালে সম্পর্ক পুরো বদলে যায়:',
+      examples: [
+        { stem: 'Okul', stemMeaning: 'স্কুল (স্টেশন ২ রিভিশন)', suf: '-dan', result: 'Okuldan', pron: 'ও-কুল-দান', meaning: 'স্কুল থেকে' },
+        { stem: 'Okul', stemMeaning: 'স্কুল (স্টেশন ২ রিভিশন)', suf: '-da', result: 'Okulda', pron: 'ও-কুল-দা', meaning: 'স্কুলে' },
+        { stem: 'Kalem', stemMeaning: 'কলম (আজকের নতুন)', suf: '-le', result: 'Kalemle', pron: 'কা-লেম-লে', meaning: 'কলম দিয়ে' },
+      ],
+    },
+    exercises: [
+      '"কলম দিয়ে" আর "বাসে করে" — তুর্কিতে ও উচ্চারণসহ লিখুন।',
+      'ile suffix-এর ভাওয়েল হারমনি নিয়মটা লিখুন (কখন -la, কখন -le)।',
+      'চারটা suffix-পরিবার (dan, da, lı, ile) আর তাদের অর্থ মুখস্থ বলুন।',
+    ],
+    retrieval: {
+      prompt: 'সঠিক suffix বেছে নিন।',
+      items: [
+        { q: 'Araba (গাড়ি) + ___ = গাড়ি দিয়ে/করে', a: '-yla → Arabayla (আ-রা-বায়-লা)' },
+        { q: 'Arkadaş (বন্ধু) + ___ = বন্ধুর সাথে', a: '-la → Arkadaşla (আর-কা-দাশ-লা)' },
+      ],
+    },
+    miniExam: {
+      title: 'মিনি পরীক্ষা — স্টেশন ১০',
+      passRule: '৭/৯ বা তার বেশি ঠিক হলে প্রস্তুত।',
+      items: [
+        { q: 'ile suffix-এর অর্থ কী?', a: 'সাথে/দিয়ে/দ্বারা' },
+        { q: '"Kalemle yazı yazdım" — উচ্চারণ ও অর্থ লিখুন।', a: 'কা-লেম-লে ইয়া-জি ইয়াজ-দিম — কলম দিয়ে লিখেছি' },
+        { q: '"Otobüsle İstanbul\'a gittim" — উচ্চারণ ও অর্থ লিখুন।', a: 'ও-তো-বুস-লে ইস-তান-বু-লা গিত-তিম — বাসে করে ইস্তাম্বুল গিয়েছি' },
+        { q: 'চারটা suffix-পরিবার আর তাদের অর্থ লিখুন (dan, da, lı, ile)।', a: 'dan=থেকে, da=তে/য়, lı=সহ/যুক্ত, ile=সাথে/দিয়ে' },
+        { q: '"Hızla koşu yaptım" — উচ্চারণ ও অর্থ লিখুন।', a: 'হিজ-লা কো-শু ইয়াপ-তিম — দ্রুতগতিতে দৌড়েছি' },
+      ],
+    },
+    badge: 'যাত্রার ব্যাজ — চারটা suffix-পরিবার সম্পূর্ণ হয়ে গেছে',
+    next: 'পরের স্টেশনে সাপ্তাহিক পরিকল্পনা করতে গিয়ে শেখা হবে দিন, মাস, বছর, ঋতু, আবহাওয়া।',
+  },
+  {
+    n: 11,
+    hue: 189,
+    title: 'দিন, মাস, বছর, ঋতু, আবহাওয়া',
+    subtitle: 'Gün, Ay, Yıl, Mevsim, Hava',
+    scene: 'সাপ্তাহিক পরিকল্পনা',
+    story: [
+      'রবিবার সন্ধ্যায় নানা একটা ক্যালেন্ডার বের করলেন, পুরো সপ্তাহের পরিকল্পনা করতে। "Yarın (ইয়া-রিন) — আগামীকাল ক্লাস শুরু," এলিফ অনুবাদ করল। "Dün (দুন) — গতকাল বৃষ্টি হয়েছিল, মনে আছে? Yarın hava sıcak olacak (ইয়া-রিন হা-ভা সি-জাক ও-লা-জাক) — কিন্তু আগামীকাল গরম হবে।"',
+      'জানালার বাইরে তাকিয়ে এলিফ বলল, "এরজুরুমে Kış (কিশ) — শীতকাল সবচেয়ে লম্বা ঋতু। Aralık ayında kar yağar (আ-রা-লিক আ-য়িন-দা কার ইয়া-আর) — ডিসেম্বর মাসে তুষারপাত হয়, আর মে মাস পর্যন্ত চলতে পারে।"',
+      '"তুরস্কের চারটা ঋতুই স্পষ্ট," এলিফ যোগ করল। "İlkbahar (ইল্ক-বা-হার) বসন্তে ফুল ফোটে, Yaz (ইয়াজ) গ্রীষ্মে গরম পড়ে, Sonbahar (সোন-বা-হার) শরতে পাতা ঝরে, আর Kış (কিশ) শীতে বরফ। এরজুরুমে অবশ্য শীতটাই আসল — Palandöken-এ স্কি করতে মানুষ দূর-দূর থেকে আসে।"',
+    ],
+    ruleIntro: 'দিন, মাস, বছর, ঋতু আর আবহাওয়ার শব্দ — প্রতিটার সাথে বাস্তব উদাহরণ:',
+    sentenceWordsTitle: 'দিন',
+    sentenceWords: DAY_WORDS,
+    extraVocab: {
+      icon: '📅',
+      title: 'মাস (উদাহরণ তিনটা — ১২টার প্যাটার্ন একই)',
+      intro: 'তুর্কি মাসের নামের সাথেও locative suffix (-da/-ta) বসে "মাসে" বোঝাতে:',
+      words: MONTH_WORDS.map((m) => [m.word, m.pron, m.meaning]),
+    },
+    wordClasses: [
+      { icon: '🗓️', title: 'বছর, ঋতু, আবহাওয়া', words: YEAR_SEASON_WEATHER },
+    ],
+    wordFormation: {
+      rule: 'মাসের নামেও স্টেশন ২-এর locative suffix (-da/-ta) কাজ করে — "মাসে" বোঝাতে।',
+      examples: [
+        { stem: 'Ocak', stemMeaning: 'জানুয়ারি (স্টেম)', suf: '-ta', result: 'Ocakta', pron: 'ও-জাক-তা', meaning: 'জানুয়ারিতে' },
+        { stem: 'Nisan', stemMeaning: 'এপ্রিল (স্টেম)', suf: '-da', result: 'Nisanda', pron: 'নি-সান-দা', meaning: 'এপ্রিলে' },
+      ],
+    },
+    exercises: [
+      'তিনটা দিনের শব্দ (Dün, Bugün, Yarın) মুখস্থ বলুন, উচ্চারণসহ।',
+      'চারটা ঋতুর নাম উচ্চারণসহ লিখুন।',
+      'নিজের প্রিয় ঋতু নিয়ে একটা তুর্কি বাক্য বলার চেষ্টা করুন (একটা আবহাওয়া-শব্দ ব্যবহার করে)।',
+    ],
+    retrieval: {
+      prompt: 'কোন ঋতু/মাসের কথা বলা হচ্ছে?',
+      items: [
+        { q: 'Aralık ayında kar yağar. (ডিসেম্বর মাসে তুষারপাত হয়।)', a: 'Kış (কিশ) — শীতকাল' },
+        { q: 'Nisanda çiçekler açar. (এপ্রিলে ফুল ফোটে।)', a: 'İlkbahar (ইল্ক-বা-হার) — বসন্তকাল' },
+      ],
+    },
+    miniExam: {
+      title: 'মিনি পরীক্ষা — স্টেশন ১১',
+      passRule: '৯/১২ বা তার বেশি ঠিক হলে প্রস্তুত।',
+      items: [
+        { q: 'Dün, Bugün (গুন), Yarın — উচ্চারণ ও অর্থ লিখুন।', a: 'দুন (গতকাল), বু-গুন (আজ), ইয়া-রিন (আগামীকাল)' },
+        { q: 'চারটা ঋতুর তুর্কি নাম ও উচ্চারণ লিখুন।', a: 'İlkbahar (ইল্ক-বা-হার, বসন্ত), Yaz (ইয়াজ, গ্রীষ্ম), Sonbahar (সোন-বা-হার, শরৎ), Kış (কিশ, শীত)' },
+        { q: 'Hava, Yağmur, Kar — উচ্চারণ ও অর্থ লিখুন।', a: 'হা-ভা (আবহাওয়া), ইয়াগ-মুর (বৃষ্টি), কার (তুষার)' },
+        { q: 'Ocak, Nisan, Aralık — উচ্চারণ ও অর্থ লিখুন।', a: 'ও-জাক (জানুয়ারি), নি-সান (এপ্রিল), আ-রা-লিক (ডিসেম্বর)' },
+        { q: '"Ocakta" শব্দটা কীভাবে তৈরি হলো?', a: 'Ocak (জানুয়ারি) + -ta (locative suffix, স্টেশন ২) = জানুয়ারিতে' },
+        { q: 'এরজুরুমের সবচেয়ে লম্বা ঋতু কোনটা?', a: 'Kış (কিশ) — শীতকাল' },
+      ],
+    },
+    badge: 'পরিকল্পনার ব্যাজ — সময় ও ঋতুর শব্দ শেখা হয়ে গেছে',
+    next: 'পরের স্টেশনে পরিবারের জিনিসপত্র নিয়ে কথা বলতে গিয়ে শেখা হবে possessive suffix।',
+  },
+  {
+    n: 12,
+    hue: 208,
+    title: 'Possessive Suffix (İyelik Ekleri)',
+    subtitle: 'İyelik Ekleri',
+    scene: 'পরিবারের জিনিসপত্র নিয়ে কথা',
+    story: [
+      'বাড়ি গোছাতে গিয়ে ছোট বোনের সাথে দেখা — নানার নাতনি, বেড়াতে এসেছে। সে নিজের একটা বই দেখিয়ে বলল, "Kitabım! (কি-তা-বিম)" — এলিফ হাসল, "\'আমার বই\' — লক্ষ্য করুন, ঠিক সেই suffix (-ım) যেটা \'আমি\' বোঝাতে আগেও দেখেছেন।"',
+      '"তুর্কিতে মালিকানা বোঝাতে বাংলার \'আমার/তোমার/তার\' শব্দগুলোর বদলে সরাসরি suffix ব্যবহার হয়," এলিফ ব্যাখ্যা করল। "Ev (বাড়ি) → Evim (এ-ভিম) আমার বাড়ি, Evin (এ-ভিন) তোমার বাড়ি। ব্যক্তি বদলালে suffix বদলায়, শব্দ প্রায় একই থাকে।"',
+      'তারপর একটা মজার জিনিস দেখাল। "মনে আছে স্টেশন ২-তে kitabı মানে শিখেছিলেন \'বইটি\'? এখন যদি বলি Onun kitabı (ও-নুন কি-তা-বি) — মানে \'তার বই\' — একই বানান, একই উচ্চারণ! তুর্কিতে অনেক সময় \'নির্দিষ্ট বস্তু\' (accusative) আর \'তৃতীয় পুরুষের মালিকানা\' (his/her) একই suffix ব্যবহার করে — প্রসঙ্গ (context) দিয়ে বোঝা যায় কোনটা কোনটা।"',
+    ],
+    ruleIntro: 'মালিকানা suffix ব্যক্তি অনুযায়ী বদলায় — নিচে আমার/তোমার/তার/আমাদের-এর বাস্তব উদাহরণ:',
+    wordClasses: [
+      { icon: '🏠', title: 'আমার (-ım/-im/-um) · তোমার (-ın/-in/-un) · তার (-ı/-i/-u) · আমাদের (-ımız)', words: POSSESSIVE_WORDS },
+    ],
+    wordFormation: {
+      rule: 'Ev (বাড়ি) একটাই root শব্দ — চারটা ব্যক্তির suffix লাগিয়ে চারটা ভিন্ন "কার বাড়ি" তৈরি করা যায়।',
+      examples: [
+        { stem: 'Ev', stemMeaning: 'বাড়ি (root)', suf: '-im', result: 'Evim', pron: 'এ-ভিম', meaning: 'আমার বাড়ি' },
+        { stem: 'Ev', stemMeaning: 'বাড়ি (root)', suf: '-in', result: 'Evin', pron: 'এ-ভিন', meaning: 'তোমার বাড়ি' },
+        { stem: 'Ev', stemMeaning: 'বাড়ি (root)', suf: '-i', result: 'Evi', pron: 'এ-ভি', meaning: 'তার বাড়ি' },
+        { stem: 'Ev', stemMeaning: 'বাড়ি (root)', suf: '-imiz', result: 'Evimiz', pron: 'এ-ভি-মিজ', meaning: 'আমাদের বাড়ি' },
+      ],
+    },
+    exercises: [
+      'Kalem (কলম) শব্দে "আমার" আর "তোমার" suffix যোগ করে দুইটা রূপ বানান।',
+      'Kitabı শব্দটার দুইটা সম্ভাব্য অর্থ কী কী? প্রসঙ্গ ছাড়া কীভাবে আলাদা করবেন?',
+      '"আমাদের স্কুল" — তুর্কিতে ও উচ্চারণসহ লিখুন।',
+    ],
+    retrieval: {
+      prompt: 'সঠিক possessive suffix বেছে নিন।',
+      items: [
+        { q: 'Okul (স্কুল) + ___ = আমার স্কুল', a: '-um → Okulum (ও-কু-লুম)' },
+        { q: 'Çocuk (সন্তান) + ___ = তার সন্তান', a: '-u → Çocuğu (চজুগু, K→Ğ পরিবর্তনসহ)' },
+      ],
+    },
+    miniExam: {
+      title: 'মিনি পরীক্ষা — স্টেশন ১২',
+      passRule: '৯/১২ বা তার বেশি ঠিক হলে প্রস্তুত।',
+      items: [
+        { q: '"আমার" অর্থে possessive suffix-এর রূপগুলো কী কী?', a: '-ım/-im/-um/-üm (ভাওয়েল হারমনি অনুযায়ী)' },
+        { q: 'Evim, Evin — উচ্চারণ ও অর্থ লিখুন।', a: 'এ-ভিম (আমার বাড়ি), এ-ভিন (তোমার বাড়ি)' },
+        { q: 'Kalemim, Okulum — উচ্চারণ ও অর্থ লিখুন।', a: 'কা-লে-মিম (আমার কলম), ও-কু-লুম (আমার স্কুল)' },
+        { q: 'Kitabı-র দুইটা সম্ভাব্য অর্থ কী?', a: '"বইটি" (accusative, স্টেশন ২) অথবা "তার বই" (possessive) — প্রসঙ্গ দিয়ে বোঝা যায়' },
+        { q: '"আমাদের বাড়ি" তুর্কিতে ও উচ্চারণসহ লিখুন।', a: 'Evimiz (এ-ভি-মিজ)' },
+        { q: 'Ev root শব্দ থেকে চারটা possessive রূপ লিখুন (আমার/তোমার/তার/আমাদের)।', a: 'Evim, Evin, Evi, Evimiz' },
+      ],
+    },
+    badge: 'পরিবারের ব্যাজ — possessive suffix শেখা হয়ে গেছে',
+    next: 'পরের স্টেশনে ইস্তাম্বুল ভ্রমণের কথা বলতে গিয়ে শেখা হবে তামলামা।',
+  },
+  {
+    n: 13,
+    hue: 227,
+    title: 'তামলামা (Tamlama)',
+    subtitle: 'Tamlama',
+    scene: 'ইস্তাম্বুল ভ্রমণ বর্ণনা',
+    story: [
+      'ফোনে ইস্তাম্বুলের প্রথম দিনের ছবি দেখছিলেন। এলিফ পাশ থেকে একটা ছবি দেখিয়ে বলল, "İstanbul\'un deniz manzarası (ইস-তান-বু-লুন দে-নিজ মান-জা-রা-সি) — ইস্তাম্বুলের সমুদ্র দৃশ্য। লক্ষ্য করুন — İstanbul শব্দে -un suffix, আর manzara শব্দে -sı suffix, দুইটাই একসাথে। এটাই তামলামা — দুইটা বিশেষ্য জোড়া লাগানোর নিয়ম।"',
+      '"দুই রকম তামলামা আছে," এলিফ বলল। "একটাতে দুইটা শব্দেই suffix লাগে (Belirtili) — যেমন Kitabın kapağı (কি-তা-বিন কা-পা-ঈ) বইয়ের মলাট, নির্দিষ্ট বই বোঝাচ্ছে। আরেকটাতে শুধু দ্বিতীয় শব্দে suffix লাগে (Belirtisiz) — Ev kapısı (এভ কা-পি-সি) বাড়ির দরজা, যেকোনো বাড়ির কথা বলা হচ্ছে, নির্দিষ্ট না।"',
+      '"আর তিনটা শব্দ জোড়া লাগালে হয় Zincirleme," এলিফ যোগ করল। "Üniversitenin öğrenci yemekhanesi (উ-নি-ভের-সি-তে-নিন ও-রেন-জি ইয়ে-মেক-হা-নে-সি) — বিশ্ববিদ্যালয়ের ছাত্রদের ক্যাফেটেরিয়া। আমাদের আতাতুর্ক বিশ্ববিদ্যালয়েও ঠিক এই কথাটা ব্যবহার হয়!"',
+    ],
+    ruleIntro: 'তিন রকম তামলামা — দুইটা (বা তিনটা) বিশেষ্য জোড়া লাগিয়ে "কার/কীসের" সম্পর্ক বোঝানোর নিয়ম:',
+    wordClasses: [
+      { icon: '🎯', title: 'Belirtili Tamlama (নির্দিষ্ট) — [মালিক+-ın/-in] + [বস্তু+-ı/-i]', words: BELIRTILI_TAMLAMA },
+      { icon: '➰', title: 'Belirtisiz Tamlama (অনির্দিষ্ট) — [মালিক] + [বস্তু+-ı/-i]', words: BELIRTISIZ_TAMLAMA },
+      { icon: '⛓️', title: 'Zincirleme Tamlama (শৃঙ্খল) — তিন শব্দ পর্যন্ত', words: ZINCIRLEME_TAMLAMA },
+    ],
+    wordFormation: {
+      rule: 'Belirtili আর Belirtisiz-এর তুলনা — একই দুইটা শব্দ (Ev, Kapı) দিয়ে দুই রকম অর্থ:',
+      examples: [
+        { stem: 'Ev + kapı', stemMeaning: 'বাড়ি + দরজা (Belirtili — নির্দিষ্ট)', suf: '-in + -ı', result: 'Evin kapısı', pron: 'এ-ভিন কা-পি-সি', meaning: '(এই/সেই) বাড়ির দরজা' },
+        { stem: 'Ev + kapı', stemMeaning: 'বাড়ি + দরজা (Belirtisiz — অনির্দিষ্ট)', suf: '— + -ı', result: 'Ev kapısı', pron: 'এভ কা-পি-সি', meaning: '(যেকোনো) বাড়ির দরজা' },
+      ],
+    },
+    exercises: [
+      'Belirtili আর Belirtisiz তামলামার পার্থক্য নিজের ভাষায় ব্যাখ্যা করুন।',
+      '"স্কুলের বাগান" আর "স্কুলের দরজা" — দুইটাই Belirtisiz তামলামা দিয়ে বলুন।',
+      'Zincirleme তামলামায় কয়টা শব্দ জোড়া লাগে?',
+    ],
+    retrieval: {
+      prompt: 'Belirtili নাকি Belirtisiz তামলামা?',
+      items: [
+        { q: 'Arabamın tekeri (আমার গাড়ির চাকা)', a: 'Belirtili — উভয় শব্দেই suffix (-mın, -i)' },
+        { q: 'Çocuk odası (বাচ্চার ঘর)', a: 'Belirtisiz — শুধু দ্বিতীয় শব্দে suffix (-ı)' },
+      ],
+    },
+    miniExam: {
+      title: 'মিনি পরীক্ষা — স্টেশন ১৩',
+      passRule: '৮/১১ বা তার বেশি ঠিক হলে প্রস্তুত।',
+      items: [
+        { q: 'তিন রকম তামলামার নাম কী কী?', a: 'Belirtili, Belirtisiz, Zincirleme' },
+        { q: 'Belirtili Tamlama-র suffix-প্যাটার্ন কী?', a: '[মালিক+-ın/-in/-un/-ün] + [বস্তু+-ı/-i/-u/-ü]' },
+        { q: 'Belirtisiz Tamlama-র suffix-প্যাটার্ন কী?', a: '[মালিক] + [বস্তু+-ı/-i/-u/-ü] — মালিকে কোনো suffix নেই' },
+        { q: '"Kitabın kapağı" — উচ্চারণ ও অর্থ লিখুন।', a: 'কি-তা-বিন কা-পা-ঈ — বইয়ের মলাট' },
+        { q: '"Ev kapısı" — উচ্চারণ ও অর্থ লিখুন।', a: 'এভ কা-পি-সি — বাড়ির দরজা' },
+        { q: '"İstanbul\'un deniz manzarası" — উচ্চারণ ও অর্থ লিখুন।', a: 'ইস-তান-বু-লুন দে-নিজ মান-জা-রা-সি — ইস্তাম্বুলের সমুদ্র দৃশ্য' },
+        { q: 'Zincirleme Tamlama-য় কয়টা শব্দ জোড়া লাগে?', a: 'তিনটা (বা তার বেশি)' },
+      ],
+    },
+    badge: 'ভ্রমণ-স্মৃতির ব্যাজ — তামলামার তিন রকম শেখা হয়ে গেছে',
+    next: 'পরের স্টেশনে পরিকল্পনা করতে গিয়ে শেখা হবে শর্তসূচক বাক্য।',
+  },
+  {
+    n: 14,
+    hue: 246,
+    title: 'শর্তসূচক বাক্য',
+    subtitle: 'Koşul Cümleleri',
+    scene: 'পরিকল্পনা ও সিদ্ধান্ত',
+    story: [
+      'জানালার বাইরে মেঘ জমছিল। শনিবারের পিকনিকের পরিকল্পনা নিয়ে নানা আর এলিফ কথা বলছিলেন। "Eğer hava güzel olursa, pikniğe gideceğiz (এ-য়ের হা-ভা গু-জেল ও-লুর-সা, পিক-নি-য়ে গি-দে-জে-ইজ)," এলিফ বলল — "যদি আবহাওয়া ভালো থাকে, আমরা পিকনিকে যাব।"',
+      '"লক্ষ্য করুন," এলিফ বলল, "ক্রিয়ার সাথে -sa/-se suffix লাগালেই \'যদি\' তৈরি হয়ে যায় — আলাদা কোনো শব্দের দরকার নেই, যদিও Eğer (যদি) শব্দটাও মাঝে মাঝে জোর দেওয়ার জন্য আগে বসে। Olur (হয়) + sa = Olursa (যদি হয়)।"',
+      'নানা যোগ করলেন কিছু একটা, হাসিমুখে। এলিফ অনুবাদ করল, "Gelirse, görüşürüz (গে-লির-সে, গো-রু-শু-রুজ) — যদি সে (আপনার বন্ধু) আসে, আমরা দেখা করব। এটাই নানার নিয়ম — কোনো প্রতিশ্রুতি জোর করে না, শর্ত রেখে বলেন।"',
+    ],
+    ruleIntro: '-sa/-se conditional suffix — ক্রিয়ামূলে বসে, ভাওয়েল হারমনি অনুযায়ী (ব্যাক ভাওয়েল→sa, ফ্রন্ট ভাওয়েল→se)। গঠন: [ক্রিয়ামূল]+[-sa/-se]+[ব্যক্তি-suffix]+[মূল বাক্য]। ৭টা বাস্তব উদাহরণ:',
+    wordClasses: [
+      { icon: '🌦️', title: '-sa/-se — "যদি..."', words: CONDITIONAL_SENTENCES },
+    ],
+    wordFormation: {
+      rule: 'Olur (হয়) ক্রিয়ায় -sa যোগ করলেই "যদি হয়" — এই একটা প্যাটার্ন যেকোনো ক্রিয়ায় প্রয়োগ করা যায়।',
+      examples: [
+        { stem: 'Ol-ur', stemMeaning: 'হয় (aorist, স্টেশন ৮ রিভিশন)', suf: '+ sa', result: 'Olursa', pron: 'ও-লুর-সা', meaning: 'যদি হয়' },
+        { stem: 'Gel-ir', stemMeaning: 'আসে (aorist)', suf: '+ se', result: 'Gelirse', pron: 'গে-লির-সে', meaning: 'যদি আসে' },
+        { stem: 'Oku-r', stemMeaning: 'পড়ে (aorist)', suf: '+ sa', result: 'Okursa', pron: 'ও-কুর-সা', meaning: 'যদি পড়ে' },
+      ],
+    },
+    exercises: [
+      '"যদি আবহাওয়া ভালো থাকে, আমরা পিকনিকে যাব" — তুর্কিতে ও উচ্চারণসহ লিখুন।',
+      '-sa আর -se-র মধ্যে পার্থক্য কী, উদাহরণসহ ব্যাখ্যা করুন।',
+      'নিজের একটা শর্তসূচক বাক্য বানান — "যদি... তাহলে..." প্যাটার্নে।',
+    ],
+    retrieval: {
+      prompt: 'সঠিক conditional suffix বেছে নিন।',
+      items: [
+        { q: 'Gel (আসা) + ___ = যদি আসে', a: '-irse → Gelirse (গে-লির-সে)' },
+        { q: 'Oku (পড়া) + ___ = যদি পড়ে', a: '-rsa → Okursa (ও-কুর-সা)' },
+      ],
+    },
+    miniExam: {
+      title: 'মিনি পরীক্ষা — স্টেশন ১৪',
+      passRule: '৮/১০ বা তার বেশি ঠিক হলে প্রস্তুত।',
+      items: [
+        { q: 'conditional suffix-এর দুইটা রূপ কী কী, কখন কোনটা?', a: '-sa (ব্যাক ভাওয়েল), -se (ফ্রন্ট ভাওয়েল)' },
+        { q: '"যদি সে আসে, আমরা দেখা করব" — তুর্কিতে ও উচ্চারণসহ লিখুন।', a: 'Gelirse, görüşürüz. (গে-লির-সে, গো-রু-শু-রুজ)' },
+        { q: '"যদি সে না আসে, আমি দুঃখ পাব" — তুর্কিতে ও উচ্চারণসহ লিখুন।', a: 'Gelmezse, üzülürüm. (গেল-মেজ-সে, উ-জু-লু-রুম)' },
+        { q: 'Eğer শব্দটার ভূমিকা কী?', a: '"যদি" জোর দিতে বাক্যের শুরুতে ব্যবহার হয়, বাধ্যতামূলক নয় (suffix-ই মূল কাজ করে)' },
+        { q: '"যদি আবহাওয়া ভালো থাকে, আমরা পিকনিকে যাব" — উচ্চারণসহ লিখুন।', a: 'Eğer hava güzel olursa, pikniğe gideceğiz. (এ-য়ের হা-ভা গু-জেল ও-লুর-সা, পিক-নি-য়ে গি-দে-জে-ইজ)' },
+      ],
+    },
+    badge: 'সিদ্ধান্তের ব্যাজ — শর্তসূচক বাক্য শেখা হয়ে গেছে',
+    next: 'পরের স্টেশনে দিক জিজ্ঞাসা করতে গিয়ে শেখা হবে সময় ও স্থান নির্দেশক শব্দ।',
+  },
+  {
+    n: 15,
+    hue: 265,
+    title: 'সময় ও স্থান নির্দেশ',
+    subtitle: 'Zaman ve Yer Edatları',
+    scene: 'দিক জিজ্ঞাসা করা',
+    story: [
+      'সকালের ব্যস্ততায় নানা তাড়া দিলেন। এলিফ অনুবাদ করল, "Yemekten önce ellerini yıka (ইয়ে-মেক-তেন ও-নজে এল-লে-রি-নি ইয়ি-কা) — খাবারের আগে হাত ধুয়ে নাও। লক্ষ্য করুন — Yemek (খাওয়া) শব্দে -ten যোগ হয়ে önce (আগে) এসেছে। এটাই \'আগে\' বলার নিয়ম।"',
+      'বিশ্ববিদ্যালয়ের পথ দেখাতে দেখাতে এলিফ বলল, "Bahçeden içeri gir (বাহ-চে-দেন ই-চে-রি গির) — বাগান থেকে ভেতরে ঢুকুন। এই -den suffix তো স্টেশন ২-তেই শিখেছেন — উৎস/দিক বোঝাতে।"',
+      '"আর ক্লাসের পরে কী করবেন?" এলিফ জিজ্ঞেস করল। "Ders bittikten sonra eve gideceğim (দের্স বিত-তিক-তেন সোন-রা এ-ভে গি-দে-জে-ইম) — ক্লাস শেষ হলে বাড়ি যাব, বলতে পারেন। -dikten sonra মানে \'কাজ শেষ হওয়ার পরে\'।"',
+    ],
+    ruleIntro: '"আগে" আর "পরে" বলার দুইটা প্যাটার্ন: [ক্রিয়া+-meden/-madan]+önce = "...করার আগে"; [ক্রিয়া+-dıktan/-dikten]+sonra = "...করার পরে"। ৫টা সময়ের উদাহরণ:',
+    wordClasses: [
+      { icon: '⏰', title: 'önce (আগে) · sonra (পরে)', words: TIME_CLAUSES },
+      { icon: '📍', title: 'স্থান — -den/-dan (থেকে)', words: SPACE_CLAUSES },
+    ],
+    wordFormation: {
+      rule: 'একই ক্রিয়া (Git — যাওয়া) দুই প্যাটার্নে দুই ভিন্ন সময়-সম্পর্ক দেখায়:',
+      examples: [
+        { stem: 'Git', stemMeaning: 'যাওয়া (মূল)', suf: '-meden + önce', result: 'Gitmeden önce', pron: 'গিত-মে-দেন ও-নজে', meaning: 'যাওয়ার আগে' },
+        { stem: 'Yap', stemMeaning: 'করা (মূল)', suf: '-tıktan + sonra', result: 'Yaptıktan sonra', pron: 'ইয়াপ-তিক-তান সোন-রা', meaning: 'করার পরে' },
+      ],
+    },
+    exercises: [
+      '"ক্লাস শেষ হওয়ার পরে আমি বাড়ি যাব" — তুর্কিতে ও উচ্চারণসহ লিখুন।',
+      'önce আর sonra-র মধ্যে পার্থক্য উদাহরণসহ ব্যাখ্যা করুন।',
+      'নিজের সকালের রুটিন নিয়ে একটা önce-বাক্য আর একটা sonra-বাক্য বলুন।',
+    ],
+    retrieval: {
+      prompt: 'önce নাকি sonra বসবে?',
+      items: [
+        { q: 'Uyumadan ___ kitap okudum. (ঘুমানোর আগে বই পড়েছি।)', a: 'önce (ও-নজে)' },
+        { q: 'Çalıştıktan ___ bir film izleyelim. (কাজ শেষে সিনেমা দেখি।)', a: 'sonra (সোন-রা)' },
+      ],
+    },
+    miniExam: {
+      title: 'মিনি পরীক্ষা — স্টেশন ১৫',
+      passRule: '৮/১০ বা তার বেশি ঠিক হলে প্রস্তুত।',
+      items: [
+        { q: '"...করার আগে" বলার প্যাটার্নটা লিখুন।', a: '[ক্রিয়া + -meden/-madan] + önce' },
+        { q: '"...করার পরে" বলার প্যাটার্নটা লিখুন।', a: '[ক্রিয়া + -dıktan/-dikten] + sonra' },
+        { q: '"খাবারের আগে হাত ধুয়ে নাও" — তুর্কিতে ও উচ্চারণসহ লিখুন।', a: 'Yemekten önce ellerini yıka. (ইয়ে-মেক-তেন ও-নজে এল-লে-রি-নি ইয়ি-কা)' },
+        { q: '"ক্লাস শেষ হলে আমি বাড়ি যাব" — তুর্কিতে ও উচ্চারণসহ লিখুন।', a: 'Ders bittikten sonra eve gideceğim. (দের্স বিত-তিক-তেন সোন-রা এ-ভে গি-দে-জে-ইম)' },
+        { q: '"বাগান থেকে ভেতরে আসো" — তুর্কিতে ও উচ্চারণসহ লিখুন।', a: 'Bahçeden içeri gir. (বাহ-চে-দেন ই-চে-রি গির)' },
+      ],
+    },
+    badge: 'দিক-নির্দেশনার ব্যাজ — আগে-পরের সম্পর্ক শেখা হয়ে গেছে',
+    next: 'পরের স্টেশনে রান্নাঘরে সহযোগিতা করতে গিয়ে শেখা হবে ক্রিয়ার Çatı — active, passive, reflexive, reciprocal।',
+  },
+  {
+    n: 16,
+    hue: 284,
+    title: 'ক্রিয়ার Çatı',
+    subtitle: 'Fiil Çatıları',
+    scene: 'রান্নাঘরে সহযোগিতা',
+    story: [
+      'রাতের রান্নায় সাহায্য করতে গিয়ে দেখলেন নানা আর এলিফ দুজনেই ব্যস্ত। "Yemek yapılıyor (ইয়ে-মেক ইয়া-পি-লি-য়োর) — খাবার তৈরি করা হচ্ছে," এলিফ বলল। "লক্ষ্য করুন — Yapıyor (সে করছে) থেকে Yapılıyor (এটা করা হচ্ছে)। কে করছে সেটা গুরুত্বপূর্ণ নয়, কাজটাই গুরুত্বপূর্ণ — এটাই Passive।"',
+      'হাত ধোয়ার সময় এলিফ বলল, "Yıkanıyorum (ইয়ি-কা-নি-য়ো-রুম) — আমি নিজেকে ধুচ্ছি। এটা Reflexive — কাজটা নিজের উপরেই ফিরে আসছে।" রান্নার ফাঁকে নানা আর এলিফ একসাথে কথা বলছিলেন হাসতে হাসতে। "Konuşuyorlar (কো-নু-শু-য়োর-লার) — তারা একে অপরের সঙ্গে কথা বলছে। এটাই Reciprocal।"',
+      '"একই ক্রিয়ামূল Yap (করা) থেকে চারটা রূপ পাওয়া যায়," এলিফ গুনে দেখাল, "Yapıyor (সে করছে — Active), Yapılıyor (করা হচ্ছে — Passive)। বাকি দুইটার জন্য অন্য ক্রিয়ামূল লাগে — সব ক্রিয়া চারটা রূপেই যায় না, ঠিক যেমন সব গাছে সব রকম ফল ধরে না।"',
+    ],
+    ruleIntro: 'তুর্কি ক্রিয়ার চারটা "চাতি" (রূপ) — কে/কার উপর কাজটা হচ্ছে তার উপর ভিত্তি করে:',
+    wordClasses: [
+      { icon: '👤', title: 'Active (Etken) — সে নিজেই করছে', words: ACTIVE_VERBS },
+      { icon: '📦', title: 'Passive (Edilgen) — তার উপর করা হচ্ছে', words: PASSIVE_VERBS },
+      { icon: '🪞', title: 'Reflexive (Dönüşlü) — নিজের উপর নিজেই করছে', words: REFLEXIVE_VERBS },
+      { icon: '🤝', title: 'Reciprocal (İşteş) — একে অপরের সঙ্গে করছে', words: RECIPROCAL_VERBS },
+    ],
+    wordFormation: {
+      rule: 'Yap (করা) মূল থেকে Active ও Passive — suffix যোগ করেই ভূমিকা বদলে যায়।',
+      examples: [
+        { stem: 'Yap', stemMeaning: 'করা (মূল)', suf: '-ıyor', result: 'Yapıyor', pron: 'ইয়া-পি-য়োর', meaning: 'সে করছে (Active)' },
+        { stem: 'Yap', stemMeaning: 'করা (মূল)', suf: '-ıl+ıyor', result: 'Yapılıyor', pron: 'ইয়া-পি-লি-য়োর', meaning: 'এটা করা হচ্ছে (Passive)' },
+      ],
+    },
+    exercises: [
+      'চারটা ক্রিয়ার Çatı-র নাম আর তাদের মূল পার্থক্য লিখুন।',
+      '"আমি নিজেকে ধুচ্ছি" — তুর্কিতে ও উচ্চারণসহ লিখুন, আর এটা কোন Çatı?',
+      'Yapıyor থেকে Yapılıyor-এ কীভাবে পৌঁছালেন, suffix দেখিয়ে ব্যাখ্যা করুন।',
+    ],
+    retrieval: {
+      prompt: 'কোন Çatı — Active, Passive, Reflexive, নাকি Reciprocal?',
+      items: [
+        { q: 'Kapı açıldı. (দরজা খোলা হয়েছিল।)', a: 'Passive — কে খুলল বলা হয়নি' },
+        { q: 'Buluşuyoruz. (আমরা একে অপরের সঙ্গে দেখা করছি।)', a: 'Reciprocal — দুইজন একে অপরের সাথে' },
+        { q: 'Hazırlanıyoruz. (আমরা নিজেরা প্রস্তুত হচ্ছি।)', a: 'Reflexive — নিজের উপর নিজেই' },
+      ],
+    },
+    miniExam: {
+      title: 'মিনি পরীক্ষা — স্টেশন ১৬',
+      passRule: '৯/১২ বা তার বেশি ঠিক হলে প্রস্তুত।',
+      items: [
+        { q: 'চারটা ক্রিয়ার Çatı-র তুর্কি ও বাংলা নাম কী কী?', a: 'Etken (Active), Edilgen (Passive), Dönüşlü (Reflexive), İşteş (Reciprocal)' },
+        { q: 'Passive-এর suffix কী?', a: '-ıl/-il/-ul/-ül (বা -n)' },
+        { q: 'Reflexive-এর suffix কী?', a: '-ın/-in/-un/-ün' },
+        { q: 'Reciprocal-এর suffix কী?', a: '-ış/-iş/-uş/-üş' },
+        { q: '"Yemek yapılıyor" — উচ্চারণ ও অর্থ লিখুন।', a: 'ইয়ে-মেক ইয়া-পি-লি-য়োর — খাবার তৈরি করা হচ্ছে' },
+        { q: '"Yıkanıyorum" — উচ্চারণ, অর্থ ও Çatı লিখুন।', a: 'ইয়ি-কা-নি-য়ো-রুম — আমি নিজেকে ধুচ্ছি (Reflexive)' },
+        { q: '"Konuşuyorlar" — উচ্চারণ, অর্থ ও Çatı লিখুন।', a: 'কো-নু-শু-য়োর-লার — তারা কথা বলছে (Reciprocal)' },
+      ],
+    },
+    badge: 'রান্নাঘরের ব্যাজ — চারটা ক্রিয়ার Çatı শেখা হয়ে গেছে',
+    next: 'পরের স্টেশনে বাজারে দরদাম করতে গিয়ে শেখা হবে তুলনামূলক বাক্য।',
   },
 ];
 

@@ -310,9 +310,12 @@ function stationBody(s, idx) {
       ${vocabGroupTable(g.words)}`).join('')}` : '';
 
   const sentenceWordsSection = s.sentenceWords ? `
-      <h2>💬 ছোট বাক্যের মূল শব্দ</h2>
+      <h2>💬 ${s.sentenceWordsTitle || 'ছোট বাক্যের মূল শব্দ'}</h2>
       <p>${s.ruleIntro}</p>
-      ${sentencePatternTable(s.sentenceWords)}` : '';
+      ${sentencePatternTable(s.sentenceWords)}
+      ${s.extraVocab ? `<h2>${s.extraVocab.icon || '➕'} ${s.extraVocab.title}</h2>
+      <p class="gloss">${s.extraVocab.intro || ''}</p>
+      ${vocabGroupTable(s.extraVocab.words)}` : ''}` : '';
 
   const qaSection = s.qaPairs ? `
       <h2>❓ প্রশ্ন ও উত্তর</h2>
