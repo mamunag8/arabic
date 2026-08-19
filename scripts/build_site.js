@@ -637,7 +637,7 @@ function buildClass(c) {
   out.push(`<header class="class-head i${island.n}">
     <p class="eyebrow">${island.emoji} ${island.name} · সপ্তাহ ${bn(c.week)} · ${c.type === 'revision' ? 'রিভিশন' : passage.name}${c.part ? ` (পর্ব ${bn(c.part.k)}/${bn(c.part.of)})` : ''}</p>
     <h1><span class="cnum">ক্লাস ${bn(c.index)}</span>${ex.title || (passage && passage.name) || 'উইকলি চ্যাম্পিয়ন'}</h1>
-    ${classAudioItems.length ? `
+    ${(classAudioItems.length && !ex.noStoryAudio) ? `
     <div class="audio-panel" id="classAudioPanel" data-class-id="${c.index}" data-class-name="Class_${String(c.index).padStart(3, '0')}" data-class-audios='${JSON.stringify(classAudioItems)}'>
       <div class="audio-panel-head">
         <span class="audio-panel-title">🎧 ক্লাস ${bn(c.index)}-এর অডিও (মোট ${bn(classAudioItems.length)}টি ফাইল)</span>
@@ -664,7 +664,11 @@ function buildClass(c) {
   </header>`);
 
   if (ex.hook) {
-    out.push(`<section class="story story-interactive" id="classStorySection">
+    out.push(ex.noStoryAudio ? `<section class="story">
+      <div class="story-head-bar">
+        <h2>🗺️ আজকের অভিযান</h2>
+      </div>
+      <div class="story-body">` : `<section class="story story-interactive" id="classStorySection">
       <div class="story-head-bar">
         <h2>🗺️ আজকের অভিযান</h2>
         <div class="story-audio-bar">
@@ -718,7 +722,12 @@ function buildClass(c) {
         tagLabel = 'মাহদী';
       }
 
-      out.push(`<p class="story-seg" data-seg="${segIdx++}" data-speaker="${speaker}" tabindex="0">
+      out.push(ex.noStoryAudio
+        ? `<p class="story-seg" data-speaker="${speaker}">
+        <span class="seg-speaker-tag ${speaker}-tag">${tagLabel}</span>
+        <span class="seg-content">${inline(l, rel, ctx)}</span>
+      </p>`
+        : `<p class="story-seg" data-seg="${segIdx++}" data-speaker="${speaker}" tabindex="0">
         <span class="seg-speaker-tag ${speaker}-tag">${tagLabel}</span>
         <span class="seg-content">${inline(l, rel, ctx)}</span>
       </p>`);
