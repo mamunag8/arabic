@@ -498,6 +498,31 @@ const POSSESSIVE_WORDS = [
   ['Ev → Evimiz', 'এ-ভি-মিজ', 'বাড়ি → আমাদের বাড়ি'],
 ];
 
+// ---------------------------------------------------------------------------
+// Station 13 -- তামলামা (Tamlama)
+// Source: draft পর্ব ১৪ (Belirtili/Belirtisiz/Zincirleme Tamlama). No
+// pronunciation column in the source; derived mechanically as usual.
+// ---------------------------------------------------------------------------
+const BELIRTILI_TAMLAMA = [
+  ['Kitabın kapağı', 'কি-তা-বিন কা-পা-ঈ', 'বইয়ের মলাট'],
+  ['Evimizin anahtarı', 'এ-ভি-মি-জিন আ-নাহ-তা-রি', 'আমাদের বাড়ির চাবি'],
+  ['Arabamın tekeri', 'আ-রা-বা-মিন তে-কে-রি', 'আমার গাড়ির চাকা'],
+  ['Okulun kapısı', 'ও-কু-লুন কা-পি-সি', 'স্কুলের দরজা'],
+];
+
+const BELIRTISIZ_TAMLAMA = [
+  ['Ev kapısı', 'এভ কা-পি-সি', 'বাড়ির দরজা'],
+  ['Okul bahçesi', 'ও-কুল বাহ-চে-সি', 'স্কুলের বাগান'],
+  ['Kitap sayfası', 'কি-তাপ সাই-ফা-সি', 'বইয়ের পৃষ্ঠা'],
+  ['Çocuk odası', 'চো-জুক ও-দা-সি', 'বাচ্চার ঘর'],
+];
+
+const ZINCIRLEME_TAMLAMA = [
+  ['İstanbul\'un deniz manzarası', 'ইস-তান-বু-লুন দে-নিজ মান-জা-রা-সি', 'ইস্তাম্বুলের সমুদ্র দৃশ্য'],
+  ['Üniversitenin öğrenci yemekhanesi', 'উ-নি-ভের-সি-তে-নিন ও-রেন-জি ইয়ে-মেক-হা-নে-সি', 'বিশ্ববিদ্যালয়ের ছাত্রদের ক্যাফেটেরিয়া'],
+  ['Evin mutfak dolabı', 'এ-ভিন মুত-ফাক দো-লা-বি', 'বাড়ির রান্নাঘরের আলমারি'],
+];
+
 const STATIONS = [
   {
     n: 1,
@@ -1209,6 +1234,58 @@ const STATIONS = [
     },
     badge: 'পরিবারের ব্যাজ — possessive suffix শেখা হয়ে গেছে',
     next: 'পরের স্টেশনে ইস্তাম্বুল ভ্রমণের কথা বলতে গিয়ে শেখা হবে তামলামা।',
+  },
+  {
+    n: 13,
+    hue: 227,
+    title: 'তামলামা (Tamlama)',
+    subtitle: 'Tamlama',
+    scene: 'ইস্তাম্বুল ভ্রমণ বর্ণনা',
+    story: [
+      'ফোনে ইস্তাম্বুলের প্রথম দিনের ছবি দেখছিলেন। এলিফ পাশ থেকে একটা ছবি দেখিয়ে বলল, "İstanbul\'un deniz manzarası (ইস-তান-বু-লুন দে-নিজ মান-জা-রা-সি) — ইস্তাম্বুলের সমুদ্র দৃশ্য। লক্ষ্য করুন — İstanbul শব্দে -un suffix, আর manzara শব্দে -sı suffix, দুইটাই একসাথে। এটাই তামলামা — দুইটা বিশেষ্য জোড়া লাগানোর নিয়ম।"',
+      '"দুই রকম তামলামা আছে," এলিফ বলল। "একটাতে দুইটা শব্দেই suffix লাগে (Belirtili) — যেমন Kitabın kapağı (কি-তা-বিন কা-পা-ঈ) বইয়ের মলাট, নির্দিষ্ট বই বোঝাচ্ছে। আরেকটাতে শুধু দ্বিতীয় শব্দে suffix লাগে (Belirtisiz) — Ev kapısı (এভ কা-পি-সি) বাড়ির দরজা, যেকোনো বাড়ির কথা বলা হচ্ছে, নির্দিষ্ট না।"',
+      '"আর তিনটা শব্দ জোড়া লাগালে হয় Zincirleme," এলিফ যোগ করল। "Üniversitenin öğrenci yemekhanesi (উ-নি-ভের-সি-তে-নিন ও-রেন-জি ইয়ে-মেক-হা-নে-সি) — বিশ্ববিদ্যালয়ের ছাত্রদের ক্যাফেটেরিয়া। আমাদের আতাতুর্ক বিশ্ববিদ্যালয়েও ঠিক এই কথাটা ব্যবহার হয়!"',
+    ],
+    ruleIntro: 'তিন রকম তামলামা — দুইটা (বা তিনটা) বিশেষ্য জোড়া লাগিয়ে "কার/কীসের" সম্পর্ক বোঝানোর নিয়ম:',
+    wordClasses: [
+      { icon: '🎯', title: 'Belirtili Tamlama (নির্দিষ্ট) — [মালিক+-ın/-in] + [বস্তু+-ı/-i]', words: BELIRTILI_TAMLAMA },
+      { icon: '➰', title: 'Belirtisiz Tamlama (অনির্দিষ্ট) — [মালিক] + [বস্তু+-ı/-i]', words: BELIRTISIZ_TAMLAMA },
+      { icon: '⛓️', title: 'Zincirleme Tamlama (শৃঙ্খল) — তিন শব্দ পর্যন্ত', words: ZINCIRLEME_TAMLAMA },
+    ],
+    wordFormation: {
+      rule: 'Belirtili আর Belirtisiz-এর তুলনা — একই দুইটা শব্দ (Ev, Kapı) দিয়ে দুই রকম অর্থ:',
+      examples: [
+        { stem: 'Ev + kapı', stemMeaning: 'বাড়ি + দরজা (Belirtili — নির্দিষ্ট)', suf: '-in + -ı', result: 'Evin kapısı', pron: 'এ-ভিন কা-পি-সি', meaning: '(এই/সেই) বাড়ির দরজা' },
+        { stem: 'Ev + kapı', stemMeaning: 'বাড়ি + দরজা (Belirtisiz — অনির্দিষ্ট)', suf: '— + -ı', result: 'Ev kapısı', pron: 'এভ কা-পি-সি', meaning: '(যেকোনো) বাড়ির দরজা' },
+      ],
+    },
+    exercises: [
+      'Belirtili আর Belirtisiz তামলামার পার্থক্য নিজের ভাষায় ব্যাখ্যা করুন।',
+      '"স্কুলের বাগান" আর "স্কুলের দরজা" — দুইটাই Belirtisiz তামলামা দিয়ে বলুন।',
+      'Zincirleme তামলামায় কয়টা শব্দ জোড়া লাগে?',
+    ],
+    retrieval: {
+      prompt: 'Belirtili নাকি Belirtisiz তামলামা?',
+      items: [
+        { q: 'Arabamın tekeri (আমার গাড়ির চাকা)', a: 'Belirtili — উভয় শব্দেই suffix (-mın, -i)' },
+        { q: 'Çocuk odası (বাচ্চার ঘর)', a: 'Belirtisiz — শুধু দ্বিতীয় শব্দে suffix (-ı)' },
+      ],
+    },
+    miniExam: {
+      title: 'মিনি পরীক্ষা — স্টেশন ১৩',
+      passRule: '৮/১১ বা তার বেশি ঠিক হলে প্রস্তুত।',
+      items: [
+        { q: 'তিন রকম তামলামার নাম কী কী?', a: 'Belirtili, Belirtisiz, Zincirleme' },
+        { q: 'Belirtili Tamlama-র suffix-প্যাটার্ন কী?', a: '[মালিক+-ın/-in/-un/-ün] + [বস্তু+-ı/-i/-u/-ü]' },
+        { q: 'Belirtisiz Tamlama-র suffix-প্যাটার্ন কী?', a: '[মালিক] + [বস্তু+-ı/-i/-u/-ü] — মালিকে কোনো suffix নেই' },
+        { q: '"Kitabın kapağı" — উচ্চারণ ও অর্থ লিখুন।', a: 'কি-তা-বিন কা-পা-ঈ — বইয়ের মলাট' },
+        { q: '"Ev kapısı" — উচ্চারণ ও অর্থ লিখুন।', a: 'এভ কা-পি-সি — বাড়ির দরজা' },
+        { q: '"İstanbul\'un deniz manzarası" — উচ্চারণ ও অর্থ লিখুন।', a: 'ইস-তান-বু-লুন দে-নিজ মান-জা-রা-সি — ইস্তাম্বুলের সমুদ্র দৃশ্য' },
+        { q: 'Zincirleme Tamlama-য় কয়টা শব্দ জোড়া লাগে?', a: 'তিনটা (বা তার বেশি)' },
+      ],
+    },
+    badge: 'ভ্রমণ-স্মৃতির ব্যাজ — তামলামার তিন রকম শেখা হয়ে গেছে',
+    next: 'পরের স্টেশনে পরিকল্পনা করতে গিয়ে শেখা হবে শর্তসূচক বাক্য।',
   },
 ];
 
