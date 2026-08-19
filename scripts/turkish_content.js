@@ -428,6 +428,25 @@ const WITH_SUFFIX_WORDS = [
   ['Köy → Köylü', 'কোই-লু', 'গ্রাম → গ্রামবাসী'],
 ];
 
+// ---------------------------------------------------------------------------
+// Station 10 -- Suffix এর ব্যবহার: ile/dan/da/-lı (dedup of the draft's
+// THREE overlapping পর্ব ৬ sections). Two of those five suffixes (-dan/-den
+// ablative, -lı property/origin) are already fully taught at stations 2
+// and 9 -- repeating them here would just be noise, so this station's real
+// new content is "ile/la/le" (with/by/using), the one suffix none of the
+// earlier stations covered, plus a one-line cross-reference back to the
+// other four for revision. No pronunciation given in the source for these
+// sentences -- derived mechanically as usual.
+// ---------------------------------------------------------------------------
+const ILE_SENTENCES = [
+  ['Kalemle yazı yazdım.', 'কা-লেম-লে ইয়া-জি ইয়াজ-দিম', 'কলম দিয়ে লিখেছি।'],
+  ['Annemle birlikte yürüyüş yaptık.', 'আন-নেম-লে বির-লিক-তে ইউ-রু-ইউশ ইয়াপ-তিক', 'মায়ের সাথে হেঁটেছি।'],
+  ['Otobüsle İstanbul\'a gittim.', 'ও-তো-বুস-লে ইস-তান-বু-লা গিত-তিম', 'বাসে করে ইস্তাম্বুল গিয়েছি।'],
+  ['Ekmekle zeytin kahvaltıda iyi olur.', 'এক-মেক-লে জে-ই-তিন কাহ-ভাল-তি-দা ই-ই ও-লুর', 'রুটির সাথে জলপাই নাস্তায় ভালো লাগে।'],
+  ['Hızla koşu yaptım.', 'হিজ-লা কো-শু ইয়াপ-তিম', 'দ্রুতগতিতে দৌড়েছি।'],
+  ['Kardeşimle tatil çok eğlenceli oldu.', 'কার-দে-শিম-লে তা-তিল চোক এয়-লেন-জে-লি ওল-দু', 'ভাইয়ের সাথে ছুটিটা খুব আনন্দের হলো।'],
+];
+
 const STATIONS = [
   {
     n: 1,
@@ -982,6 +1001,55 @@ const STATIONS = [
     },
     badge: 'বাজারের ব্যাজ — বিপরীত suffix-জোড়া শেখা হয়ে গেছে',
     next: 'পরের স্টেশনে বাসে যেতে যেতে শেখা হবে ile, dan, da, -lı suffix-এর আরও ব্যবহার।',
+  },
+  {
+    n: 10,
+    hue: 171,
+    title: 'Suffix-এর ব্যবহার — ile · dan · da · -lı',
+    subtitle: 'Ekler: ile, dan, da, -lı',
+    scene: 'বাসে/পথে যাতায়াত',
+    story: [
+      'বাস স্টপে দাঁড়িয়ে এলিফ বলল, "Otobüsle gidiyoruz (ও-তো-বুস-লে গি-দি-য়ো-রুজ) — বাসে করে যাচ্ছি। লক্ষ্য করুন — Otobüs (বাস) শব্দের সাথে -le যোগ হয়েছে, মানে \'দিয়ে/করে\'। এটাই ile suffix — একটা নতুন, চতুর্থ ধরনের suffix, যা এখনও শেখা হয়নি।"',
+      'বাসে বসে এলিফ ব্যাগ থেকে একটা রুটি আর জলপাই বের করল। "Ekmekle zeytin (এক-মেক-লে জে-ই-তিন) — রুটির সাথে জলপাই, নাস্তায় দারুণ লাগে," বলে ভাগ করে দিল। "Annemle her sabah böyle yaparız (আন-নেম-লে হের সা-বাহ বোই-লে ইয়া-পা-রিজ) — মায়ের সাথে প্রতি সকালে এভাবেই করি।"',
+      '"এতদিনে আপনি চারটা বড় suffix-পরিবার শিখে ফেলেছেন," এলিফ গুনে দেখাল। "-dan/-den (থেকে, স্টেশন ২), -da/-de (তে/য়, স্টেশন ২), -lı/-li (সহ/যুক্ত, স্টেশন ৯), আর আজকের -ile/-le (দিয়ে/সাথে)। এই চারটা দিয়েই তুর্কি বাক্যের বেশিরভাগ সম্পর্ক বোঝানো যায়।"',
+    ],
+    ruleIntro: '"ile" (সাথে/দিয়ে/দ্বারা) — শব্দের সাথে সরাসরি -le/-la হিসেবে জোড়া লাগে (ভাওয়েল হারমনি: a,ı→la; e,i→le)। ৬টা বাস্তব উদাহরণ:',
+    wordClasses: [
+      { icon: '🤝', title: '"ile/la/le" — সাথে, দিয়ে, দ্বারা', words: ILE_SENTENCES },
+    ],
+    wordFormation: {
+      rule: 'চারটা suffix-পরিবারের একসাথে রিভিশন — একই ধরনের শব্দে ভিন্ন ভিন্ন suffix লাগালে সম্পর্ক পুরো বদলে যায়:',
+      examples: [
+        { stem: 'Okul', stemMeaning: 'স্কুল (স্টেশন ২ রিভিশন)', suf: '-dan', result: 'Okuldan', pron: 'ও-কুল-দান', meaning: 'স্কুল থেকে' },
+        { stem: 'Okul', stemMeaning: 'স্কুল (স্টেশন ২ রিভিশন)', suf: '-da', result: 'Okulda', pron: 'ও-কুল-দা', meaning: 'স্কুলে' },
+        { stem: 'Kalem', stemMeaning: 'কলম (আজকের নতুন)', suf: '-le', result: 'Kalemle', pron: 'কা-লেম-লে', meaning: 'কলম দিয়ে' },
+      ],
+    },
+    exercises: [
+      '"কলম দিয়ে" আর "বাসে করে" — তুর্কিতে ও উচ্চারণসহ লিখুন।',
+      'ile suffix-এর ভাওয়েল হারমনি নিয়মটা লিখুন (কখন -la, কখন -le)।',
+      'চারটা suffix-পরিবার (dan, da, lı, ile) আর তাদের অর্থ মুখস্থ বলুন।',
+    ],
+    retrieval: {
+      prompt: 'সঠিক suffix বেছে নিন।',
+      items: [
+        { q: 'Araba (গাড়ি) + ___ = গাড়ি দিয়ে/করে', a: '-yla → Arabayla (আ-রা-বায়-লা)' },
+        { q: 'Arkadaş (বন্ধু) + ___ = বন্ধুর সাথে', a: '-la → Arkadaşla (আর-কা-দাশ-লা)' },
+      ],
+    },
+    miniExam: {
+      title: 'মিনি পরীক্ষা — স্টেশন ১০',
+      passRule: '৭/৯ বা তার বেশি ঠিক হলে প্রস্তুত।',
+      items: [
+        { q: 'ile suffix-এর অর্থ কী?', a: 'সাথে/দিয়ে/দ্বারা' },
+        { q: '"Kalemle yazı yazdım" — উচ্চারণ ও অর্থ লিখুন।', a: 'কা-লেম-লে ইয়া-জি ইয়াজ-দিম — কলম দিয়ে লিখেছি' },
+        { q: '"Otobüsle İstanbul\'a gittim" — উচ্চারণ ও অর্থ লিখুন।', a: 'ও-তো-বুস-লে ইস-তান-বু-লা গিত-তিম — বাসে করে ইস্তাম্বুল গিয়েছি' },
+        { q: 'চারটা suffix-পরিবার আর তাদের অর্থ লিখুন (dan, da, lı, ile)।', a: 'dan=থেকে, da=তে/য়, lı=সহ/যুক্ত, ile=সাথে/দিয়ে' },
+        { q: '"Hızla koşu yaptım" — উচ্চারণ ও অর্থ লিখুন।', a: 'হিজ-লা কো-শু ইয়াপ-তিম — দ্রুতগতিতে দৌড়েছি' },
+      ],
+    },
+    badge: 'যাত্রার ব্যাজ — চারটা suffix-পরিবার সম্পূর্ণ হয়ে গেছে',
+    next: 'পরের স্টেশনে সাপ্তাহিক পরিকল্পনা করতে গিয়ে শেখা হবে দিন, মাস, বছর, ঋতু, আবহাওয়া।',
   },
 ];
 
