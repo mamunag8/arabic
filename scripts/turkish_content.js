@@ -477,6 +477,27 @@ const YEAR_SEASON_WEATHER = [
   ['Kar', 'কার', 'তুষার'],
 ];
 
+// ---------------------------------------------------------------------------
+// Station 12 -- Possessive Suffix (İyelik Ekleri)
+// Source: draft's İyelik Ekleri section (within the পর্ব ৬ region, line
+// ~6402) -- a structured person x vowel-harmony-class table. 8 examples
+// selected across Benim/Senin/Onun/Bizim, reusing familiar words (Ev,
+// Kalem, Okul, Kitap, Çocuk) from earlier stations for reinforcement. No
+// pronunciation column in the source; derived mechanically, except
+// Kitabı and Çocuğu which reuse the exact pronunciations already sourced
+// at stations 1-2's accusative/soft-consonant tables (same surface form).
+// ---------------------------------------------------------------------------
+const POSSESSIVE_WORDS = [
+  ['Ev → Evim', 'এ-ভিম', 'বাড়ি → আমার বাড়ি'],
+  ['Kalem → Kalemim', 'কা-লে-মিম', 'কলম → আমার কলম'],
+  ['Okul → Okulum', 'ও-কু-লুম', 'স্কুল → আমার স্কুল'],
+  ['Ev → Evin', 'এ-ভিন', 'বাড়ি → তোমার বাড়ি'],
+  ['Kalem → Kalemin', 'কা-লে-মিন', 'কলম → তোমার কলম'],
+  ['Kitap → Kitabı', 'কি-তা-বি', 'বই → তার বই'],
+  ['Çocuk → Çocuğu', 'চজুগু', 'সন্তান → তার সন্তান (স্টেশন ১-এর "শিশুটি"-র মতো একই শব্দ)'],
+  ['Ev → Evimiz', 'এ-ভি-মিজ', 'বাড়ি → আমাদের বাড়ি'],
+];
+
 const STATIONS = [
   {
     n: 1,
@@ -1137,6 +1158,57 @@ const STATIONS = [
     },
     badge: 'পরিকল্পনার ব্যাজ — সময় ও ঋতুর শব্দ শেখা হয়ে গেছে',
     next: 'পরের স্টেশনে পরিবারের জিনিসপত্র নিয়ে কথা বলতে গিয়ে শেখা হবে possessive suffix।',
+  },
+  {
+    n: 12,
+    hue: 208,
+    title: 'Possessive Suffix (İyelik Ekleri)',
+    subtitle: 'İyelik Ekleri',
+    scene: 'পরিবারের জিনিসপত্র নিয়ে কথা',
+    story: [
+      'বাড়ি গোছাতে গিয়ে ছোট বোনের সাথে দেখা — নানার নাতনি, বেড়াতে এসেছে। সে নিজের একটা বই দেখিয়ে বলল, "Kitabım! (কি-তা-বিম)" — এলিফ হাসল, "\'আমার বই\' — লক্ষ্য করুন, ঠিক সেই suffix (-ım) যেটা \'আমি\' বোঝাতে আগেও দেখেছেন।"',
+      '"তুর্কিতে মালিকানা বোঝাতে বাংলার \'আমার/তোমার/তার\' শব্দগুলোর বদলে সরাসরি suffix ব্যবহার হয়," এলিফ ব্যাখ্যা করল। "Ev (বাড়ি) → Evim (এ-ভিম) আমার বাড়ি, Evin (এ-ভিন) তোমার বাড়ি। ব্যক্তি বদলালে suffix বদলায়, শব্দ প্রায় একই থাকে।"',
+      'তারপর একটা মজার জিনিস দেখাল। "মনে আছে স্টেশন ২-তে kitabı মানে শিখেছিলেন \'বইটি\'? এখন যদি বলি Onun kitabı (ও-নুন কি-তা-বি) — মানে \'তার বই\' — একই বানান, একই উচ্চারণ! তুর্কিতে অনেক সময় \'নির্দিষ্ট বস্তু\' (accusative) আর \'তৃতীয় পুরুষের মালিকানা\' (his/her) একই suffix ব্যবহার করে — প্রসঙ্গ (context) দিয়ে বোঝা যায় কোনটা কোনটা।"',
+    ],
+    ruleIntro: 'মালিকানা suffix ব্যক্তি অনুযায়ী বদলায় — নিচে আমার/তোমার/তার/আমাদের-এর বাস্তব উদাহরণ:',
+    wordClasses: [
+      { icon: '🏠', title: 'আমার (-ım/-im/-um) · তোমার (-ın/-in/-un) · তার (-ı/-i/-u) · আমাদের (-ımız)', words: POSSESSIVE_WORDS },
+    ],
+    wordFormation: {
+      rule: 'Ev (বাড়ি) একটাই root শব্দ — চারটা ব্যক্তির suffix লাগিয়ে চারটা ভিন্ন "কার বাড়ি" তৈরি করা যায়।',
+      examples: [
+        { stem: 'Ev', stemMeaning: 'বাড়ি (root)', suf: '-im', result: 'Evim', pron: 'এ-ভিম', meaning: 'আমার বাড়ি' },
+        { stem: 'Ev', stemMeaning: 'বাড়ি (root)', suf: '-in', result: 'Evin', pron: 'এ-ভিন', meaning: 'তোমার বাড়ি' },
+        { stem: 'Ev', stemMeaning: 'বাড়ি (root)', suf: '-i', result: 'Evi', pron: 'এ-ভি', meaning: 'তার বাড়ি' },
+        { stem: 'Ev', stemMeaning: 'বাড়ি (root)', suf: '-imiz', result: 'Evimiz', pron: 'এ-ভি-মিজ', meaning: 'আমাদের বাড়ি' },
+      ],
+    },
+    exercises: [
+      'Kalem (কলম) শব্দে "আমার" আর "তোমার" suffix যোগ করে দুইটা রূপ বানান।',
+      'Kitabı শব্দটার দুইটা সম্ভাব্য অর্থ কী কী? প্রসঙ্গ ছাড়া কীভাবে আলাদা করবেন?',
+      '"আমাদের স্কুল" — তুর্কিতে ও উচ্চারণসহ লিখুন।',
+    ],
+    retrieval: {
+      prompt: 'সঠিক possessive suffix বেছে নিন।',
+      items: [
+        { q: 'Okul (স্কুল) + ___ = আমার স্কুল', a: '-um → Okulum (ও-কু-লুম)' },
+        { q: 'Çocuk (সন্তান) + ___ = তার সন্তান', a: '-u → Çocuğu (চজুগু, K→Ğ পরিবর্তনসহ)' },
+      ],
+    },
+    miniExam: {
+      title: 'মিনি পরীক্ষা — স্টেশন ১২',
+      passRule: '৯/১২ বা তার বেশি ঠিক হলে প্রস্তুত।',
+      items: [
+        { q: '"আমার" অর্থে possessive suffix-এর রূপগুলো কী কী?', a: '-ım/-im/-um/-üm (ভাওয়েল হারমনি অনুযায়ী)' },
+        { q: 'Evim, Evin — উচ্চারণ ও অর্থ লিখুন।', a: 'এ-ভিম (আমার বাড়ি), এ-ভিন (তোমার বাড়ি)' },
+        { q: 'Kalemim, Okulum — উচ্চারণ ও অর্থ লিখুন।', a: 'কা-লে-মিম (আমার কলম), ও-কু-লুম (আমার স্কুল)' },
+        { q: 'Kitabı-র দুইটা সম্ভাব্য অর্থ কী?', a: '"বইটি" (accusative, স্টেশন ২) অথবা "তার বই" (possessive) — প্রসঙ্গ দিয়ে বোঝা যায়' },
+        { q: '"আমাদের বাড়ি" তুর্কিতে ও উচ্চারণসহ লিখুন।', a: 'Evimiz (এ-ভি-মিজ)' },
+        { q: 'Ev root শব্দ থেকে চারটা possessive রূপ লিখুন (আমার/তোমার/তার/আমাদের)।', a: 'Evim, Evin, Evi, Evimiz' },
+      ],
+    },
+    badge: 'পরিবারের ব্যাজ — possessive suffix শেখা হয়ে গেছে',
+    next: 'পরের স্টেশনে ইস্তাম্বুল ভ্রমণের কথা বলতে গিয়ে শেখা হবে তামলামা।',
   },
 ];
 
