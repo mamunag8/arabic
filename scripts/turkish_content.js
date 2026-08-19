@@ -1755,4 +1755,157 @@ const STATIONS = [
   },
 ];
 
-module.exports = { BOOK, STATIONS, STAGE_1_TOTAL };
+// ---------------------------------------------------------------------------
+// SUFFIX_HUB -- Phase 5 (CURRICULUM_PLAN.md §8): the book's own linking
+// axis, since Turkish is agglutinative rather than root-based like Arabic
+// (মূল ও শাখা's root-tree device doesn't map here). One page per
+// grammatical suffix, collecting every occurrence of that suffix already
+// taught across the 19 stations in one place. Every {tr,pron,bn} triple
+// below is copied verbatim from the station where it was already taught
+// (see the `station` field) -- nothing new is introduced here, this is
+// purely a re-index of existing content by suffix instead of by station.
+// Four categories, one color each, permanently (CURRICULUM_PLAN.md §8's
+// "এক suffix-ক্যাটাগরি = এক রং, সবসময়" rule):
+//   case (কেস suffix)              hue 205
+//   tense (কাল suffix)              hue 28
+//   derivational (নতুন শব্দ তৈরি)   hue 150
+//   sentence (বাক্য-গঠনকারী)        hue 280
+// ---------------------------------------------------------------------------
+const CATEGORY_COLORS = { case: 205, tense: 28, derivational: 150, sentence: 280 };
+
+const SUFFIX_HUB = [
+  {
+    slug: 'accusative', title: '-ı, -i, -u, -ü (Accusative)', category: 'case', station: 2,
+    rule: 'নির্দিষ্ট বস্তু/ব্যক্তি বোঝাতে — ইংরেজি "the"-র মতো। ভাওয়েল হারমনি + Fıstıkçı Şahap নরম হওয়ার নিয়ম মেনে চলে।',
+    words: [
+      ['kitap → kitabı', 'কি-তা-বি', 'বই → বইটি'],
+      ['cep → cebi', 'জে-বি', 'পকেট → পকেটটি'],
+      ['şap → şabı', 'শা-বি', 'টুপি → টুপিটি'],
+      ['dolap → dolabı', 'দো-লা-বি', 'আলমারি → আলমারিটি'],
+      ['ağaç → ağacı', 'আ-জি', 'গাছ → গাছটি'],
+      ['uç → ucu', 'উ-জু', 'প্রান্ত → প্রান্তটি'],
+    ],
+  },
+  {
+    slug: 'locative', title: '-da, -de, -ta, -te (Locative)', category: 'case', station: 2,
+    rule: 'কোথাও/কারো অবস্থান বোঝাতে — "...তে/য়"।',
+    words: [
+      ['ev → evde', 'এভ-দে', 'বাড়ি → বাড়িতে'],
+      ['araba → arabada', 'আ-রা-বা-দা', 'গাড়ি → গাড়িতে'],
+      ['okul → okulda', 'ও-কুল-দা', 'স্কুল → স্কুলে'],
+      ['Ocak → Ocakta', 'ও-জাক-তা', 'জানুয়ারি → জানুয়ারিতে'],
+      ['masa → masada', 'মা-সা-দা', 'টেবিল → টেবিলে'],
+    ],
+  },
+  {
+    slug: 'dative', title: '-a, -e, -ya, -ye (Dative)', category: 'case', station: 2,
+    rule: 'কোথাও/কারো দিকে গমন বোঝাতে — "...দিকে/এ"।',
+    words: [
+      ['okul → okula', 'ও-কুলা', 'স্কুল → স্কুলে (যাওয়া)'],
+      ['ev → eve', 'এ-ভে', 'বাড়ি → বাড়ির দিকে'],
+    ],
+  },
+  {
+    slug: 'ablative', title: '-tan, -ten, -dan, -den (Ablative)', category: 'case', station: 2,
+    rule: 'কোথাও/কারো থেকে প্রস্থান বোঝাতে — "...থেকে"।',
+    words: [
+      ['okul → okuldan', 'ও-কুল-দান', 'স্কুল → স্কুল থেকে'],
+      ['o → ondan', 'ওন-দান', 'সে/সেটা → তার থেকে (তুলনায়)'],
+      ['ev → evden', 'এভ-দেন', 'বাড়ি → বাড়ি থেকে'],
+    ],
+  },
+  {
+    slug: 'plural', title: '-lar, -ler (Plural)', category: 'case', station: 2,
+    rule: 'বহুবচন গঠন করতে।',
+    words: [
+      ['ev → evler', 'এভ-লের', 'বাড়ি → বাড়িগুলি'],
+    ],
+  },
+  {
+    slug: 'possessive', title: 'İyelik Ekleri (Possessive)', category: 'case', station: 12,
+    rule: 'মালিকানা বোঝাতে — আমার/তোমার/তার/আমাদের।',
+    words: POSSESSIVE_WORDS,
+  },
+  {
+    slug: 'present-continuous', title: '-yor (Şimdiki Zaman)', category: 'tense', station: 5,
+    rule: 'বর্তমানে চলমান কাজ বোঝাতে।',
+    words: PRESENT_TENSE_SENTENCES.slice(0, 4),
+  },
+  {
+    slug: 'aorist', title: '-ar, -er (Geniş Zaman)', category: 'tense', station: 8,
+    rule: 'রোজকার অভ্যাস/সাধারণ সত্য বোঝাতে।',
+    words: AORIST_SENTENCES,
+  },
+  {
+    slug: 'past', title: '-dı, -di, -du, -dü (Geçmiş Zaman)', category: 'tense', station: 8,
+    rule: 'অতীতে ঘটে যাওয়া কাজ বোঝাতে।',
+    words: PAST_SENTENCES,
+  },
+  {
+    slug: 'future', title: '-acak, -ecek (Gelecek Zaman)', category: 'tense', station: 8,
+    rule: 'ভবিষ্যতের কাজ বোঝাতে।',
+    words: FUTURE_SENTENCES,
+  },
+  {
+    slug: 'infinitive', title: '-mak, -mek (ক্রিয়ার Infinitive)', category: 'derivational', station: 1,
+    rule: 'ক্রিয়ামূলকে "...করা" রূপে বদলায়।',
+    words: [
+      ['al → almak', 'আলমাক', 'নেওয়া (মূল) → নেওয়া'],
+      ['bak → bakmak', 'বাকমাক', 'দেখা (মূল) → দেখা'],
+      ['gör → görmek', 'গোরমেক', 'দেখা (মূল) → দেখা'],
+      ['git → gitmek', 'গিতমেক', 'যাওয়া (মূল) → যাওয়া'],
+      ['konuş → konuşmak', 'কনুশমাক', 'কথা বলা (মূল) → কথা বলা'],
+    ],
+  },
+  {
+    slug: 'with-origin', title: '-lı, -li, -lu, -lü ("সহ/যুক্ত"/উৎস)', category: 'derivational', station: 9,
+    rule: 'কিছু থাকা, বা কোথাকার/কার — সেটা বোঝাতে বিশেষণ তৈরি করে।',
+    words: WITH_SUFFIX_WORDS,
+  },
+  {
+    slug: 'without', title: '-suz, -süz, -sız, -siz ("...হীন/ছাড়া")', category: 'derivational', station: 9,
+    rule: 'কিছুর অভাব বোঝাতে বিশেষণ তৈরি করে — -lı/-li-র ঠিক উল্টো।',
+    words: WITHOUT_SUFFIX_WORDS,
+  },
+  {
+    slug: 'verb-voice', title: 'Fiil Çatıları (Passive/Reflexive/Reciprocal)', category: 'derivational', station: 16,
+    rule: '-ıl/-il (passive), -ın/-in (reflexive), -ış/-iş (reciprocal) — একই ক্রিয়ামূল থেকে ভিন্ন ভূমিকা তৈরি করে।',
+    words: [...PASSIVE_VERBS, ...REFLEXIVE_VERBS, ...RECIPROCAL_VERBS],
+  },
+  {
+    slug: 'question', title: '-mı, -mi, -mu, -mü (প্রশ্নসূচক)', category: 'sentence', station: 5,
+    rule: 'যেকোনো বাক্যের শেষে বসিয়ে সেটাকে প্রশ্ন বানায়।',
+    words: [
+      ['öğrenci → öğrenci misin?', 'ওরেন-জি মি-সিন', 'ছাত্র → তুমি কি ছাত্র?'],
+      ['doktor → doktor mu?', 'দোক-তোর মু', 'ডাক্তার → সে কি ডাক্তার?'],
+      ['Geliyor → Geliyor mu?', 'গে-লি-য়োর মু', 'আসছে → সে কি আসছে?'],
+    ],
+  },
+  {
+    slug: 'negative', title: '-ma, -me (নেতিবাচক)', category: 'sentence', station: 7,
+    rule: 'ক্রিয়ামূলে বসে বাক্যকে নেতিবাচক করে — কাল-suffix-এর আগে।',
+    words: NEGATIVE_SENTENCES.slice(0, 5),
+  },
+  {
+    slug: 'conditional', title: '-sa, -se (শর্তসূচক)', category: 'sentence', station: 14,
+    rule: 'ক্রিয়ামূলে বসে "যদি..." তৈরি করে।',
+    words: CONDITIONAL_SENTENCES.slice(0, 5),
+  },
+  {
+    slug: 'with-instrument', title: 'ile, -la, -le ("সাথে/দিয়ে")', category: 'sentence', station: 10,
+    rule: 'কারো/কিছুর সাথে, বা কোনো কিছু দিয়ে — সেটা বোঝাতে।',
+    words: ILE_SENTENCES,
+  },
+  {
+    slug: 'tamlama', title: 'Tamlama (-ın + -ı জোড়া)', category: 'sentence', station: 13,
+    rule: 'দুইটা বিশেষ্য জোড়া লাগিয়ে "কার/কীসের" সম্পর্ক দেখায়।',
+    words: BELIRTILI_TAMLAMA,
+  },
+  {
+    slug: 'comparative', title: 'daha, en, kadar (তুলনা)', category: 'sentence', station: 17,
+    rule: 'বিশেষণের আগে বসে তুলনা তৈরি করে — daha (বেশি), en (সবচেয়ে), kadar (সমান)।',
+    words: [...COMPARATIVE_SENTENCES.slice(0, 2), ...SUPERLATIVE_SENTENCES.slice(0, 2)],
+  },
+];
+
+module.exports = { BOOK, STATIONS, STAGE_1_TOTAL, SUFFIX_HUB, CATEGORY_COLORS };
