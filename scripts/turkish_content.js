@@ -538,6 +538,28 @@ const CONDITIONAL_SENTENCES = [
   ['Eğer para kazanırsam, araba alacağım.', 'এ-য়ের পা-রা কা-জা-নির-সাম, আ-রা-বা আ-লা-জা-ইম', 'যদি আমি টাকা উপার্জন করি, আমি একটা গাড়ি কিনব।'],
 ];
 
+// ---------------------------------------------------------------------------
+// Station 15 -- সময় ও স্থান নির্দেশ (Zaman ve Yer Edatları)
+// Source: draft পর্ব ১৫ -- its genuinely new content is the "önce/sonra"
+// (before/after) time-clause construction; the spatial -den/-e content in
+// this same section largely revises station 2's ablative/dative, so only
+// one fresh spatial example (Bahçeden içeri gir) is included alongside a
+// station-2 callback. No pronunciation column in the source; derived
+// mechanically as usual.
+// ---------------------------------------------------------------------------
+const TIME_CLAUSES = [
+  ['Gitmeden önce bir şey söyle.', 'গিত-মে-দেন ও-নজে বির শে-ই সোই-লে', 'যাওয়ার আগে কিছু বলো।'],
+  ['Yemekten önce ellerini yıka.', 'ইয়ে-মেক-তেন ও-নজে এল-লে-রি-নি ইয়ি-কা', 'খাবারের আগে হাত ধুয়ে নাও।'],
+  ['Yaptıktan sonra biraz dinlen.', 'ইয়াপ-তিক-তান সোন-রা বি-রাজ দিন-লেন', 'করার পরে একটু বিশ্রাম নাও।'],
+  ['Ders bittikten sonra eve gideceğim.', 'দের্স বিত-তিক-তেন সোন-রা এ-ভে গি-দে-জে-ইম', 'ক্লাস শেষ হলে আমি বাড়ি যাব।'],
+  ['Okuldan sonra eve döneceğim.', 'ও-কুল-দান সোন-রা এ-ভে দো-নে-জে-ইম', 'স্কুলের পরে আমি বাড়ি ফিরব।'],
+];
+
+const SPACE_CLAUSES = [
+  ['Evden çık.', 'এভ-দেন চিক', 'বাড়ি থেকে বের হও। (স্টেশন ২ রিভিশন)'],
+  ['Bahçeden içeri gir.', 'বাহ-চে-দেন ই-চে-রি গির', 'বাগান থেকে ভেতরে আসো।'],
+];
+
 const STATIONS = [
   {
     n: 1,
@@ -1350,6 +1372,55 @@ const STATIONS = [
     },
     badge: 'সিদ্ধান্তের ব্যাজ — শর্তসূচক বাক্য শেখা হয়ে গেছে',
     next: 'পরের স্টেশনে দিক জিজ্ঞাসা করতে গিয়ে শেখা হবে সময় ও স্থান নির্দেশক শব্দ।',
+  },
+  {
+    n: 15,
+    hue: 265,
+    title: 'সময় ও স্থান নির্দেশ',
+    subtitle: 'Zaman ve Yer Edatları',
+    scene: 'দিক জিজ্ঞাসা করা',
+    story: [
+      'সকালের ব্যস্ততায় নানা তাড়া দিলেন। এলিফ অনুবাদ করল, "Yemekten önce ellerini yıka (ইয়ে-মেক-তেন ও-নজে এল-লে-রি-নি ইয়ি-কা) — খাবারের আগে হাত ধুয়ে নাও। লক্ষ্য করুন — Yemek (খাওয়া) শব্দে -ten যোগ হয়ে önce (আগে) এসেছে। এটাই \'আগে\' বলার নিয়ম।"',
+      'বিশ্ববিদ্যালয়ের পথ দেখাতে দেখাতে এলিফ বলল, "Bahçeden içeri gir (বাহ-চে-দেন ই-চে-রি গির) — বাগান থেকে ভেতরে ঢুকুন। এই -den suffix তো স্টেশন ২-তেই শিখেছেন — উৎস/দিক বোঝাতে।"',
+      '"আর ক্লাসের পরে কী করবেন?" এলিফ জিজ্ঞেস করল। "Ders bittikten sonra eve gideceğim (দের্স বিত-তিক-তেন সোন-রা এ-ভে গি-দে-জে-ইম) — ক্লাস শেষ হলে বাড়ি যাব, বলতে পারেন। -dikten sonra মানে \'কাজ শেষ হওয়ার পরে\'।"',
+    ],
+    ruleIntro: '"আগে" আর "পরে" বলার দুইটা প্যাটার্ন: [ক্রিয়া+-meden/-madan]+önce = "...করার আগে"; [ক্রিয়া+-dıktan/-dikten]+sonra = "...করার পরে"। ৫টা সময়ের উদাহরণ:',
+    wordClasses: [
+      { icon: '⏰', title: 'önce (আগে) · sonra (পরে)', words: TIME_CLAUSES },
+      { icon: '📍', title: 'স্থান — -den/-dan (থেকে)', words: SPACE_CLAUSES },
+    ],
+    wordFormation: {
+      rule: 'একই ক্রিয়া (Git — যাওয়া) দুই প্যাটার্নে দুই ভিন্ন সময়-সম্পর্ক দেখায়:',
+      examples: [
+        { stem: 'Git', stemMeaning: 'যাওয়া (মূল)', suf: '-meden + önce', result: 'Gitmeden önce', pron: 'গিত-মে-দেন ও-নজে', meaning: 'যাওয়ার আগে' },
+        { stem: 'Yap', stemMeaning: 'করা (মূল)', suf: '-tıktan + sonra', result: 'Yaptıktan sonra', pron: 'ইয়াপ-তিক-তান সোন-রা', meaning: 'করার পরে' },
+      ],
+    },
+    exercises: [
+      '"ক্লাস শেষ হওয়ার পরে আমি বাড়ি যাব" — তুর্কিতে ও উচ্চারণসহ লিখুন।',
+      'önce আর sonra-র মধ্যে পার্থক্য উদাহরণসহ ব্যাখ্যা করুন।',
+      'নিজের সকালের রুটিন নিয়ে একটা önce-বাক্য আর একটা sonra-বাক্য বলুন।',
+    ],
+    retrieval: {
+      prompt: 'önce নাকি sonra বসবে?',
+      items: [
+        { q: 'Uyumadan ___ kitap okudum. (ঘুমানোর আগে বই পড়েছি।)', a: 'önce (ও-নজে)' },
+        { q: 'Çalıştıktan ___ bir film izleyelim. (কাজ শেষে সিনেমা দেখি।)', a: 'sonra (সোন-রা)' },
+      ],
+    },
+    miniExam: {
+      title: 'মিনি পরীক্ষা — স্টেশন ১৫',
+      passRule: '৮/১০ বা তার বেশি ঠিক হলে প্রস্তুত।',
+      items: [
+        { q: '"...করার আগে" বলার প্যাটার্নটা লিখুন।', a: '[ক্রিয়া + -meden/-madan] + önce' },
+        { q: '"...করার পরে" বলার প্যাটার্নটা লিখুন।', a: '[ক্রিয়া + -dıktan/-dikten] + sonra' },
+        { q: '"খাবারের আগে হাত ধুয়ে নাও" — তুর্কিতে ও উচ্চারণসহ লিখুন।', a: 'Yemekten önce ellerini yıka. (ইয়ে-মেক-তেন ও-নজে এল-লে-রি-নি ইয়ি-কা)' },
+        { q: '"ক্লাস শেষ হলে আমি বাড়ি যাব" — তুর্কিতে ও উচ্চারণসহ লিখুন।', a: 'Ders bittikten sonra eve gideceğim. (দের্স বিত-তিক-তেন সোন-রা এ-ভে গি-দে-জে-ইম)' },
+        { q: '"বাগান থেকে ভেতরে আসো" — তুর্কিতে ও উচ্চারণসহ লিখুন।', a: 'Bahçeden içeri gir. (বাহ-চে-দেন ই-চে-রি গির)' },
+      ],
+    },
+    badge: 'দিক-নির্দেশনার ব্যাজ — আগে-পরের সম্পর্ক শেখা হয়ে গেছে',
+    next: 'পরের স্টেশনে রান্নাঘরে সহযোগিতা করতে গিয়ে শেখা হবে ক্রিয়ার Çatı — active, passive, reflexive, reciprocal।',
   },
 ];
 
