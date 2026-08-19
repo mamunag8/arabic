@@ -362,6 +362,42 @@ const DEGIL_SENTENCES = [
   ['Biz parkta değiliz.', 'বিজ পার্ক-তা দে-ই-লিজ', 'আমরা পার্কে নেই।'],
 ];
 
+// ---------------------------------------------------------------------------
+// Station 8 -- কাল (Tense)
+// Source: draft পর্ব ৫'s tense section -- Geniş Zaman (aorist), Şimdiki
+// Zaman (present continuous, already used heavily since station 5 -- kept
+// brief here as revision), Geçmiş Zaman (past), Gelecek Zaman (future).
+// Construction rules and example sentences transcribed from the draft's
+// own tables; no pronunciation column given for any of the four tense
+// sections, so all pronunciations here are derived mechanically.
+// ---------------------------------------------------------------------------
+const AORIST_SENTENCES = [
+  ['Ben yaparım.', 'বেন ইয়া-পা-রিম', 'আমি করি/করব।'],
+  ['Sen gidersin.', 'সেন গি-দের-সিন', 'তুমি যাও।'],
+  ['O alır.', 'ও আ-লির', 'সে নেয়।'],
+  ['Biz uyuruz.', 'বিজ উ-য়ু-রুজ', 'আমরা ঘুমাই।'],
+  ['Onlar oynarlar.', 'অন-লার অয়-নার-লার', 'তারা খেলে।'],
+];
+
+const PRESENT_CONT_REVISION = [
+  ['Ben bakıyorum.', 'বেন বা-কি-য়ো-রুম', 'আমি দেখছি।'],
+  ['O görüyor.', 'ও গো-রু-য়োর', 'সে দেখছে।'],
+];
+
+const PAST_SENTENCES = [
+  ['Ben baktım.', 'বেন বাক-তিম', 'আমি দেখেছিলাম।'],
+  ['Ben yemek yedim.', 'বেন ইয়ে-মেক ইয়ে-দিম', 'আমি খাবার খেয়েছিলাম।'],
+  ['O kitap okudu.', 'ও কি-তাপ ও-কু-দু', 'সে বই পড়েছিল।'],
+  ['Biz Türkiye\'ye gittik.', 'বিজ তুর-কি-য়ে-য়ে গিত-তিক', 'আমরা তুরস্কে গিয়েছিলাম।'],
+];
+
+const FUTURE_SENTENCES = [
+  ['Ben yiyeceğim.', 'বেন ইয়ি-য়ে-জে-ইম', 'আমি খাব।'],
+  ['O kitap okuyacak.', 'ও কি-তাপ ও-কু-য়া-জাক', 'সে বই পড়বে।'],
+  ['Yarın hava güzel olacak.', 'ইয়া-রিন হা-ভা গু-জেল ও-লা-জাক', 'আগামীকাল আবহাওয়া ভালো হবে।'],
+  ['Biz Türkiye\'ye gideceğiz.', 'বিজ তুর-কি-য়ে-য়ে গি-দে-জে-ইজ', 'আমরা তুরস্কে যাব।'],
+];
+
 const STATIONS = [
   {
     n: 1,
@@ -806,6 +842,64 @@ const STATIONS = [
     },
     badge: 'সমঝোতার ব্যাজ — প্রথম নেতিবাচক বাক্য দিয়ে নিজেকে বোঝানো হয়ে গেছে',
     next: 'পরের স্টেশনে দিনের রুটিন বর্ণনা করতে গিয়ে শেখা হবে তুর্কি ভাষার চারটা কাল।',
+  },
+  {
+    n: 8,
+    hue: 133,
+    title: 'কাল (Tense)',
+    subtitle: 'Zamanlar',
+    scene: 'দিনের রুটিন বর্ণনা',
+    story: [
+      'সকালের নাস্তায় নানা জিজ্ঞেস করলেন আপনার দিনটা কেমন কাটে। এলিফ অনুবাদের ফাঁকে বলল, "এই একটা প্রশ্নেই তুর্কির চারটা কাল লাগবে — কী রোজ করেন (অভ্যাস), কী এখন করছেন, কী গতকাল করেছিলেন, আর কী আগামীকাল করবেন।"',
+      '"রোজকার অভ্যাসের জন্য," এলিফ বলল, "Geniş Zaman — Ben yaparım (বেন ইয়া-পা-রিম), মানে আমি রোজ করি। এখন যা হচ্ছে তার জন্য Şimdiki Zaman — এটা তো আমরা প্রথম দিন থেকেই ব্যবহার করছি, মনে আছে? Ben bakıyorum (বেন বা-কি-য়ো-রুম)।"',
+      '"গতকাল যা হয়েছে তার জন্য Geçmiş Zaman — Ben baktım (বেন বাক-তিম)। আর আগামীকালের জন্য Gelecek Zaman — Ben yiyeceğim (বেন ইয়ি-য়ে-জে-ইম)। চারটাই এক ক্রিয়ামূলে চারটা আলাদা suffix — এটাই তুর্কি ব্যাকরণের আসল কাঠামো।"',
+    ],
+    ruleIntro: 'চারটা কাল, চারটা suffix — নিচে প্রতিটার গঠন-নিয়ম আর বাস্তব উদাহরণ:',
+    wordClasses: [
+      { icon: '🔁', title: 'Geniş Zaman (সাধারণ/অভ্যাসগত কাল) — মূল + -ar/-er + ব্যক্তি', words: AORIST_SENTENCES },
+      { icon: '⏳', title: 'Şimdiki Zaman (বর্তমান কাল) — মূল + -yor + ব্যক্তি (রিভিশন)', words: PRESENT_CONT_REVISION },
+      { icon: '⬅️', title: 'Geçmiş Zaman (অতীত কাল) — মূল + -dı/-di/-du/-dü + ব্যক্তি', words: PAST_SENTENCES },
+      { icon: '➡️', title: 'Gelecek Zaman (ভবিষ্যৎ কাল) — মূল + -acak/-ecek + ব্যক্তি', words: FUTURE_SENTENCES },
+    ],
+    wordFormation: {
+      rule: 'একই ক্রিয়ামূল "Git" (যাওয়া) চারটা কালের suffix দিয়ে চার রকম রূপ নেয় — এই একটা প্যাটার্নই সব ক্রিয়ায় খাটে।',
+      examples: [
+        { stem: 'Git', stemMeaning: 'যাওয়া (মূল)', suf: '-er', result: 'Gider', pron: 'গি-দের', meaning: 'সে যায় (অভ্যাস)' },
+        { stem: 'Git', stemMeaning: 'যাওয়া (মূল)', suf: '-iyor', result: 'Gidiyor', pron: 'গি-দি-য়োর', meaning: 'সে যাচ্ছে (বর্তমান)' },
+        { stem: 'Git', stemMeaning: 'যাওয়া (মূল)', suf: '-ti', result: 'Gitti', pron: 'গিত-তি', meaning: 'সে গিয়েছিল (অতীত)' },
+        { stem: 'Git', stemMeaning: 'যাওয়া (মূল)', suf: '-ecek', result: 'Gidecek', pron: 'গি-দে-জেক', meaning: 'সে যাবে (ভবিষ্যৎ)' },
+      ],
+    },
+    exercises: [
+      'চারটা কালের নাম আর তাদের suffix মুখস্থ বলুন।',
+      '"আমি করি" (অভ্যাস), "আমি করছি" (এখন), "আমি করেছিলাম" (অতীত), "আমি করব" (ভবিষ্যৎ) — Yapmak (করা) ক্রিয়া দিয়ে চারটা রূপ বানানোর চেষ্টা করুন।',
+      'নিজের আজকের দিনের রুটিন নিয়ে চার কালে চারটা বাক্য বলুন।',
+    ],
+    retrieval: {
+      prompt: 'কোন কাল ব্যবহার হয়েছে — Geniş, Şimdiki, Geçmiş, নাকি Gelecek?',
+      items: [
+        { q: 'Biz uyuruz. (আমরা ঘুমাই।)', a: 'Geniş Zaman (অভ্যাসগত)' },
+        { q: 'O kitap okudu. (সে বই পড়েছিল।)', a: 'Geçmiş Zaman (অতীত)' },
+        { q: 'Yarın hava güzel olacak. (আগামীকাল আবহাওয়া ভালো হবে।)', a: 'Gelecek Zaman (ভবিষ্যৎ)' },
+      ],
+    },
+    miniExam: {
+      title: 'মিনি পরীক্ষা — স্টেশন ৮',
+      passRule: '১০/১৩ বা তার বেশি ঠিক হলে প্রস্তুত।',
+      items: [
+        { q: 'চারটা কালের তুর্কি নাম কী কী?', a: 'Geniş Zaman, Şimdiki Zaman, Geçmiş Zaman, Gelecek Zaman' },
+        { q: 'Geniş Zaman-এর suffix কী?', a: '-ar/-er' },
+        { q: 'Şimdiki Zaman-এর suffix কী?', a: '-yor' },
+        { q: 'Geçmiş Zaman-এর suffix কী?', a: '-dı/-di/-du/-dü' },
+        { q: 'Gelecek Zaman-এর suffix কী?', a: '-acak/-ecek' },
+        { q: '"Ben yaparım" — উচ্চারণ, অর্থ ও কাল লিখুন।', a: 'বেন ইয়া-পা-রিম — আমি করি (Geniş Zaman)' },
+        { q: '"Ben baktım" — উচ্চারণ, অর্থ ও কাল লিখুন।', a: 'বেন বাক-তিম — আমি দেখেছিলাম (Geçmiş Zaman)' },
+        { q: '"Ben yiyeceğim" — উচ্চারণ, অর্থ ও কাল লিখুন।', a: 'বেন ইয়ি-য়ে-জে-ইম — আমি খাব (Gelecek Zaman)' },
+        { q: 'Git (যাওয়া) মূল থেকে চারটা কালের রূপ লিখুন।', a: 'Gider, Gidiyor, Gitti, Gidecek' },
+      ],
+    },
+    badge: 'রুটিনের ব্যাজ — চারটা কাল শেখা হয়ে গেছে',
+    next: 'পরের স্টেশনে বাজারে গিয়ে suffix দিয়ে কীভাবে নতুন শব্দ তৈরি হয় তা শেখা হবে।',
   },
 ];
 
