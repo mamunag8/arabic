@@ -1908,4 +1908,86 @@ const SUFFIX_HUB = [
   },
 ];
 
-module.exports = { BOOK, STATIONS, STAGE_1_TOTAL, SUFFIX_HUB, CATEGORY_COLORS };
+// ---------------------------------------------------------------------------
+// VOWEL_HARMONY_DRILL -- Phase 6 (CURRICULUM_PLAN.md §7): this book's own
+// signature memorization mechanic, since Turkish is agglutinative rather
+// than root-based like Arabic (মূল ও শাখার family-tree device doesn't
+// apply here). Shown a stem, the reader picks the correctly-harmonized
+// suffixed form from among a few real options. Every {stem, correct} pair
+// below is copied verbatim from the station/suffix-hub where it was
+// already taught -- the "wrong" multiple-choice options at runtime are
+// simply OTHER real words' correct forms from the same family (picked in
+// build_site_turkish.js's drill logic), never an invented mis-harmonized
+// form -- so nothing here is fabricated, correct or "incorrect".
+// ---------------------------------------------------------------------------
+const VOWEL_HARMONY_DRILL = [
+  {
+    slug: 'accusative', label: 'Accusative (-ı/-i/-u/-ü)', station: 2,
+    items: [
+      { stem: 'kitap', stemPron: 'কতাপ', stemMeaning: 'বই', correct: 'kitabı', correctPron: 'কি-তা-বি', correctMeaning: 'বইটি' },
+      { stem: 'cep', stemPron: 'জেপ', stemMeaning: 'পকেট', correct: 'cebi', correctPron: 'জে-বি', correctMeaning: 'পকেটটি' },
+      { stem: 'şap', stemPron: 'শাপ', stemMeaning: 'টুপি', correct: 'şabı', correctPron: 'শা-বি', correctMeaning: 'টুপিটি' },
+      { stem: 'dolap', stemPron: 'দোলাপ', stemMeaning: 'আলমারি', correct: 'dolabı', correctPron: 'দো-লা-বি', correctMeaning: 'আলমারিটি' },
+      { stem: 'ağaç', stemPron: 'আচ', stemMeaning: 'গাছ', correct: 'ağacı', correctPron: 'আ-জি', correctMeaning: 'গাছটি' },
+      { stem: 'uç', stemPron: 'উচ', stemMeaning: 'প্রান্ত', correct: 'ucu', correctPron: 'উ-জু', correctMeaning: 'প্রান্তটি' },
+    ],
+  },
+  {
+    slug: 'locative', label: 'Locative (-da/-de/-ta/-te)', station: 2,
+    items: [
+      { stem: 'ev', stemPron: 'এভ', stemMeaning: 'বাড়ি', correct: 'evde', correctPron: 'এভ-দে', correctMeaning: 'বাড়িতে' },
+      { stem: 'araba', stemPron: 'আরাবা', stemMeaning: 'গাড়ি', correct: 'arabada', correctPron: 'আ-রা-বা-দা', correctMeaning: 'গাড়িতে' },
+      { stem: 'okul', stemPron: 'ওকুল', stemMeaning: 'স্কুল', correct: 'okulda', correctPron: 'ও-কুল-দা', correctMeaning: 'স্কুলে' },
+      { stem: 'Ocak', stemPron: 'ওজাক', stemMeaning: 'জানুয়ারি', correct: 'Ocakta', correctPron: 'ও-জাক-তা', correctMeaning: 'জানুয়ারিতে' },
+      { stem: 'masa', stemPron: 'মাসা', stemMeaning: 'টেবিল', correct: 'masada', correctPron: 'মা-সা-দা', correctMeaning: 'টেবিলে' },
+    ],
+  },
+  {
+    slug: 'ablative', label: 'Ablative (-tan/-ten/-dan/-den)', station: 2,
+    items: [
+      { stem: 'okul', stemPron: 'ওকুল', stemMeaning: 'স্কুল', correct: 'okuldan', correctPron: 'ও-কুল-দান', correctMeaning: 'স্কুল থেকে' },
+      { stem: 'o', stemPron: 'ও', stemMeaning: 'সে/সেটা', correct: 'ondan', correctPron: 'ওন-দান', correctMeaning: 'তার থেকে' },
+      { stem: 'ev', stemPron: 'এভ', stemMeaning: 'বাড়ি', correct: 'evden', correctPron: 'এভ-দেন', correctMeaning: 'বাড়ি থেকে' },
+    ],
+  },
+  {
+    slug: 'possessive-my', label: 'Possessive "আমার" (-ım/-im/-um)', station: 12,
+    items: [
+      { stem: 'Ev', stemPron: 'এভ', stemMeaning: 'বাড়ি', correct: 'Evim', correctPron: 'এ-ভিম', correctMeaning: 'আমার বাড়ি' },
+      { stem: 'Kalem', stemPron: 'কালেম', stemMeaning: 'কলম', correct: 'Kalemim', correctPron: 'কা-লে-মিম', correctMeaning: 'আমার কলম' },
+      { stem: 'Okul', stemPron: 'ওকুল', stemMeaning: 'স্কুল', correct: 'Okulum', correctPron: 'ও-কু-লুম', correctMeaning: 'আমার স্কুল' },
+    ],
+  },
+  {
+    slug: 'with-origin', label: '-lı/-li/-lu/-lü ("সহ/যুক্ত")', station: 9,
+    items: [
+      { stem: 'Şeker', stemPron: 'শেকের', stemMeaning: 'চিনি', correct: 'Şekerli', correctPron: 'শে-কের-লি', correctMeaning: 'চিনিযুক্ত' },
+      { stem: 'Bangladeş', stemPron: 'বাংলাদেশ', stemMeaning: 'বাংলাদেশ', correct: 'Bangladeşli', correctPron: 'বাং-লা-দেশ-লি', correctMeaning: 'বাংলাদেশি' },
+      { stem: 'Dağ', stemPron: 'দা', stemMeaning: 'পাহাড়', correct: 'Dağlı', correctPron: 'দা-লি', correctMeaning: 'পাহাড়ি' },
+      { stem: 'Köy', stemPron: 'কোই', stemMeaning: 'গ্রাম', correct: 'Köylü', correctPron: 'কোই-লু', correctMeaning: 'গ্রামবাসী' },
+    ],
+  },
+  {
+    slug: 'without', label: '-suz/-süz/-sız/-siz ("...হীন")', station: 9,
+    items: [
+      { stem: 'Tuz', stemPron: 'তুজ', stemMeaning: 'লবণ', correct: 'Tuzsuz', correctPron: 'তুজ-সুজ', correctMeaning: 'লবণহীন' },
+      { stem: 'Şeker', stemPron: 'শেকের', stemMeaning: 'চিনি', correct: 'Şekersiz', correctPron: 'শে-কের-সিজ', correctMeaning: 'চিনিহীন' },
+      { stem: 'Su', stemPron: 'সু', stemMeaning: 'পানি', correct: 'Susuz', correctPron: 'সু-সুজ', correctMeaning: 'পানিহীন' },
+      { stem: 'Ev', stemPron: 'এভ', stemMeaning: 'বাড়ি', correct: 'Evsiz', correctPron: 'এভ-সিজ', correctMeaning: 'গৃহহীন' },
+      { stem: 'İş', stemPron: 'ইশ', stemMeaning: 'কাজ', correct: 'İşsiz', correctPron: 'ইশ-সিজ', correctMeaning: 'বেকার' },
+      { stem: 'Umut', stemPron: 'উমুত', stemMeaning: 'আশা', correct: 'Umutsuz', correctPron: 'উ-মুত-সুজ', correctMeaning: 'নিরাশ' },
+      { stem: 'Para', stemPron: 'পারা', stemMeaning: 'টাকা', correct: 'Parasız', correctPron: 'পা-রা-সিজ', correctMeaning: 'অর্থহীন' },
+      { stem: 'Işık', stemPron: 'ইশিক', stemMeaning: 'আলো', correct: 'Işıksız', correctPron: 'ঈ-শিক-সিজ', correctMeaning: 'আলোহীন' },
+    ],
+  },
+  {
+    slug: 'question', label: '-mı/-mi/-mu/-mü (প্রশ্নসূচক)', station: 5,
+    items: [
+      { stem: 'öğrenci', stemPron: 'ওরেন-জি', stemMeaning: 'ছাত্র', correct: 'öğrenci misin?', correctPron: 'ওরেন-জি মি-সিন', correctMeaning: 'তুমি কি ছাত্র?' },
+      { stem: 'doktor', stemPron: 'দোক-তোর', stemMeaning: 'ডাক্তার', correct: 'doktor mu?', correctPron: 'দোক-তোর মু', correctMeaning: 'সে কি ডাক্তার?' },
+      { stem: 'masada', stemPron: 'মা-সা-দা', stemMeaning: 'টেবিলে', correct: 'masada mı?', correctPron: 'মা-সা-দা মি', correctMeaning: 'কি টেবিলে?' },
+    ],
+  },
+];
+
+module.exports = { BOOK, STATIONS, STAGE_1_TOTAL, SUFFIX_HUB, CATEGORY_COLORS, VOWEL_HARMONY_DRILL };
