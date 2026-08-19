@@ -18,7 +18,7 @@ const crypto = require('crypto');
 const { accountModal } = require('./lib/account.js');
 const { SUPABASE_ANON_KEY, SITE_ORIGIN } = require('./lib/config.js');
 const {
-  BOOK, CLASSES, STAGE_1_TOTAL,
+  BOOK, CLASSES, STAGE_1_TOTAL, STAGE_2_TOTAL, TOTAL_ROOTS_PLANNED,
   QURAN_TOTAL_WORD_TOKENS, QURAN_UNIQUE_WORD_FORMS,
   ARABIC_LEXICON_ROOTS, ARABIC_LEXICON_LEMMAS,
 } = require('./arabic_roots_content.js');
@@ -30,6 +30,28 @@ const BOOK_URL_PREFIX = `${SITE_ORIGIN}/books/${BOOK.id}/`;
 // convention as scripts/build_site.js's own bn() helper) -- CSS values
 // (percentages, hues) stay plain ASCII since browsers require that.
 const bn = (n) => String(n).replace(/\d/g, (d) => '০১২৩৪৫৬৭৮৯'[d]);
+
+// Which stage root #n belongs to + its position within that stage. Used
+// everywhere a "গাছ N/টোটাল" label is shown (landing page, class pages,
+// footer), so a class's label reflects its own stage's size rather than a
+// flat, ever-growing denominator that would make e.g. "গাছ ৩/৭৫" read as if
+// root 3 (رحم) belonged to a 75-root stage.
+function stageInfo(n) {
+  if (n <= STAGE_1_TOTAL) return { stage: 1, pos: n, total: STAGE_1_TOTAL };
+  if (n <= STAGE_1_TOTAL + STAGE_2_TOTAL) return { stage: 2, pos: n - STAGE_1_TOTAL, total: STAGE_2_TOTAL };
+  return { stage: null, pos: n, total: TOTAL_ROOTS_PLANNED };
+}
+function stageLabel(n) {
+  const s = stageInfo(n);
+  return s.stage ? `স্টেজ ${bn(s.stage)} · গাছ ${bn(s.pos)}/${bn(s.total)}` : `গাছ ${bn(n)}`;
+}
+// Current (highest, still-in-progress-or-just-finished) stage, for the
+// footer progress line and landing-page progress bar -- both should track
+// whichever stage the most recently written class belongs to, not always
+// stage 1.
+function currentStage() {
+  return CLASSES.length > 0 ? stageInfo(CLASSES[CLASSES.length - 1].n) : { stage: 1, pos: 0, total: STAGE_1_TOTAL };
+}
 
 const mkdir = (p) => fs.mkdirSync(p, { recursive: true });
 const written = [];
@@ -85,7 +107,7 @@ ${extraHead}
 <main id="main">${bodyHtml}</main>
 <footer class="foot">
   <p><strong>${BOOK.title}</strong> — ${BOOK.tagline}</p>
-  <p class="progress-note">স্টেজ ১: ${bn(CLASSES.length)} / ${bn(STAGE_1_TOTAL)} ক্লাস লেখা হয়েছে। বাকিগুলো ধাপে ধাপে আসছে।</p>
+  <p class="progress-note">মোট ${bn(CLASSES.length)} / ${bn(TOTAL_ROOTS_PLANNED)} ক্লাস লেখা হয়েছে (স্টেজ ১+২ মিলিয়ে পরিকল্পিত)। বাকিগুলো ধাপে ধাপে আসছে।</p>
   <p><a href="${SITE_ORIGIN}/">← লাইব্রেরিতে ফিরে যাও</a></p>
 </footer>
 ${ACCOUNT.html}
@@ -101,7 +123,11 @@ const roadmapHtml = BOOK.roster.map((r, i) => {
   const n = i + 1;
   const done = n <= CLASSES.length;
   const cls = done ? 'rm-item done' : 'rm-item';
-  const style = done ? ` style="--hue:${r.hue}"` : '';
+  // Hue for a "done" item comes from CLASSES (the single source of truth
+  // once a class is written), never from roster -- roster's own hue field
+  // is documentation only, so the two can never drift apart into showing
+  // two different colors for the same root on different pages.
+  const style = done ? ` style="--hue:${CLASSES[n - 1].hue}"` : '';
   const inner = done
     ? `<a href="class-${n}/">${bn(n)}. ${r.root} ${r.translit}</a>`
     : `${bn(n)}. ${r.root} ${r.translit}`;
@@ -112,7 +138,7 @@ const classCardsHtml = CLASSES.map((c) => `
     <a class="lesson-card" href="class-${c.n}/" style="--hue:${c.hue}">
       <span class="lesson-card-bar"></span>
       <div class="lesson-card-body">
-        <span class="lesson-card-meta">গাছ ${bn(c.n)}/${bn(STAGE_1_TOTAL)} · <span class="ar">${c.root}</span></span>
+        <span class="lesson-card-meta">${stageLabel(c.n)} · <span class="ar">${c.root}</span></span>
         <h3>${c.title}</h3>
         <span class="lesson-card-cta">ক্লাসে যাও →</span>
       </div>
@@ -125,8 +151,8 @@ const landingBody = `
     <p class="lead">${BOOK.tagline}</p>
     ${BOOK.intro.map((p) => `<p>${p}</p>`).join('\n    ')}
     <div class="progress-row">
-      <div class="progress-track"><div class="progress-fill" style="width:${Math.round((CLASSES.length / STAGE_1_TOTAL) * 100)}%"></div></div>
-      <span class="progress-label">${bn(CLASSES.length)} / ${bn(STAGE_1_TOTAL)} ক্লাস লেখা হয়েছে — স্টেজ ১</span>
+      <div class="progress-track"><div class="progress-fill" style="width:${Math.round((CLASSES.length / TOTAL_ROOTS_PLANNED) * 100)}%"></div></div>
+      <span class="progress-label">${bn(CLASSES.length)} / ${bn(TOTAL_ROOTS_PLANNED)} ক্লাস লেখা হয়েছে — মোট পরিকল্পিত (স্টেজ ১+২)</span>
     </div>
   </section>
   <section>
@@ -134,11 +160,11 @@ const landingBody = `
     <div class="lesson-grid">${classCardsHtml}</div>
   </section>
   <section>
-    <h2 class="section-h">স্টেজ ১-এর পুরো রোডম্যাপ (২৫ গাছ)</h2>
+    <h2 class="section-h">পুরো রোডম্যাপ (${bn(TOTAL_ROOTS_PLANNED)} গাছ পরিকল্পিত)</h2>
     <div class="roadmap">
       ${roadmapHtml}
     </div>
-    ${CLASSES.length === STAGE_1_TOTAL ? '<p style="margin-top:1rem"><a href="stage-1-summary/">📊 স্টেজ ১ সম্পন্ন — পুরো সারাংশ দেখো →</a></p>' : ''}
+    ${CLASSES.length >= STAGE_1_TOTAL ? '<p style="margin-top:1rem"><a href="stage-1-summary/">📊 স্টেজ ১ সম্পন্ন — পুরো সারাংশ দেখো →</a></p>' : ''}
   </section>`;
 
 write('index.html', page({
@@ -259,11 +285,12 @@ function statStripHtml(c, idx) {
 function classBody(c, idx) {
   const prev = idx > 0 ? CLASSES[idx - 1] : null;
   const next = idx < CLASSES.length - 1 ? CLASSES[idx + 1] : null;
+  const isStage1Finale = c.n === STAGE_1_TOTAL;
   return `
   <article class="class-card" style="--hue:${c.hue}">
     <div class="class-card-bar"></div>
     <div class="class-head">
-      <div class="meta"><span class="root-mark">${c.root}</span> গাছ ${bn(c.n)}/${bn(STAGE_1_TOTAL)} · ${c.rootRead.split('—')[1] ? c.rootRead.split('—')[1].trim() : c.translit}</div>
+      <div class="meta"><span class="root-mark">${c.root}</span> ${stageLabel(c.n)} · ${c.rootRead.split('—')[1] ? c.rootRead.split('—')[1].trim() : c.translit}</div>
       <h1>${c.title}</h1>
     </div>
     <div class="class-body">
@@ -306,12 +333,13 @@ function classBody(c, idx) {
 
       <h2>📊 এই গাছের প্রভাব</h2>
       ${statStripHtml(c, idx)}
+      ${isStage1Finale ? '<p class="next-up chrome">🎉 এটাই স্টেজ ১-এর শেষ গাছ। <a href="../stage-1-summary/">পুরো সারাংশ দেখো →</a></p>' : ''}
     </div>
   </article>
   <nav class="class-pager">
     ${prev ? `<a href="../class-${prev.n}/">← ক্লাস ${bn(prev.n)}</a>` : '<span></span>'}
     ${next ? `<a href="../class-${next.n}/">ক্লাস ${bn(next.n)} →</a>`
-      : (CLASSES.length === STAGE_1_TOTAL ? '<a href="../stage-1-summary/">স্টেজ ১ সারাংশ →</a>' : '<span class="next-locked">পরের ক্লাস এখনো লেখা হয়নি</span>')}
+      : (isStage1Finale ? '<a href="../stage-1-summary/">স্টেজ ১ সারাংশ →</a>' : '<span class="next-locked">পরের ক্লাস এখনো লেখা হয়নি</span>')}
   </nav>`;
 }
 
@@ -333,13 +361,17 @@ CLASSES.forEach((c, idx) => {
 // same CLASSES data + sourced constants the per-class stat strip uses --
 // nothing hand-typed, so it can't drift out of sync with the classes.
 // ---------------------------------------------------------------------------
-if (CLASSES.length === STAGE_1_TOTAL) {
-  const known = CLASSES.filter((c) => typeof c.freq === 'number');
-  const skipped = CLASSES.length - known.length;
+if (CLASSES.length >= STAGE_1_TOTAL) {
+  // Scoped to Stage 1's own 25 classes -- CLASSES itself now keeps growing
+  // past 25 once Stage 2 exists, but this page is specifically about Stage
+  // 1, so every stat here must stay Stage-1-only, not "all classes so far."
+  const stage1Classes = CLASSES.slice(0, STAGE_1_TOTAL);
+  const known = stage1Classes.filter((c) => typeof c.freq === 'number');
+  const skipped = stage1Classes.length - known.length;
   const sumFreq = known.reduce((a, c) => a + c.freq, 0);
   const pct = ((sumFreq / QURAN_TOTAL_WORD_TOKENS) * 100).toFixed(1);
-  const totalPracticeWords = CLASSES.reduce((a, c) => a + c.practiceWords.length, 0);
-  const rootListHtml = CLASSES.map((c) => `
+  const totalPracticeWords = stage1Classes.reduce((a, c) => a + c.practiceWords.length, 0);
+  const rootListHtml = stage1Classes.map((c) => `
       <li style="--hue:${c.hue}"><span class="ar sum-root">${c.root}</span> <span class="sum-title">${c.title}</span></li>`).join('');
   const dailyPhrases = [
     'বিসমিল্লাহ (আমিন, রাহমান, রাহীম -- ২টা শিকড়)',
@@ -632,7 +664,7 @@ written.filter((f) => f.endsWith('.html')).forEach((rel) => {
 console.log(`
   arabic-roots built
   ------------------------------------------
-  classes    ${CLASSES.length} / ${STAGE_1_TOTAL} (stage 1)
+  classes    ${CLASSES.length} / ${TOTAL_ROOTS_PLANNED} (stage 1: ${Math.min(CLASSES.length, STAGE_1_TOTAL)}/${STAGE_1_TOTAL}, stage 2: ${Math.max(0, CLASSES.length - STAGE_1_TOTAL)}/${STAGE_2_TOTAL})
   pages      ${written.length}
   -> ${OUT}
 `);

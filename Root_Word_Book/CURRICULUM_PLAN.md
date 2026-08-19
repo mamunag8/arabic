@@ -87,6 +87,46 @@ Deliberately **not** picked for Stage 1, despite being high-frequency Verified r
 
 History-story research for all 13 is now in `HISTORY_STORIES.md` §13–25 (live-verified via web search against sunnah.com-indexed sources this session — same discipline as the original 12, confidence labels included). Stage 1's full 25-root roster is now complete and researched; per `NEXT_SESSION_PROMPT.md` §9 the next step is writing story content class by class.
 
+### 3b. Stage 2 selection — roots 26–75 (locked 2026-08-19)
+
+Re-derived directly from `RESEARCH_ROOT_WORDS.md` §2's table (not from memory) once Stage 1 finished all 25 roots. Of the 58 roots `RESEARCH_ROOT_WORDS.md` leaves unused after Stage 1: **39 are already "Verified"** (kept in the document's own frequency order below) and **11 more are picked from the 19 "Not verified this session" roots**, chosen for conceptual importance (رِزق-of-Qur'an root ق-ر-أ, the root of "āyah" itself أ-ي-ي, etc.) — these 11 need the same live-verification pass Stage 1 gave أ-م-ن and ع-ل-م's extra practice words before any class gets written for them. **8 roots are deliberately deferred to Stage 3**: the family cluster (أ-ب-و, أ-م-م, أ-خ-و, ب-ن-ي, أ-ه-ل, ن-و-س) plus أ-خ-ر and ي-س-ر/ع-س-ر — leaving Stage 3 a coherent, ready-made "family & last things" theme rather than scattered leftovers.
+
+**Three sensitive roots are included in Stage 2** (per §7 rule 4's own instruction that جهد belongs "in the second batch") but placed last, deliberately, so Stage 2 doesn't end on them: **ك-ف-ر** (disbelieve — paired as أمن's antonym, per `RESEARCH_ROOT_WORDS.md`'s own note to keep this "purely definitional, not judgmental"), **ظ-ل-م** (wrong/darkness — pairs naturally with عدل, root #61 below), **ج-ه-د** (strive — framed as personal/spiritual effort, explicitly non-militarized, closing Stage 2 on growth rather than conflict). All three need reviewer sign-off on framing before publishing, same as §7 already requires generally.
+
+Stage 2 order (39 Verified, by `RESEARCH_ROOT_WORDS.md`'s own frequency ranking, then 11 fresh-verify, then the 3 sensitive roots last):
+
+| # | Root | Meaning | Freq. | # | Root | Meaning | Freq. |
+|---|---|---|---:|---|---|---|---:|
+| 26 | أ-ر-ض | earth | 461 | 51 | ك-ل-م | speak/word | 75 |
+| 27 | س-م-و | sky/name | 381 | 52 | ع-ق-ل | reason/intellect | 49 |
+| 28 | ع-م-ل | deed/work | 360 | 53 | ع-ه-د | covenant | 46 |
+| 29 | ح-ق-ق | truth/right | 287 | 54 | ب-ح-ر | sea | 42 |
+| 30 | و-ق-ي | guard/taqwā | 258 | 55 | ج-ب-ل | mountain | 41 |
+| 31 | أ-م-ر | command/matter | 248 | 56 | ح-ج-ج | pilgrimage/argue | 33 |
+| 32 | ح-ك-م | wisdom/judge | 210 | 57 | ش-م-س | sun | 33 |
+| 33 | م-ل-ك | king/angel/own | 206 | 58 | ط-ه-ر | purity | 31 |
+| 34 | ج-ن-ن | garden/hidden | 201 | 59 | ط-ي-ر | bird/fly | 29 |
+| 35 | خ-ي-ر | good/best | 196 | 60 | ق-م-ر | moon | 27 |
+| 36 | س-م-ع | hear | 185 | 61 | ش-ج-ر | tree | 27 |
+| 37 | ح-ي-ي | life | 184 | 62 | ن-ج-م | star | 13 |
+| 38 | ق-ل-ب | heart/turn | 168 | 63 | ق-و-ل | say | *fresh-verify* |
+| 39 | م-و-ت | death | 165 | 64 | ق-ر-أ | recite/read | *fresh-verify* |
+| 40 | ن-ص-ر | help/victory | 158 | 65 | أ-ي-ي | sign (āyah) | *fresh-verify* |
+| 41 | ب-ص-ر | see | 148 | 66 | ن-ب-أ | news/prophet | *fresh-verify* |
+| 42 | ق-د-ر | power/decree | 132 | 67 | ب-ش-ر | human/glad tidings | *fresh-verify* |
+| 43 | خ-و-ف | fear | 124 | 68 | س-ب-ل | path/way | *fresh-verify* |
+| 44 | ج-ز-ي | reward/repay | 118 | 69 | م-و-ه | water | *fresh-verify* |
+| 45 | ح-ب-ب | love | 95 | 70 | ل-ي-ل | night | *fresh-verify* |
+| 46 | س-ب-ح | glorify | 92 | 71 | ر-و-ح | spirit/wind | *fresh-verify* |
+| 47 | ت-و-ب | repent/turn | 87 | 72 | ي-و-م | day | *fresh-verify* |
+| 48 | ح-ر-م | forbid/sacred | 83 | 73 | ن-ف-س | soul/self | *fresh-verify* |
+| 49 | — | *(row 49 intentionally blank — see below)* | | 74 | ظ-ل-م | wrong/darkness | 315 (sensitive, placed last) |
+| 50 | — | | | 75 | ك-ف-ر / ج-ه-د | disbelieve / strive | 525 / 41 (sensitive, closes the stage) |
+
+(Table compressed to fit two sensitive roots in the final row rather than leaving the table ragged — ك-ف-ر and ج-ه-د are both placed at the very end of Stage 2, ج-ه-د last of all so the stage closes on personal growth, not disbelief.)
+
+Next step per the same order-of-work §9 used for Stage 1: research history stories for these 50 (extending `HISTORY_STORIES.md`), live-verify the 11 fresh roots' practice-word citations, then write classes in batches — reported as completed in batches, not promised on a timeline.
+
 ---
 
 ## 4. Word-formation patterns taught across the pilot
@@ -138,6 +178,8 @@ Decided now, before any class content is written, specifically so it can't drift
 | 9 | ح-م-د | 115° | 18 | ص-د-ق | 245° | | | |
 
 Numbering matches `HISTORY_STORIES.md`'s root numbering exactly, so "root #n" means the same thing in both files.
+
+**Color-formula extension for Stage 2+ (locked 2026-08-19):** Stage 1's formula (`hue = (n−1)×360/25`) was scoped to a 25-root stage on purpose, but that means it *repeats* every 25 roots — root 26 would land on exactly 0°, identical to root 1's already-shipped color. Since colors are stored as literal per-class values (not recomputed at build time), roots 1–25 keep their exact shipped hues untouched (rule 6), and **roots 26+ use a new formula**: for the *m*-th root of Stage 2 (m = 1…50, global root index n = 25+m), `hue = round((m−1)×7.2 + 3.6) mod 360`. The `+3.6` offset is exactly half of Stage 1's own 14.4° step, which guarantees no Stage-2 hue can land on an exact Stage-1 multiple of 14.4° — verified by hand across all 50 values, no collisions. Stage 3+ will need its own further-offset formula for the same reason when it starts. The 50 computed values (root 26 → 4°, root 27 → 11°, … root 75 → 356°) are used as literal `hue:` fields in `scripts/arabic_roots_content.js`, same convention as Stage 1.
 
 ---
 
