@@ -693,6 +693,13 @@ function buildClass(c) {
       if (l.startsWith('> ')) { out.push(`<blockquote>${inline(l.slice(2), rel, ctx)}</blockquote>`); return; }
       if (l.startsWith('# ')) { out.push(`<h3 class="big-note">${inline(l.slice(2), rel, ctx)}</h3>`); return; }
 
+      // Plain flowing-paragraph mode: no speaker chip, no per-line click-to-play --
+      // just a storybook paragraph with dialogue woven into the prose.
+      if (ex.noStoryAudio) {
+        out.push(`<p class="story-seg">${inline(l, rel, ctx)}</p>`);
+        return;
+      }
+
       let speaker = 'narrator';
       let tagLabel = 'গল্পকথক';
 
@@ -722,12 +729,7 @@ function buildClass(c) {
         tagLabel = 'মাহদী';
       }
 
-      out.push(ex.noStoryAudio
-        ? `<p class="story-seg" data-speaker="${speaker}">
-        <span class="seg-speaker-tag ${speaker}-tag">${tagLabel}</span>
-        <span class="seg-content">${inline(l, rel, ctx)}</span>
-      </p>`
-        : `<p class="story-seg" data-seg="${segIdx++}" data-speaker="${speaker}" tabindex="0">
+      out.push(`<p class="story-seg" data-seg="${segIdx++}" data-speaker="${speaker}" tabindex="0">
         <span class="seg-speaker-tag ${speaker}-tag">${tagLabel}</span>
         <span class="seg-content">${inline(l, rel, ctx)}</span>
       </p>`);
