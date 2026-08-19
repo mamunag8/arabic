@@ -585,6 +585,38 @@ const RECIPROCAL_VERBS = [
   ['Konuşuyorlar.', 'কো-নু-শু-য়োর-লার', 'তারা কথা বলছে। (Reciprocal)'],
 ];
 
+// ---------------------------------------------------------------------------
+// Station 17 -- তুলনামূলক বাক্য (Comparative Sentences) -- FRESH WRITE.
+// The draft's own পর্ব ১৭ is a stub: only a one-line teaser ("পরবর্তী পর্বে
+// আমরা তুলনামূলক বাক্য শেখার দিকে এগিয়ে যাব!"), no actual content -- verified
+// by reading the surrounding lines, not assumed (see
+// Turkish_Bangla_Book/CURRICULUM_PLAN.md §1b and §4's table). Everything
+// below is freshly authored, not transcribed, using the standard,
+// uncontroversial A1-A2 Turkish comparative/superlative/equality system
+// (daha/en/kadar) rather than invented or uncertain grammar -- same
+// pattern any beginner Turkish grammar reference teaches. Adjectives reuse
+// station 3's already-sourced vocabulary (büyük, küçük, soğuk, sıcak,
+// güzel) rather than introducing new untraced words. "Temmuz" (July) is
+// genuinely from the draft's weather section (পর্ব: আবহাওয়া, "Temmuz ayında
+// hava çok sıcak olur") though not selected for station 11.
+// ---------------------------------------------------------------------------
+const COMPARATIVE_SENTENCES = [
+  ['Bu ev ondan daha büyük.', 'বু এভ ওন-দান দা-হা বু-য়ুক', 'এই বাড়িটা ওটার চেয়ে বড়।'],
+  ['Bu kitap ondan daha küçük.', 'বু কি-তাপ ওন-দান দা-হা কু-চুক', 'এই বইটা ওটার চেয়ে ছোট।'],
+  ['Kışın hava yazdan daha soğuk.', 'কি-শিন হা-ভা ইয়াজ-দান দা-হা সো-উক', 'শীতের আবহাওয়া গ্রীষ্মের চেয়ে ঠান্ডা।'],
+];
+
+const SUPERLATIVE_SENTENCES = [
+  ['En büyük ev bu.', 'এন বু-য়ুক এভ বু', 'সবচেয়ে বড় বাড়ি এইটা।'],
+  ['En sıcak ay Temmuz.', 'এন সি-জাক আই তেম-মুজ', 'সবচেয়ে গরম মাস জুলাই।'],
+  ['En güzel şehir Erzurum.', 'এন গু-জেল শে-হির এর-জু-রুম', 'সবচেয়ে সুন্দর শহর এরজুরুম।'],
+];
+
+const EQUALITY_SENTENCES = [
+  ['Bu ev o kadar büyük değil.', 'বু এভ ও কা-দার বু-য়ুক দে-ইল', 'এই বাড়িটা ততটা বড় না।'],
+  ['Sen benim kadar uzunsun.', 'সেন বে-নিম কা-দার উ-জুন-সুন', 'তুমি আমার মতোই লম্বা।'],
+];
+
 const STATIONS = [
   {
     n: 1,
@@ -1500,6 +1532,59 @@ const STATIONS = [
     },
     badge: 'রান্নাঘরের ব্যাজ — চারটা ক্রিয়ার Çatı শেখা হয়ে গেছে',
     next: 'পরের স্টেশনে বাজারে দরদাম করতে গিয়ে শেখা হবে তুলনামূলক বাক্য।',
+  },
+  {
+    n: 17,
+    hue: 303,
+    title: 'তুলনামূলক বাক্য',
+    subtitle: 'Karşılaştırma Cümleleri',
+    scene: 'বাজারে দরদাম/তুলনা',
+    story: [
+      'রোববারের বড় বাজারে দুইটা দোকানের সামনে দাঁড়িয়ে দরদাম করছিলেন। এলিফ একটা তরমুজ তুলে বলল, "Bu daha büyük (বু দা-হা বু-য়ুক) — এটা আরও বড়। দেখুন — büyük (বড়) শব্দের আগে শুধু daha (আরও/বেশি) বসিয়ে দিলাম, ব্যস, তুলনা হয়ে গেল।"',
+      '"নির্দিষ্ট করে কীসের সাথে তুলনা করছেন সেটাও বলা যায়," এলিফ যোগ করল। "Bu ev ondan daha büyük (বু এভ ওন-দান দা-হা বু-য়ুক) — এই বাড়িটা ওটার চেয়ে বড়। ondan (ওটার চেয়ে) মানে \'সেটা থেকে\' — স্টেশন ২-এর সেই -dan suffix, এখানে তুলনার কাজে লাগছে।"',
+      'দোকানি হেসে বললেন কিছু একটা। এলিফ অনুবাদ করল, "En güzel şehir Erzurum (এন গু-জেল শে-হির এর-জু-রুম) — বলছেন, সবচেয়ে সুন্দর শহর এরজুরুম। en (সবচেয়ে) বসালেই superlative — তুলনার সর্বোচ্চ ধাপ।"',
+    ],
+    ruleIntro: 'তিনটা তুলনার ধাপ — daha (আরও/বেশি — comparative), en (সবচেয়ে — superlative), kadar (ততটা/সমান — equality)। বিশেষণের আগে বসে, খুব সহজ নিয়ম:',
+    wordClasses: [
+      { icon: '⚖️', title: 'daha — "...চেয়ে বেশি"', words: COMPARATIVE_SENTENCES },
+      { icon: '🏆', title: 'en — "সবচেয়ে..."', words: SUPERLATIVE_SENTENCES },
+      { icon: '🟰', title: 'kadar — "ততটা/সমান..."', words: EQUALITY_SENTENCES },
+    ],
+    wordFormation: {
+      rule: 'একটা বিশেষণ (büyük — বড়, স্টেশন ৩ রিভিশন) তিনটা ধাপে তিন রকম তুলনা তৈরি করে:',
+      examples: [
+        { stem: 'büyük', stemMeaning: 'বড় (positive, স্টেশন ৩)', suf: '(কোনো তুলনা নয়)', result: 'büyük', pron: 'বু-য়ুক', meaning: 'বড়' },
+        { stem: 'büyük', stemMeaning: 'বড় (comparative)', suf: 'daha +', result: 'daha büyük', pron: 'দা-হা বু-য়ুক', meaning: 'আরও বড়' },
+        { stem: 'büyük', stemMeaning: 'বড় (superlative)', suf: 'en +', result: 'en büyük', pron: 'এন বু-য়ুক', meaning: 'সবচেয়ে বড়' },
+      ],
+    },
+    exercises: [
+      '"এটা আরও ছোট" — তুর্কিতে ও উচ্চারণসহ লিখুন (küçük শব্দ ব্যবহার করে)।',
+      'daha, en, kadar — তিনটার অর্থের পার্থক্য উদাহরণসহ ব্যাখ্যা করুন।',
+      'নিজের শহর/গ্রাম নিয়ে একটা "সবচেয়ে..." (en) বাক্য বলুন।',
+    ],
+    retrieval: {
+      prompt: 'daha, en, নাকি kadar বসবে?',
+      items: [
+        { q: 'Bu çay ___ sıcak. (এই চা-টা আরও গরম।)', a: 'daha (দা-হা)' },
+        { q: 'Bu ___ sıcak çay. (এটা সবচেয়ে গরম চা।)', a: 'en (এন)' },
+        { q: 'Sen benim ___ uzunsun. (তুমি আমার মতোই লম্বা।)', a: 'kadar (কা-দার)' },
+      ],
+    },
+    miniExam: {
+      title: 'মিনি পরীক্ষা — স্টেশন ১৭',
+      passRule: '৮/১০ বা তার বেশি ঠিক হলে প্রস্তুত।',
+      items: [
+        { q: 'daha, en, kadar — এই তিনটার অর্থ কী?', a: 'daha=আরও/বেশি (comparative), en=সবচেয়ে (superlative), kadar=ততটা/সমান (equality)' },
+        { q: '"Bu ev ondan daha büyük" — উচ্চারণ ও অর্থ লিখুন।', a: 'বু এভ ওন-দান দা-হা বু-য়ুক — এই বাড়িটা ওটার চেয়ে বড়' },
+        { q: '"En güzel şehir Erzurum" — উচ্চারণ ও অর্থ লিখুন।', a: 'এন গু-জেল শে-হির এর-জু-রুম — সবচেয়ে সুন্দর শহর এরজুরুম' },
+        { q: 'তুলনায় "ওটার চেয়ে" বোঝাতে কোন suffix ব্যবহার হয়, আর কোথায় এটা আগে শেখা হয়েছে?', a: '-dan/-den (ondan) — স্টেশন ২-এর ablative suffix' },
+        { q: 'büyük শব্দ থেকে comparative আর superlative রূপ বানান।', a: 'daha büyük (আরও বড়), en büyük (সবচেয়ে বড়)' },
+        { q: '"Sen benim kadar uzunsun" — উচ্চারণ ও অর্থ লিখুন।', a: 'সেন বে-নিম কা-দার উ-জুন-সুন — তুমি আমার মতোই লম্বা' },
+      ],
+    },
+    badge: 'দরদামের ব্যাজ — তুলনার তিন ধাপ শেখা হয়ে গেছে',
+    next: 'পরের স্টেশনে গল্প বলতে গিয়ে শেখা হবে জটিল বাক্য গঠন।',
   },
 ];
 
