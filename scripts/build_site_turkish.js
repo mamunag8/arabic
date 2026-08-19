@@ -111,7 +111,7 @@ const stationCardsHtml = STATIONS.map((s) => `
 
 const landingBody = `
   <section class="hero">
-    <p class="eyebrow">তৃতীয় বই · কাজ চলছে</p>
+    <p class="eyebrow">তৃতীয় বই · ${STATIONS.length >= STAGE_1_TOTAL ? 'স্টেজ ১ সম্পূর্ণ' : 'কাজ চলছে'}</p>
     <h1>🌉 ${BOOK.title}</h1>
     <p class="lead">${BOOK.tagline}</p>
     ${BOOK.intro.map((p) => `<p>${p}</p>`).join('\n    ')}
@@ -241,6 +241,12 @@ function qaTable(rows) {
       </table></div>`;
 }
 
+function closingHtml(c) {
+  return `<div class="pride-box">
+      ${c.text.map((t) => `<p>${t}</p>`).join('\n        ')}
+    </div>`;
+}
+
 function wordFormationHtml(wf) {
   const trs = wf.examples.map((e) => `
         <tr>
@@ -363,6 +369,8 @@ function stationBody(s, idx) {
 
       <h2>📝 ${s.miniExam.title}</h2>
       ${miniExamHtml(s.miniExam)}
+
+      ${s.closing ? `<h2>🌉 ${s.closing.title}</h2>${closingHtml(s.closing)}` : ''}
 
       <div class="badge-strip"><span class="swatch"></span> ${s.badge}</div>
       <p class="gloss">${s.next}</p>
