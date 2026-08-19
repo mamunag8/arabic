@@ -1096,7 +1096,14 @@ write('assets/app.js', js);
 // sitemap fragment for this book (referenced from the catalog's sitemap
 // index, same pattern as the other books)
 // ---------------------------------------------------------------------------
-const urls = [BOOK_URL_PREFIX, ...STATIONS.map((s) => `${BOOK_URL_PREFIX}station-${s.n}/`)];
+const urls = [
+  BOOK_URL_PREFIX,
+  ...STATIONS.map((s) => `${BOOK_URL_PREFIX}station-${s.n}/`),
+  `${BOOK_URL_PREFIX}practice/`,
+  `${BOOK_URL_PREFIX}suffix/`,
+  ...SUFFIX_HUB.map((h) => `${BOOK_URL_PREFIX}suffix/${h.slug}/`),
+  `${BOOK_URL_PREFIX}word-index/`,
+];
 write('sitemap.xml',
   '<?xml version="1.0" encoding="UTF-8"?>\n' +
   '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' +
