@@ -17,7 +17,7 @@ const path = require('path');
 const crypto = require('crypto');
 const { accountModal } = require('./lib/account.js');
 const { SUPABASE_ANON_KEY, SITE_ORIGIN } = require('./lib/config.js');
-const { BOOK, STATIONS, STAGE_1_TOTAL } = require('./turkish_content.js');
+const { BOOK, STATIONS, STAGE_1_TOTAL, SUFFIX_HUB, CATEGORY_COLORS } = require('./turkish_content.js');
 
 const OUT = path.join(__dirname, '..', 'site', 'books', BOOK.id);
 const BOOK_URL_PREFIX = `${SITE_ORIGIN}/books/${BOOK.id}/`;
@@ -100,6 +100,8 @@ ${extraHead}
 <header class="top">
   <a class="brand" href="${up}">🌉 <span class="bt">${BOOK.title}</span></a>
   <div class="hdr-r">
+    <a class="theme" href="${up}suffix/" aria-label="Suffix হাব">🧩</a>
+    <a class="theme" href="${up}word-index/" aria-label="সম্পূর্ণ শব্দসূচি">📖</a>
     <a class="theme" href="${up}practice/" aria-label="অনুশীলনের ঝুড়ি">🧺</a>
     <button class="theme" id="acctBtn" aria-label="লগইন / প্রোফাইল">👤</button>
     <button class="theme" id="themeBtn" aria-label="থিম বদলাও">🌗</button>
@@ -152,6 +154,8 @@ const landingBody = `
     <div class="cta">
       <a class="btn" href="station-1/">প্রথম স্টেশন থেকে শুরু করো →</a>
       <a class="btn ghost" href="practice/">🧺 অনুশীলনের ঝুড়ি (${bn(WORD_POOL.length)}টা শব্দ)</a>
+      <a class="btn ghost" href="suffix/">🧩 Suffix হাব (${bn(SUFFIX_HUB.length)}টা)</a>
+      <a class="btn ghost" href="word-index/">📖 সম্পূর্ণ শব্দসূচি</a>
     </div>
   </section>
   <section>
@@ -636,6 +640,119 @@ TOOLS.cards();
 }
 
 // ---------------------------------------------------------------------------
+// word index -- full A-Z list (Phase 5, CURRICULUM_PLAN.md §8: "সম্পূর্ণ
+// সূচি -- A-থেকে-Z তুর্কি বর্ণানুক্রম প্রধান"). Reuses WORD_POOL, the same
+// 357-word pool the practice room draws from, grouped by first letter.
+// ---------------------------------------------------------------------------
+{
+  const sorted = WORD_POOL.slice().sort((a, b) => a.tr.localeCompare(b.tr, 'tr'));
+  const groups = {};
+  sorted.forEach((w) => {
+    const first = w.tr.charAt(0).toLocaleUpperCase('tr');
+    (groups[first] = groups[first] || []).push(w);
+  });
+  const letters = Object.keys(groups).sort((a, b) => a.localeCompare(b, 'tr'));
+  const groupsHtml = letters.map((L) => `
+    <h2 class="idx-letter">${L}</h2>
+    <ul class="idx-list">${groups[L].map((w) => `
+      <li><strong>${w.tr}</strong> <span class="gloss">(${w.pron})</span> — ${w.bn}
+        <a class="idx-src" href="../station-${w.n}/">স্টেশন ${bn(w.n)}</a></li>`).join('')}
+    </ul>`).join('');
+
+  write('word-index/index.html', page({
+    title: `সম্পূর্ণ শব্দসূচি · ${BOOK.title}`,
+    description: `${BOOK.title}-এর ${WORD_POOL.length}টা শব্দ, তুর্কি বর্ণানুক্রমে, উচ্চারণ ও অর্থসহ`,
+    canonical: `${BOOK_URL_PREFIX}word-index/`,
+    bodyHtml: `
+    <section class="hero">
+      <h1>📖 সম্পূর্ণ শব্দসূচি</h1>
+      <p class="lead">বইয়ের ১৯টা স্টেশন থেকে ${bn(WORD_POOL.length)}টা শব্দ ও বাক্য, তুর্কি বর্ণানুক্রমে। প্রতিটার পাশে উচ্চারণ, অর্থ, আর কোন স্টেশনে প্রথম শেখানো হয়েছে তার লিংক।</p>
+      <div class="cta"><a class="btn ghost" href="../suffix/">🧩 Suffix অনুযায়ী দেখো</a></div>
+    </section>
+    ${groupsHtml}`,
+  }));
+}
+
+// ---------------------------------------------------------------------------
+// suffix hub -- Phase 5's own linking-axis idea (CURRICULUM_PLAN.md §8):
+// Turkish is agglutinative, not root-based like Arabic, so instead of
+// মূল ও শাখার root-tree, every grammatical suffix gets its own page
+// collecting every occurrence already taught across the book. One color
+// per category, permanently (SUFFIX_HUB/CATEGORY_COLORS in
+// turkish_content.js).
+// ---------------------------------------------------------------------------
+const CATEGORY_LABELS = {
+  case: '📐 কেস suffix (বিশেষ্যের ভূমিকা বদলায়)',
+  tense: '⏳ কাল suffix (কখন হচ্ছে বোঝায়)',
+  derivational: '🔧 নতুন শব্দ তৈরি করা suffix',
+  sentence: '🔗 বাক্য-গঠনকারী suffix',
+};
+
+function suffixHubTable(rows) {
+  const trs = rows.map((r) => `
+        <tr><td class="tr-letter">${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td></tr>`).join('');
+  return `<div class="tbl-wrap"><table>
+        <tr><th>তুর্কি</th><th>উচ্চারণ</th><th>বাংলা অর্থ</th></tr>${trs}
+      </table></div>`;
+}
+
+{
+  const byCategory = {};
+  SUFFIX_HUB.forEach((h) => { (byCategory[h.category] = byCategory[h.category] || []).push(h); });
+
+  const indexSections = Object.keys(CATEGORY_LABELS).map((cat) => {
+    const hue = CATEGORY_COLORS[cat];
+    const items = (byCategory[cat] || []).map((h) => `
+      <a class="lesson-card" href="${h.slug}/" style="--hue:${hue}">
+        <span class="lesson-card-bar"></span>
+        <div class="lesson-card-body">
+          <span class="lesson-card-meta">স্টেশন ${bn(h.station)} থেকে · ${bn(h.words.length)}টা উদাহরণ</span>
+          <h3>${h.title}</h3>
+          <span class="lesson-card-cta">দেখো →</span>
+        </div>
+      </a>`).join('');
+    return `<section><h2 class="section-h">${CATEGORY_LABELS[cat]}</h2><div class="lesson-grid">${items}</div></section>`;
+  }).join('');
+
+  write('suffix/index.html', page({
+    title: `Suffix হাব · ${BOOK.title}`,
+    description: `${BOOK.title}-এর প্রতিটা suffix, একটা করে হাব-পাতায় — বইয়ের সব জায়গায় সেই suffix যেখানে ব্যবহৃত হয়েছে তার প্রতিটা উদাহরণ এক জায়গায়`,
+    canonical: `${BOOK_URL_PREFIX}suffix/`,
+    bodyHtml: `
+    <section class="hero">
+      <h1>🧩 Suffix হাব</h1>
+      <p class="lead">তুর্কি agglutinative ভাষা — একটা শব্দমূলে অনেকগুলো suffix জোড়া লেগে অর্থ তৈরি হয়। প্রতিটা suffix-এর নিজস্ব একটা পাতা, বইয়ের সব স্টেশনের উদাহরণ এক জায়গায়।</p>
+      <div class="cta"><a class="btn ghost" href="../word-index/">📖 সম্পূর্ণ শব্দসূচি দেখো</a></div>
+    </section>
+    ${indexSections}`,
+  }));
+
+  SUFFIX_HUB.forEach((h) => {
+    const hue = CATEGORY_COLORS[h.category];
+    write(`suffix/${h.slug}/index.html`, page({
+      title: `${h.title} · Suffix হাব · ${BOOK.title}`,
+      description: `${h.title} suffix-এর সব উদাহরণ, স্টেশন ${bn(h.station)} থেকে`,
+      canonical: `${BOOK_URL_PREFIX}suffix/${h.slug}/`,
+      bodyHtml: `
+      <article class="class-card" style="--hue:${hue}">
+        <div class="class-card-bar"></div>
+        <div class="class-head">
+          <div class="meta">${CATEGORY_LABELS[h.category]}</div>
+          <h1>${h.title}</h1>
+        </div>
+        <div class="class-body">
+          <p>${h.rule}</p>
+          <p class="gloss">প্রথম শেখানো হয়েছে <a href="../../station-${h.station}/">স্টেশন ${bn(h.station)}</a>-এ।</p>
+          <h2>সব উদাহরণ (${bn(h.words.length)}টা)</h2>
+          ${suffixHubTable(h.words)}
+        </div>
+      </article>
+      <nav class="class-pager"><a href="../">← সব suffix</a><a href="../../word-index/">সম্পূর্ণ শব্দসূচি →</a></nav>`,
+    }));
+  });
+}
+
+// ---------------------------------------------------------------------------
 // styles -- same base tokens as build_catalog.js's :root block (platform-wide
 // visual consistency), plus this book's own hue-per-station accent layer.
 // ---------------------------------------------------------------------------
@@ -816,6 +933,14 @@ th{font-size:.72rem;text-transform:uppercase;letter-spacing:.03em;color:var(--mu
 .qz-fb.ok{color:var(--acc)}
 .qz-fb.no{color:var(--acc2)}
 .qz-end{text-align:center}
+
+/* ---- word index & suffix hub (Phase 5) ---- */
+.idx-letter{margin:2rem 0 .6rem;font-size:1.3rem;color:var(--acc);border-bottom:1px solid var(--line);padding-bottom:.3rem}
+.idx-list{list-style:none;margin:0;padding:0;display:grid;gap:.5rem}
+.idx-list li{font-size:.95rem;padding:.4rem 0;border-bottom:1px dashed var(--line)}
+.idx-src{float:inline-end;font-size:.78rem;color:var(--mut);text-decoration:none;border:1px solid var(--line);
+  border-radius:999px;padding:.1rem .6rem;white-space:nowrap}
+.idx-src:hover{border-color:var(--acc);color:var(--acc)}
 ${ACCOUNT.css}
 `;
 write('assets/style.css', css);
