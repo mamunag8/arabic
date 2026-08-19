@@ -17,7 +17,7 @@ const path = require('path');
 const crypto = require('crypto');
 const { accountModal } = require('./lib/account.js');
 const { SUPABASE_ANON_KEY, SITE_ORIGIN } = require('./lib/config.js');
-const { BOOK, STATIONS, STAGE_1_TOTAL, SUFFIX_HUB, CATEGORY_COLORS } = require('./turkish_content.js');
+const { BOOK, STATIONS, STAGE_1_TOTAL, SUFFIX_HUB, CATEGORY_COLORS, VOWEL_HARMONY_DRILL } = require('./turkish_content.js');
 
 const OUT = path.join(__dirname, '..', 'site', 'books', BOOK.id);
 const BOOK_URL_PREFIX = `${SITE_ORIGIN}/books/${BOOK.id}/`;
@@ -446,7 +446,7 @@ let PRACTICE_JS = '';
   const practiceBody = `
   <section class="hero">
     <h1>🧺 অনুশীলনের ঝুড়ি</h1>
-    <p class="lead">বইয়ের ১৯টা স্টেশন থেকে ${bn(WORD_POOL.length)}টা শব্দ ও বাক্য জমা হয়েছে এখানে। ফ্ল্যাশ কার্ড, জোড়া মেলানো, আর চ্যালেঞ্জ — তিনভাবে ঝালাই করা যায়।</p>
+    <p class="lead">বইয়ের ১৯টা স্টেশন থেকে ${bn(WORD_POOL.length)}টা শব্দ ও বাক্য জমা হয়েছে এখানে। ফ্ল্যাশ কার্ড, জোড়া মেলানো, চ্যালেঞ্জ, ভাওয়েল হারমনি ড্রিল, আর প্রতিদিনের রিভিউ — পাঁচভাবে ঝালাই করা যায়।</p>
   </section>
   <section class="practice" id="hub">
     <p class="pr-count muted" id="hubCount">শব্দ সাজানো হচ্ছে…</p>
@@ -454,12 +454,15 @@ let PRACTICE_JS = '';
       <button class="pr-tab on" type="button" data-tool="cards" role="tab">🃏 ফ্ল্যাশ কার্ড</button>
       <button class="pr-tab" type="button" data-tool="pairs" role="tab">🧩 জোড়া মেলাও</button>
       <button class="pr-tab" type="button" data-tool="quiz" role="tab">🎯 চ্যালেঞ্জ</button>
+      <button class="pr-tab" type="button" data-tool="harmony" role="tab">🎵 ভাওয়েল হারমনি</button>
+      <button class="pr-tab" type="button" data-tool="review" role="tab">📅 আজকের রিভিউ</button>
       <button class="pr-tab" type="button" id="prShuffle">🔀 নতুন ২০টা শব্দ</button>
     </div>
     <div class="pr-body"></div>
   </section>
   <p class="muted sm">কিছুই সময় মেপে নয়, কিছুই হারানোর নয়। ভুল হলে শব্দটা আবার ঘুরে আসবে — ব্যস।</p>
-  <script type="application/json" id="hubPool">${JSON.stringify(WORD_POOL).replace(/</g, '\\u003c')}</script>`;
+  <script type="application/json" id="hubPool">${JSON.stringify(WORD_POOL).replace(/</g, '\\u003c')}</script>
+  <script type="application/json" id="hubHarmony">${JSON.stringify(VOWEL_HARMONY_DRILL).replace(/</g, '\\u003c')}</script>`;
 
   write('practice/index.html', page({
     title: `অনুশীলনের ঝুড়ি · ${BOOK.title}`,
@@ -474,6 +477,7 @@ let PRACTICE_JS = '';
 var pr=document.getElementById('hub');
 if(!pr) return;
 var pool=[]; try{ var pel=document.getElementById('hubPool'); pool=JSON.parse((pel&&pel.textContent)||'[]'); }catch(e){}
+var harmonyFamilies=[]; try{ var hel=document.getElementById('hubHarmony'); harmonyFamilies=JSON.parse((hel&&hel.textContent)||'[]'); }catch(e){}
 var body=pr.querySelector('.pr-body');
 var offset=0, deck=[], qs=[];
 
@@ -616,7 +620,123 @@ function quiz(){
   render();
 }
 
-var TOOLS={cards:cards,pairs:pairs,quiz:quiz};
+// ---- tool 4: vowel-harmony drill (Phase 6 signature mechanic) ----
+// pick the correctly-harmonized suffixed form of a stem, among distractors
+// that are OTHER real words' correct forms from the same family -- never
+// an invented mis-harmonized form.
+function harmony(famIdx){
+  if(typeof famIdx!=='number') famIdx=0;
+  if(!harmonyFamilies.length){ body.innerHTML='<p class="muted">এই বইয়ের ভাওয়েল হারমনি ড্রিল এখনো প্রস্তুত হয়নি।</p>'; return; }
+  var picker='<div class="pr-scope">'+harmonyFamilies.map(function(f,i){
+    return '<label><input type="radio" name="harmFam" value="'+i+'"'+(i===famIdx?' checked':'')+'> '+f.label+' ('+bn(f.items.length)+')</label>';
+  }).join('')+'</div><div class="harm-body"></div>';
+  body.innerHTML=picker;
+  var hb=body.querySelector('.harm-body');
+  [].forEach.call(body.querySelectorAll('input[name=harmFam]'),function(r){
+    r.addEventListener('change',function(){ harmony(+r.value); });
+  });
+
+  var fam=harmonyFamilies[famIdx], items=fam.items, at=0, right=0;
+  function render(){
+    if(at>=items.length){
+      hb.innerHTML='<div class="qz-end"><p class="big-note">🎉 '+fam.label+' — '+bn(right)+'/'+bn(items.length)+' ঠিক!</p>'+
+        '<p class="muted">স্টেশন '+bn(fam.station)+'-এ এই suffix-টা বিস্তারিত শেখানো হয়েছে।</p>'+
+        '<button class="btn ghost qz-again" type="button">🔁 আবার খেলো</button></div>';
+      hb.querySelector('.qz-again').addEventListener('click',function(){ at=0; right=0; render(); });
+      return;
+    }
+    var item=items[at];
+    var opts=[item.correct];
+    for(var i=0;i<items.length && opts.length<4;i++){
+      var o=items[(at+i+1)%items.length];
+      if(o.correct!==item.correct && opts.indexOf(o.correct)<0) opts.push(o.correct);
+    }
+    var k=at%opts.length; opts=opts.slice(k).concat(opts.slice(0,k));
+    hb.innerHTML='<div class="qz-q"><span class="qz-n">'+bn(at+1)+'/'+bn(items.length)+'</span>'+
+      '<div class="tr-huge">'+item.stem+'</div><p class="muted sm">'+item.stemPron+' — '+item.stemMeaning+
+      '<br>সঠিক ভাওয়েল-হারমনি রূপটা বেছে নাও:</p></div>'+
+      '<div class="qz-opts">'+opts.map(function(o){return '<button class="qz-o" type="button">'+o+'</button>';}).join('')+'</div>'+
+      '<p class="qz-fb" hidden></p>';
+    var fb=hb.querySelector('.qz-fb'), tries=0;
+    [].forEach.call(hb.querySelectorAll('.qz-o'),function(b){
+      b.addEventListener('click',function(){
+        if(b.disabled) return;
+        if(b.textContent===item.correct){
+          b.classList.add('ok');
+          if(tries===0) right++;
+          fb.hidden=false; fb.className='qz-fb ok'; fb.textContent='ঠিক! '+item.correctPron+' — '+item.correctMeaning;
+          [].forEach.call(hb.querySelectorAll('.qz-o'),function(x){x.disabled=true;});
+          setTimeout(function(){ at++; render(); },1000);
+        } else {
+          tries++; b.classList.add('no'); b.disabled=true;
+          fb.hidden=false; fb.className='qz-fb no';
+          fb.textContent=tries===1?'উঁহু — ভাওয়েল হারমনির নিয়মটা আবার ভাবো।':'সঠিক উত্তর: '+item.correct+' ('+item.correctPron+')';
+          if(tries>=2){
+            [].forEach.call(hb.querySelectorAll('.qz-o'),function(x){ if(x.textContent===item.correct) x.classList.add('ok'); x.disabled=true; });
+            setTimeout(function(){ at++; render(); },1600);
+          }
+        }
+      });
+    });
+  }
+  render();
+}
+
+// ---- tool 5: SRS review ("আজকের রিভিউ") ----
+// lightweight SM-2-lite scheduler (CURRICULUM_PLAN.md §7): per-word
+// interval index into [1,3,7,16,35] days, stored in its own localStorage
+// key (kept separate from account.js's nd-progress-turkish so this never
+// interferes with the account/Supabase-synced completion state).
+var SRS_KEY='nd-srs-turkish', SRS_DAY=86400000, SRS_INTERVALS=[1,3,7,16,35];
+function loadSrs(){ try{ return JSON.parse(localStorage.getItem(SRS_KEY))||{}; }catch(e){ return {}; } }
+function saveSrs(s){ try{ localStorage.setItem(SRS_KEY, JSON.stringify(s)); }catch(e){} }
+function wKey(w){ return w.tr+'|'+w.bn; }
+function srsDue(){
+  var s=loadSrs(), now=Date.now();
+  return spread_pool.filter(function(w){ var r=s[wKey(w)]; return !r || r.due<=now; });
+}
+function review(){
+  var due=srsDue().slice(0,20), at=0;
+  if(!due.length){
+    body.innerHTML='<div class="qz-end"><p class="big-note">🎉 আজকের রিভিউ শেষ!</p>'+
+      '<p class="muted">সব শব্দ পরের নির্ধারিত দিনের জন্য সময়সূচিতে আছে। কাল আবার এসো — অথবা নতুন করে শুরু করতে চাইলে রিসেট করো।</p>'+
+      '<button class="btn ghost" type="button" id="srsReset">🔄 রিভিউ সময়সূচি রিসেট করো</button></div>';
+    document.getElementById('srsReset').addEventListener('click',function(){ saveSrs({}); review(); });
+    return;
+  }
+  function draw(){
+    if(at>=due.length){
+      body.innerHTML='<div class="qz-end"><p class="big-note">🎉 আজকের '+bn(due.length)+'টা শব্দ রিভিউ হয়ে গেছে!</p>'+
+        '<p class="muted">যেগুলো "জানি" বলেছ সেগুলো পরের নির্ধারিত দিনে ফিরে আসবে। যেগুলো "আবার" বলেছ, কাল আবার আসবে।</p></div>';
+      return;
+    }
+    var c=due[at], side=0, s=loadSrs(), k=wKey(c), rec=s[k]||{idx:-1};
+    body.innerHTML='<div class="fc-top"><span class="qz-n">'+bn(at+1)+'/'+bn(due.length)+'</span>'+
+      '<span class="mini">রিভিউ suffix ইন্টারভাল: '+(rec.idx>=0?bn(SRS_INTERVALS[rec.idx])+' দিন':'নতুন')+'</span></div>'+
+      '<button class="fcard" type="button" id="rc"><span class="tr-huge">'+c.tr+'</span>'+
+      '<small class="fc-hint">চাপ দাও উল্টাতে</small></button>'+
+      '<div class="fc-acts" hidden id="rcActs">'+
+      '<button class="btn ghost" type="button" id="rcAgain">🔁 আবার (কাল আসবে)</button>'+
+      '<button class="btn" type="button" id="rcKnow">✅ জানি</button></div>';
+    document.getElementById('rc').addEventListener('click',function(){
+      if(side) return; side=1;
+      this.innerHTML='<span class="fc-bn">'+(c.pron?c.pron+' — ':'')+c.bn+'</span>';
+      this.classList.add('flipped');
+      document.getElementById('rcActs').hidden=false;
+    });
+    document.getElementById('rcAgain').addEventListener('click',function(){
+      var s2=loadSrs(); s2[k]={idx:0,due:Date.now()+SRS_DAY}; saveSrs(s2); at++; draw();
+    });
+    document.getElementById('rcKnow').addEventListener('click',function(){
+      var s2=loadSrs(); var nextIdx=Math.min((s2[k]?s2[k].idx:-1)+1, SRS_INTERVALS.length-1);
+      s2[k]={idx:nextIdx,due:Date.now()+SRS_INTERVALS[nextIdx]*SRS_DAY}; saveSrs(s2);
+      at++; draw();
+    });
+  }
+  draw();
+}
+
+var TOOLS={cards:cards,pairs:pairs,quiz:quiz,harmony:harmony,review:review};
 function current(){ var t=pr.querySelector('.pr-tab.on'); return t?t.getAttribute('data-tool'):'cards'; }
 [].forEach.call(pr.querySelectorAll('.pr-tab[data-tool]'),function(t){
   t.addEventListener('click',function(){
@@ -630,7 +750,7 @@ document.getElementById('prShuffle').addEventListener('click',function(){
 });
 
 var hc=document.getElementById('hubCount');
-if(hc) hc.textContent = bn(pool.length)+'টা শব্দ ও বাক্য জমা হয়েছে। আজকের ডেকে '+bn(Math.min(20,pool.length))+'টা।';
+if(hc) hc.textContent = bn(pool.length)+'টা শব্দ ও বাক্য জমা হয়েছে। আজকের ডেকে '+bn(Math.min(20,pool.length))+'টা। আজকের রিভিউর জন্য প্রস্তুত: '+bn(srsDue().length)+'টা।';
 makeDeck();
 TOOLS.cards();
 })();
@@ -888,6 +1008,12 @@ th{font-size:.72rem;text-transform:uppercase;letter-spacing:.03em;color:var(--mu
 /* ---- practice room (ported from scripts/build_site.js's own, see CURRICULUM_PLAN.md §6) ---- */
 .practice{background:var(--card);border:1px solid var(--acc2);border-radius:var(--rad);padding:1rem 1.1rem;margin:1.5rem 0}
 .pr-count{font-size:.88rem;margin:.2rem 0 .6rem;color:var(--mut)}
+.pr-scope{display:flex;gap:.5rem;flex-wrap:wrap;margin:.2rem 0 .8rem;font-size:.85rem;color:var(--mut)}
+.pr-scope label{display:inline-flex;align-items:center;gap:.45rem;min-height:40px;padding:.3rem .8rem;
+  border:1px solid var(--line);border-radius:999px;cursor:pointer}
+.pr-scope label:hover{border-color:var(--acc)}
+.pr-scope label:has(input:checked){border-color:var(--acc);background:var(--chip);color:var(--fg)}
+input[type=radio]{width:18px;height:18px;accent-color:var(--acc);flex:none}
 .pr-tabs{display:flex;gap:.35rem;flex-wrap:wrap;margin:.8rem 0}
 .pr-tab{font:inherit;font-size:.85rem;padding:.5rem .9rem;min-height:40px;cursor:pointer;
   background:var(--bg);border:1px solid var(--line);border-radius:999px;color:var(--mut)}
