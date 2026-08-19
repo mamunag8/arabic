@@ -560,6 +560,31 @@ const SPACE_CLAUSES = [
   ['Bahçeden içeri gir.', 'বাহ-চে-দেন ই-চে-রি গির', 'বাগান থেকে ভেতরে আসো।'],
 ];
 
+// ---------------------------------------------------------------------------
+// Station 16 -- ক্রিয়ার Çatı (Fiil Çatıları)
+// Source: draft পর্ব ১৬ (Active/Passive/Reflexive/Reciprocal verbs). No
+// pronunciation column in the source; derived mechanically as usual.
+// ---------------------------------------------------------------------------
+const ACTIVE_VERBS = [
+  ['Yapıyor.', 'ইয়া-পি-য়োর', 'সে করছে। (Active)'],
+  ['Yazıyorum.', 'ইয়া-জি-য়ো-রুম', 'আমি লিখছি। (Active)'],
+];
+
+const PASSIVE_VERBS = [
+  ['Yapılıyor.', 'ইয়া-পি-লি-য়োর', 'এটি করা হচ্ছে। (Passive)'],
+  ['Kapı açıldı.', 'কা-পি আ-চিল-দি', 'দরজা খোলা হয়েছিল। (Passive)'],
+];
+
+const REFLEXIVE_VERBS = [
+  ['Yıkanıyorum.', 'ইয়ি-কা-নি-য়ো-রুম', 'আমি নিজেকে ধুচ্ছি। (Reflexive)'],
+  ['Hazırlanıyoruz.', 'হা-জির-লা-নি-য়ো-রুজ', 'আমরা নিজেরা প্রস্তুত হচ্ছি। (Reflexive)'],
+];
+
+const RECIPROCAL_VERBS = [
+  ['Buluşuyoruz.', 'বু-লু-শু-য়ো-রুজ', 'আমরা একে অপরের সঙ্গে দেখা করছি। (Reciprocal)'],
+  ['Konuşuyorlar.', 'কো-নু-শু-য়োর-লার', 'তারা কথা বলছে। (Reciprocal)'],
+];
+
 const STATIONS = [
   {
     n: 1,
@@ -1421,6 +1446,60 @@ const STATIONS = [
     },
     badge: 'দিক-নির্দেশনার ব্যাজ — আগে-পরের সম্পর্ক শেখা হয়ে গেছে',
     next: 'পরের স্টেশনে রান্নাঘরে সহযোগিতা করতে গিয়ে শেখা হবে ক্রিয়ার Çatı — active, passive, reflexive, reciprocal।',
+  },
+  {
+    n: 16,
+    hue: 284,
+    title: 'ক্রিয়ার Çatı',
+    subtitle: 'Fiil Çatıları',
+    scene: 'রান্নাঘরে সহযোগিতা',
+    story: [
+      'রাতের রান্নায় সাহায্য করতে গিয়ে দেখলেন নানা আর এলিফ দুজনেই ব্যস্ত। "Yemek yapılıyor (ইয়ে-মেক ইয়া-পি-লি-য়োর) — খাবার তৈরি করা হচ্ছে," এলিফ বলল। "লক্ষ্য করুন — Yapıyor (সে করছে) থেকে Yapılıyor (এটা করা হচ্ছে)। কে করছে সেটা গুরুত্বপূর্ণ নয়, কাজটাই গুরুত্বপূর্ণ — এটাই Passive।"',
+      'হাত ধোয়ার সময় এলিফ বলল, "Yıkanıyorum (ইয়ি-কা-নি-য়ো-রুম) — আমি নিজেকে ধুচ্ছি। এটা Reflexive — কাজটা নিজের উপরেই ফিরে আসছে।" রান্নার ফাঁকে নানা আর এলিফ একসাথে কথা বলছিলেন হাসতে হাসতে। "Konuşuyorlar (কো-নু-শু-য়োর-লার) — তারা একে অপরের সঙ্গে কথা বলছে। এটাই Reciprocal।"',
+      '"একই ক্রিয়ামূল Yap (করা) থেকে চারটা রূপ পাওয়া যায়," এলিফ গুনে দেখাল, "Yapıyor (সে করছে — Active), Yapılıyor (করা হচ্ছে — Passive)। বাকি দুইটার জন্য অন্য ক্রিয়ামূল লাগে — সব ক্রিয়া চারটা রূপেই যায় না, ঠিক যেমন সব গাছে সব রকম ফল ধরে না।"',
+    ],
+    ruleIntro: 'তুর্কি ক্রিয়ার চারটা "চাতি" (রূপ) — কে/কার উপর কাজটা হচ্ছে তার উপর ভিত্তি করে:',
+    wordClasses: [
+      { icon: '👤', title: 'Active (Etken) — সে নিজেই করছে', words: ACTIVE_VERBS },
+      { icon: '📦', title: 'Passive (Edilgen) — তার উপর করা হচ্ছে', words: PASSIVE_VERBS },
+      { icon: '🪞', title: 'Reflexive (Dönüşlü) — নিজের উপর নিজেই করছে', words: REFLEXIVE_VERBS },
+      { icon: '🤝', title: 'Reciprocal (İşteş) — একে অপরের সঙ্গে করছে', words: RECIPROCAL_VERBS },
+    ],
+    wordFormation: {
+      rule: 'Yap (করা) মূল থেকে Active ও Passive — suffix যোগ করেই ভূমিকা বদলে যায়।',
+      examples: [
+        { stem: 'Yap', stemMeaning: 'করা (মূল)', suf: '-ıyor', result: 'Yapıyor', pron: 'ইয়া-পি-য়োর', meaning: 'সে করছে (Active)' },
+        { stem: 'Yap', stemMeaning: 'করা (মূল)', suf: '-ıl+ıyor', result: 'Yapılıyor', pron: 'ইয়া-পি-লি-য়োর', meaning: 'এটা করা হচ্ছে (Passive)' },
+      ],
+    },
+    exercises: [
+      'চারটা ক্রিয়ার Çatı-র নাম আর তাদের মূল পার্থক্য লিখুন।',
+      '"আমি নিজেকে ধুচ্ছি" — তুর্কিতে ও উচ্চারণসহ লিখুন, আর এটা কোন Çatı?',
+      'Yapıyor থেকে Yapılıyor-এ কীভাবে পৌঁছালেন, suffix দেখিয়ে ব্যাখ্যা করুন।',
+    ],
+    retrieval: {
+      prompt: 'কোন Çatı — Active, Passive, Reflexive, নাকি Reciprocal?',
+      items: [
+        { q: 'Kapı açıldı. (দরজা খোলা হয়েছিল।)', a: 'Passive — কে খুলল বলা হয়নি' },
+        { q: 'Buluşuyoruz. (আমরা একে অপরের সঙ্গে দেখা করছি।)', a: 'Reciprocal — দুইজন একে অপরের সাথে' },
+        { q: 'Hazırlanıyoruz. (আমরা নিজেরা প্রস্তুত হচ্ছি।)', a: 'Reflexive — নিজের উপর নিজেই' },
+      ],
+    },
+    miniExam: {
+      title: 'মিনি পরীক্ষা — স্টেশন ১৬',
+      passRule: '৯/১২ বা তার বেশি ঠিক হলে প্রস্তুত।',
+      items: [
+        { q: 'চারটা ক্রিয়ার Çatı-র তুর্কি ও বাংলা নাম কী কী?', a: 'Etken (Active), Edilgen (Passive), Dönüşlü (Reflexive), İşteş (Reciprocal)' },
+        { q: 'Passive-এর suffix কী?', a: '-ıl/-il/-ul/-ül (বা -n)' },
+        { q: 'Reflexive-এর suffix কী?', a: '-ın/-in/-un/-ün' },
+        { q: 'Reciprocal-এর suffix কী?', a: '-ış/-iş/-uş/-üş' },
+        { q: '"Yemek yapılıyor" — উচ্চারণ ও অর্থ লিখুন।', a: 'ইয়ে-মেক ইয়া-পি-লি-য়োর — খাবার তৈরি করা হচ্ছে' },
+        { q: '"Yıkanıyorum" — উচ্চারণ, অর্থ ও Çatı লিখুন।', a: 'ইয়ি-কা-নি-য়ো-রুম — আমি নিজেকে ধুচ্ছি (Reflexive)' },
+        { q: '"Konuşuyorlar" — উচ্চারণ, অর্থ ও Çatı লিখুন।', a: 'কো-নু-শু-য়োর-লার — তারা কথা বলছে (Reciprocal)' },
+      ],
+    },
+    badge: 'রান্নাঘরের ব্যাজ — চারটা ক্রিয়ার Çatı শেখা হয়ে গেছে',
+    next: 'পরের স্টেশনে বাজারে দরদাম করতে গিয়ে শেখা হবে তুলনামূলক বাক্য।',
   },
 ];
 
