@@ -384,6 +384,7 @@ function page({ title, desc, body, rel, cls = '', active = '', jsonLd = null }) 
     ['', 'index.html', '🗺️', 'মানচিত্র'],
     ['words', 'words.html', '🧺', 'শব্দ'],
     ['duas', 'duas.html', '🤲', 'দুআ'],
+    ['settings', 'settings.html', '⚙️', 'সেটিংস'],
     ['search', 'search.html', '🔍', 'খোঁজো'],
     ['refs', 'refs.html', '📚', 'সূত্র'],
   ].map(([k, href, icon, label]) =>
@@ -634,32 +635,17 @@ function buildClass(c) {
   scanForAudios(gram);
   scanForAudios(story);
 
+  const classTitle = ex.title || (passage && passage.name) || 'উইকলি চ্যাম্পিয়ন';
+
   out.push(`<header class="class-head i${island.n}">
     <p class="eyebrow">${island.emoji} ${island.name} · সপ্তাহ ${bn(c.week)} · ${c.type === 'revision' ? 'রিভিশন' : passage.name}${c.part ? ` (পর্ব ${bn(c.part.k)}/${bn(c.part.of)})` : ''}</p>
-    <h1><span class="cnum">ক্লাস ${bn(c.index)}</span>${ex.title || (passage && passage.name) || 'উইকলি চ্যাম্পিয়ন'}</h1>
+    <h1><span class="cnum">ক্লাস ${bn(c.index)}</span>${classTitle}</h1>
     ${(classAudioItems.length && !ex.noStoryAudio) ? `
-    <div class="audio-panel" id="classAudioPanel" data-class-id="${c.index}" data-class-name="Class_${String(c.index).padStart(3, '0')}" data-class-audios='${JSON.stringify(classAudioItems)}'>
-      <div class="audio-panel-head">
-        <span class="audio-panel-title">🎧 ক্লাস ${bn(c.index)}-এর অডিও (মোট ${bn(classAudioItems.length)}টি ফাইল)</span>
-        <span class="audio-durability-tag" id="driveFolderTag">📁 মেমরি কার্ড / ড্রাইভ ফোল্ডার</span>
-      </div>
-      <div class="audio-btn-group">
-        <button class="btn audio-drive-btn" type="button" id="saveDriveFolderBtn">
-          📁 ড্রাইভ / মেমরি কার্ডে সরাসরি সেভ
-        </button>
-        <button class="btn audio-save-btn" type="button" id="saveLocalAudioBtn">
-          💾 ব্রাউজার মেমরিতে সেভ
-        </button>
-        <button class="btn audio-zip-btn" type="button" id="dlClassZipBtn">
-          📦 জিপ ডাউনলোড (.zip)
-        </button>
-        <button class="btn audio-del-btn" type="button" id="delLocalAudioBtn" hidden>
-          🗑️ অডিও মুছুন
-        </button>
-      </div>
-      <div class="audio-status" id="audioStatus">
-        <span class="audio-status-text">অনুমতি দিয়ে আপনার ড্রাইভ বা মেমরি কার্ডের ফোল্ডার বেছে নিন — ক্লাস অনুযায়ী ফাইলগুলো সরাসরি সেভ হয়ে যাবে।</span>
-      </div>
+    <div class="audio-mini" id="classAudioPanel" data-class-id="${c.index}" data-class-name="Class_${String(c.index).padStart(3, '0')}" data-class-audios='${JSON.stringify(classAudioItems)}'>
+      <button class="btn audio-dl-btn" type="button" id="classDlBtn">📥 অডিও ডাউনলোড (${bn(classAudioItems.length)}টি ফাইল)</button>
+      <span class="audio-mini-status" id="classDlStatus"></span>
+      <button class="audio-mini-del" type="button" id="classDlDelBtn" hidden>🗑️ মুছুন</button>
+      <a class="audio-mini-settings" href="${rel}settings.html">⚙️ ডাউনলোড সেটিংস</a>
     </div>` : ''}
   </header>`);
 
@@ -887,6 +873,66 @@ function buildClass(c) {
 }
 
 plan.classes.forEach((c) => write(`class/${c.index}.html`, buildClass(c)));
+
+// ---------------------------------------------------------------------------
+// SETTINGS PAGE -- one place to configure how the per-class download button
+// behaves (drive/memory-card folder vs browser storage vs zip, and which
+// folder), plus reading preferences (font size, accent color). Every class
+// page still keeps its own single download button; this page only holds the
+// preferences that button reads, so the drive-folder permission is asked
+// for once here instead of on every class.
+// ---------------------------------------------------------------------------
+{
+  const body = `<div class="crumb"><a href="index.html">মানচিত্র</a> › <span>⚙️ সেটিংস</span></div>
+<header class="class-head">
+  <h1>⚙️ সেটিংস</h1>
+  <p class="muted">এখানে একবার ঠিক করে রাখুন — প্রতিটা ক্লাস পেজে আর জিজ্ঞেস করবে না।</p>
+</header>
+
+<section class="settings-section">
+  <h2>📥 অডিও ডাউনলোড</h2>
+  <p class="muted">ক্লাস পেজের ডাউনলোড বাটন চাপলে এই পদ্ধতিতেই সেভ হবে।</p>
+  <div class="settings-radio-group" id="downloadTypeGroup">
+    <label><input type="radio" name="dlType" value="drive"> 📁 ড্রাইভ / মেমরি কার্ডে সরাসরি সেভ</label>
+    <label><input type="radio" name="dlType" value="browser"> 💾 ব্রাউজার মেমরিতে সেভ (অফলাইনে চলবে)</label>
+    <label><input type="radio" name="dlType" value="zip"> 📦 জিপ ফাইল (.zip) ডাউনলোড</label>
+  </div>
+  <div class="settings-drive-row" id="driveLocationRow" hidden>
+    <button class="btn" type="button" id="pickDriveFolderBtn">📁 ফোল্ডার বেছে নিন</button>
+    <span class="muted" id="driveLocationStatus"></span>
+  </div>
+</section>
+
+<section class="settings-section">
+  <h2>🔤 লেখার আকার</h2>
+  <div class="settings-btn-group" id="fontSizeGroup">
+    <button type="button" data-fs="15">ছোট</button>
+    <button type="button" data-fs="17.5">স্বাভাবিক</button>
+    <button type="button" data-fs="20">বড়</button>
+    <button type="button" data-fs="23">অনেক বড়</button>
+  </div>
+</section>
+
+<section class="settings-section">
+  <h2>🎨 থিমের রঙ</h2>
+  <div class="settings-swatch-group" id="accentGroup">
+    <button type="button" class="swatch" data-accent="" style="background:#0f6b52" aria-label="সবুজ (ডিফল্ট)"></button>
+    <button type="button" class="swatch" data-accent="blue" style="background:#2563eb" aria-label="নীল"></button>
+    <button type="button" class="swatch" data-accent="rose" style="background:#e11d48" aria-label="গোলাপি"></button>
+    <button type="button" class="swatch" data-accent="purple" style="background:#7c3aed" aria-label="বেগুনি"></button>
+    <button type="button" class="swatch" data-accent="amber" style="background:#d97706" aria-label="কমলা"></button>
+  </div>
+</section>`;
+
+  write('settings.html', page({
+    title: '⚙️ সেটিংস',
+    desc: 'অডিও ডাউনলোডের ধরন ও ফোল্ডার, লেখার আকার এবং থিমের রঙ ঠিক করুন।',
+    body,
+    rel: '',
+    cls: 'page-settings',
+    active: 'settings',
+  }));
+}
 
 // ---------------------------------------------------------------------------
 // WORD PAGES  (the hub of the link graph)
@@ -1583,6 +1629,7 @@ fs.writeFileSync(path.join(OUT, 'assets', 'style.css'), `
   --hdrw:64rem; /* header content band. Slightly wider than the 56rem text
                    column — the nav needs ~356px per side and an exact match
                    would squeeze it — but close enough to read as one page. */
+  --user-fs:17.5px; /* user's chosen reading size, set from settings.html */
 }
 :root[data-theme=dark]{
   --bg:#12100e; --fg:#eceae5; --mut:#a19b90; --line:#2b2723; --card:#1a1714;
@@ -1592,12 +1639,18 @@ fs.writeFileSync(path.join(OUT, 'assets', 'style.css'), `
   --bg:#12100e; --fg:#eceae5; --mut:#a19b90; --line:#2b2723; --card:#1a1714;
   --acc:#4fd1a5; --acc2:#e2b455; --ar:#dff3ec; --chip:#231f1b;
 }}
+/* user-chosen accent color (settings.html) -- overrides the theme's --acc
+   regardless of light/dark, since it comes after both blocks above */
+:root[data-accent=blue]{--acc:#2563eb; --acc2:#d97706}
+:root[data-accent=rose]{--acc:#e11d48; --acc2:#0ea5e9}
+:root[data-accent=purple]{--acc:#7c3aed; --acc2:#059669}
+:root[data-accent=amber]{--acc:#b45309; --acc2:#0f6b52}
 *{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%;scroll-behavior:smooth}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
 body{margin:0;background:var(--bg);color:var(--fg);
   font-family:'Noto Serif Bengali',system-ui,'Nirmala UI','Kalpurush',sans-serif;
-  font-size:17.5px;line-height:1.85;text-rendering:optimizeLegibility;
+  font-size:var(--user-fs);line-height:1.85;text-rendering:optimizeLegibility;
   overflow-wrap:break-word;
   -webkit-tap-highlight-color:color-mix(in srgb,var(--acc) 20%,transparent);
   /* clear the fixed header and (on phones) the fixed tab bar */
@@ -1960,30 +2013,33 @@ ul.check li::before{content:"☐ ";color:var(--mut)}
   border:1px solid color-mix(in srgb,var(--acc) 25%,transparent);
   color:var(--acc);font-weight:600;font-size:.82rem;padding:.3rem .75rem;border-radius:20px}
 .ayah-play:hover{background:var(--acc);color:#fff}
-.audio-panel{margin:1.1rem 0 1.5rem;padding:.9rem 1.2rem;background:var(--card);
-  border:1px solid var(--line);border-radius:var(--rad);box-shadow:0 2px 6px rgba(0,0,0,.02)}
-.audio-panel-head{display:flex;align-items:center;justify-content:space-between;gap:.6rem;
-  margin-bottom:.75rem;flex-wrap:wrap}
-.audio-panel-title{font-weight:700;font-size:.9rem;color:var(--fg)}
-.audio-durability-tag{font-size:.74rem;padding:.18rem .5rem;background:color-mix(in srgb,var(--acc2) 15%,transparent);
-  color:var(--acc2);border-radius:12px;font-weight:600;display:inline-flex;align-items:center}
-.audio-btn-group{display:flex;gap:.55rem;flex-wrap:wrap;align-items:center}
-.audio-drive-btn{background:color-mix(in srgb,var(--acc) 16%,transparent);border:1px solid color-mix(in srgb,var(--acc) 40%,transparent);
-  color:var(--acc);font-size:.84rem;font-weight:700;padding:.45rem .95rem;border-radius:9px;cursor:pointer;transition:all .2s ease}
-.audio-drive-btn:hover{background:var(--acc);color:#fff}
-.audio-drive-btn.is-saved{background:color-mix(in srgb,#059669 16%,transparent);color:#059669;border-color:#059669}
-.audio-save-btn{background:var(--chip);border:1px solid var(--line);color:var(--fg);
-  font-size:.84rem;font-weight:600;padding:.45rem .9rem;border-radius:9px;cursor:pointer;transition:all .2s ease}
-.audio-save-btn:hover{background:var(--line);border-color:var(--mut)}
-.audio-save-btn.is-saved{background:color-mix(in srgb,var(--acc) 15%,transparent);color:var(--acc);border-color:var(--acc)}
-.audio-zip-btn{background:color-mix(in srgb,var(--acc2) 12%,transparent);border:1px solid color-mix(in srgb,var(--acc2) 30%,transparent);
-  color:var(--acc2);font-size:.84rem;font-weight:600;padding:.45rem .9rem;border-radius:9px;cursor:pointer;transition:all .2s ease}
-.audio-zip-btn:hover{background:var(--acc2);color:#fff}
-.audio-del-btn{background:none;border:1px solid color-mix(in srgb,#e11d48 30%,transparent);color:#e11d48;
-  font-size:.8rem;font-weight:600;padding:.42rem .75rem;border-radius:9px;cursor:pointer;transition:all .2s ease}
-.audio-del-btn:hover{background:#e11d48;color:#fff}
-.audio-status{margin-top:.65rem;font-size:.83rem;color:var(--mut);line-height:1.45}
-.audio-status strong{color:var(--fg)}
+/* ---- per-class mini download button ---- */
+.audio-mini{margin:.9rem 0 1.3rem;padding:.7rem 1rem;background:var(--card);
+  border:1px solid var(--line);border-radius:var(--rad);
+  display:flex;align-items:center;gap:.7rem;flex-wrap:wrap}
+.audio-dl-btn{background:color-mix(in srgb,var(--acc) 16%,transparent);border:1px solid color-mix(in srgb,var(--acc) 40%,transparent);
+  color:var(--acc);font-size:.86rem;font-weight:700;padding:.45rem .95rem;border-radius:9px;cursor:pointer;transition:all .2s ease}
+.audio-dl-btn:hover{background:var(--acc);color:#fff}
+.audio-dl-btn.is-saved{background:color-mix(in srgb,#059669 16%,transparent);color:#059669;border-color:#059669}
+.audio-mini-status{font-size:.83rem;color:var(--mut)}
+.audio-mini-settings{margin-inline-start:auto;font-size:.8rem;color:var(--mut);text-decoration:none;white-space:nowrap}
+.audio-mini-settings:hover{color:var(--acc);text-decoration:underline}
+
+/* ---- settings page ---- */
+.settings-section{margin:1.6rem 0;padding:1rem 1.2rem;background:var(--card);
+  border:1px solid var(--line);border-radius:var(--rad)}
+.settings-section h2{margin:0 0 .5rem;font-size:1.1rem}
+.settings-radio-group{display:flex;flex-direction:column;gap:.5rem;margin-top:.6rem}
+.settings-radio-group label{display:flex;align-items:center;gap:.5rem;font-size:.92rem;cursor:pointer}
+.settings-drive-row{display:flex;align-items:center;gap:.7rem;flex-wrap:wrap;margin-top:.8rem}
+.settings-btn-group{display:flex;gap:.5rem;flex-wrap:wrap}
+.settings-btn-group button{background:var(--chip);border:1px solid var(--line);color:var(--fg);
+  font-size:.86rem;font-weight:600;padding:.5rem 1rem;border-radius:9px;cursor:pointer;transition:all .2s ease}
+.settings-btn-group button.on{background:var(--acc);border-color:var(--acc);color:#fff}
+.settings-swatch-group{display:flex;gap:.6rem;flex-wrap:wrap}
+.swatch{width:2.2rem;height:2.2rem;border-radius:50%;border:2px solid var(--line);cursor:pointer;padding:0;transition:transform .15s ease}
+.swatch:hover{transform:scale(1.08)}
+.swatch.on{border-color:var(--fg);box-shadow:0 0 0 2px var(--card),0 0 0 4px var(--fg)}
 
 /* ---- Story Section ---- */
 .story-head-bar{display:flex;align-items:center;justify-content:space-between;gap:.8rem;flex-wrap:wrap;margin-bottom:1rem}
@@ -2219,17 +2275,12 @@ table.index td{padding:.4em .6em}
   table.stack td.c-num,table.stack td.c-hk{font-size:.9rem}
   table.stack .vrefs{flex:1}
   .c-hk{min-width:9rem}
-  /* Audio Panel on Mobile */
-  .audio-panel{padding:.85rem .9rem;margin:1rem 0}
-  .audio-panel-head{flex-direction:column;align-items:flex-start;gap:.4rem}
-  .audio-panel-title{font-size:.88rem}
-  .audio-durability-tag{font-size:.72rem}
-  .audio-btn-group{display:grid;grid-template-columns:1fr;gap:.5rem;width:100%}
-  .audio-drive-btn,.audio-save-btn,.audio-zip-btn,.audio-del-btn{
-    width:100%;min-height:44px;display:flex;align-items:center;justify-content:center;
-    padding:.6rem .8rem;font-size:.84rem;text-align:center
-  }
-  .audio-status{font-size:.8rem;line-height:1.4}
+  /* Mini Audio Button & Settings on Mobile */
+  .audio-mini{padding:.7rem .85rem;margin:.8rem 0}
+  .audio-dl-btn{width:100%;min-height:44px;padding:.6rem .8rem;font-size:.86rem}
+  .audio-mini-settings{margin-inline-start:0}
+  .settings-section{padding:.85rem .9rem}
+  .settings-btn-group button{min-height:44px;flex:1}
 
   /* Story Section on Mobile */
   .story-head-bar{flex-direction:column;align-items:stretch;gap:.7rem;margin-bottom:.8rem}
@@ -2804,25 +2855,6 @@ async function readAudioFileFromDrive(dirHandle, subfolderName, fileName) {
   }
 }
 
-async function countDriveStoredFiles(dirHandle, subfolderName, fileItems) {
-  if (!dirHandle) return 0;
-  try {
-    var perm = await dirHandle.queryPermission({ mode: 'readwrite' });
-    if (perm !== 'granted') return 0;
-    var subDir = await dirHandle.getDirectoryHandle(subfolderName, { create: false });
-    var count = 0;
-    for (var i = 0; i < fileItems.length; i++) {
-      try {
-        var fh = await subDir.getFileHandle(fileItems[i].name, { create: false });
-        if (fh) count++;
-      } catch(e) {}
-    }
-    return count;
-  } catch(e) {
-    return 0;
-  }
-}
-
 // In-browser ZIP archive builder (Store / 0 overhead for MP3)
 function buildZipArchive(fileItems) {
   var crcTable = new Uint32Array(256);
@@ -2996,7 +3028,88 @@ document.addEventListener('click', function(e) {
   }
 });
 
-// Class Audio Panel Controls
+// Per-class audio download button: one button, three possible mechanics
+// (drive folder / browser storage / zip) chosen once on settings.html and
+// read from there via getStoredSetting('download_pref').
+function saveClassToBrowser(classId, classAudios, onProgress) {
+  var done = 0;
+  return Promise.all(classAudios.map(function(item) {
+    return getStoredAudioBlob(item.url).then(function(existingBlob) {
+      if (existingBlob) { done++; onProgress(done); return; }
+      return fetch(item.url).then(function(res) {
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        return res.blob();
+      }).then(function(blob) {
+        return saveAudioBlobToDB({ url: item.url, name: item.name, blob: blob }, classId);
+      }).then(function() { done++; onProgress(done); })
+        .catch(function(err) { console.warn('Audio fetch failed for:', item.url, err); });
+    });
+  }));
+}
+
+function saveClassToDrive(classId, classFolderName, classAudios, onProgress) {
+  return getOrRequestDriveFolder(false).then(function(dirHandle) {
+    if (!dirHandle) throw new Error('NO_DIR');
+    var savedCount = 0;
+    var chain = Promise.resolve();
+    classAudios.forEach(function(item) {
+      chain = chain.then(function() {
+        return getStoredAudioBlob(item.url).then(function(blob) {
+          if (blob) return blob;
+          return fetch(item.url).then(function(res) {
+            if (!res.ok) throw new Error('HTTP ' + res.status);
+            return res.blob();
+          }).then(function(fetchedBlob) {
+            saveAudioBlobToDB({ url: item.url, name: item.name, blob: fetchedBlob }, classId);
+            return fetchedBlob;
+          });
+        }).then(function(blob) {
+          return writeAudioFileToDrive(dirHandle, classFolderName, item.name, blob);
+        }).then(function() {
+          savedCount++;
+          onProgress(savedCount);
+        });
+      });
+    });
+    return chain.then(function() { return dirHandle; });
+  });
+}
+
+function saveClassAsZip(classFolderName, classAudios, onProgress) {
+  var collected = 0;
+  var filePromises = classAudios.map(function(item) {
+    return getStoredAudioBlob(item.url).then(function(cachedBlob) {
+      if (cachedBlob) {
+        return cachedBlob.arrayBuffer().then(function(ab) {
+          collected++; onProgress(collected);
+          return { name: classFolderName + '/' + item.name, data: ab };
+        });
+      }
+      return fetch(item.url).then(function(res) {
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        return res.arrayBuffer();
+      }).then(function(ab) {
+        collected++; onProgress(collected);
+        return { name: classFolderName + '/' + item.name, data: ab };
+      });
+    }).catch(function(err) { console.warn('Failed for zip:', item.url, err); return null; });
+  });
+  return Promise.all(filePromises).then(function(results) {
+    var validFiles = results.filter(Boolean);
+    if (!validFiles.length) throw new Error('NO_FILES');
+    var zipBlob = buildZipArchive(validFiles);
+    var zipUrl = URL.createObjectURL(zipBlob);
+    var a = document.createElement('a');
+    a.href = zipUrl;
+    a.download = 'Noor_Dwip_' + classFolderName + '_Audio.zip';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(function() { URL.revokeObjectURL(zipUrl); }, 60000);
+    return a.download;
+  });
+}
+
 var classPanel = document.getElementById('classAudioPanel');
 if (classPanel) {
   var classId = parseInt(classPanel.getAttribute('data-class-id'), 10);
@@ -3006,243 +3119,165 @@ if (classPanel) {
     classAudios = JSON.parse(classPanel.getAttribute('data-class-audios') || '[]');
   } catch(e) {}
 
-  // Populate global audio lookup for instant playback resolution
   window.audioLookupMap = window.audioLookupMap || {};
   classAudios.forEach(function(item) {
     window.audioLookupMap[item.url] = { subfolder: classFolderName, name: item.name };
   });
 
-  var driveBtn = document.getElementById('saveDriveFolderBtn');
-  var saveBtn = document.getElementById('saveLocalAudioBtn');
-  var zipBtn = document.getElementById('dlClassZipBtn');
-  var delBtn = document.getElementById('delLocalAudioBtn');
-  var driveTag = document.getElementById('driveFolderTag');
-  var statusSpan = document.querySelector('#audioStatus .audio-status-text');
+  var dlBtn = document.getElementById('classDlBtn');
+  var statusEl = document.getElementById('classDlStatus');
+  var delMiniBtn = document.getElementById('classDlDelBtn');
 
-  async function updateClassAudioStatus() {
-    if (!classAudios.length) return;
+  function paintSavedState() {
+    if (!classAudios.length || !dlBtn) return;
     var urls = classAudios.map(function(item) { return item.url; });
-    var idbCount = await getClassStoredCount(classId, urls);
-
-    // Check Drive folder status if available
-    var driveDirName = await getStoredSetting('user_drive_dir_name');
-    var driveCount = 0;
-    if (cachedDriveDirHandle) {
-      driveCount = await countDriveStoredFiles(cachedDriveDirHandle, classFolderName, classAudios);
-    }
-
-    if (driveDirName && driveTag) {
-      driveTag.textContent = '📁 ' + driveDirName + ' (ড্রাইভ ফোল্ডার)';
-    }
-
-    if (driveCount === classAudios.length) {
-      if (driveBtn) {
-        driveBtn.classList.add('is-saved');
-        driveBtn.textContent = '✅ ড্রাইভে সুরক্ষিত (' + bn(driveCount) + 'টি অডিও)';
-      }
-      if (statusSpan) {
-        statusSpan.innerHTML = '📁 <strong>ড্রাইভ/মেমরি কার্ডে সংরক্ষিত:</strong> ' + (driveDirName || 'ড্রাইভ') + '/' + classFolderName + ' ফোল্ডারে সব ফাইল আছে — ডিলিট না করা পর্যন্ত কখনোই মুছবে না।';
-      }
-      return;
-    }
-
-    if (idbCount === classAudios.length) {
-      if (saveBtn) {
-        saveBtn.classList.add('is-saved');
-        saveBtn.textContent = '✅ মেমরিতে সুরক্ষিত (' + bn(idbCount) + 'টি অডিও)';
-      }
-      if (delBtn) delBtn.hidden = false;
-      if (statusSpan) {
-        statusSpan.innerHTML = '🔒 <strong>স্থায়ী মেমরিতে সংরক্ষিত:</strong> অফলাইনে ইন্টারনেট ছাড়া বাজবে — আপনি ডিলিট না করা পর্যন্ত কখনোই মুছবে না।';
-      }
-    } else if (idbCount > 0) {
-      if (saveBtn) {
-        saveBtn.classList.remove('is-saved');
-        saveBtn.textContent = '💾 বাকি অডিও সেভ (' + bn(idbCount) + '/' + bn(classAudios.length) + ')';
-      }
-      if (delBtn) delBtn.hidden = false;
-      if (statusSpan) {
-        statusSpan.textContent = bn(idbCount) + 'টি অডিও মেমরিতে আছে। বাকিগুলো সেভ করতে বাটনে চাপুন।';
-      }
-    } else {
-      if (saveBtn) {
-        saveBtn.classList.remove('is-saved');
-        saveBtn.textContent = '💾 ব্রাউজার মেমরিতে সেভ';
-      }
-      if (delBtn) delBtn.hidden = true;
-      if (statusSpan) {
-        statusSpan.textContent = 'অনুমতি দিয়ে আপনার ড্রাইভ বা মেমরি কার্ডের ফোল্ডার বেছে নিন — ক্লাস অনুযায়ী ফাইলগুলো সরাসরি সেভ হয়ে যাবে।';
-      }
-    }
+    getClassStoredCount(classId, urls).then(function(idbCount) {
+      var saved = idbCount === classAudios.length;
+      dlBtn.classList.toggle('is-saved', saved);
+      if (saved && statusEl) statusEl.textContent = '✅ সেভ করা আছে';
+      if (delMiniBtn) delMiniBtn.hidden = idbCount === 0;
+    });
   }
+  paintSavedState();
 
-  // Preload drive directory handle if remembered
-  getStoredSetting('user_drive_dir_handle').then(function(h) {
-    if (h) cachedDriveDirHandle = h;
-    updateClassAudioStatus();
-  });
-
-  // 1. Direct Save to Drive / SD Card Folder with Permission upfront
-  if (driveBtn) {
-    driveBtn.addEventListener('click', async function() {
-      if (!('showDirectoryPicker' in window)) {
-        alert('আপনার ব্রাউজারে Direct Folder Access সাপোর্ট নেই। জিপ ডাউনলোড বাটনটি ব্যবহার করুন — এটি যেকোনো ডিভাইসে কাজ করবে।');
-        if (zipBtn) zipBtn.click();
-        return;
-      }
-
-      driveBtn.disabled = true;
-      if (statusSpan) statusSpan.textContent = '⏳ ড্রাইভ ফোল্ডারের অনুমতি চাওয়া হচ্ছে...';
-
-      try {
-        var dirHandle = await getOrRequestDriveFolder(false);
-        if (!dirHandle) throw new Error('NO_DIR');
-
-        if (statusSpan) statusSpan.textContent = '⏳ ড্রাইভ ফোল্ডারে [' + classFolderName + '] তৈরি করে ফাইল সেভ করা হচ্ছে... (০/' + bn(classAudios.length) + ')';
-
-        var savedCount = 0;
-        for (var i = 0; i < classAudios.length; i++) {
-          var item = classAudios[i];
-          var blob = await getStoredAudioBlob(item.url);
-          if (!blob) {
-            var res = await fetch(item.url);
-            if (!res.ok) throw new Error('HTTP ' + res.status);
-            blob = await res.blob();
-            // Also store in IDB for fast access
-            saveAudioBlobToDB({ url: item.url, name: item.name, blob: blob }, classId);
-          }
-          await writeAudioFileToDrive(dirHandle, classFolderName, item.name, blob);
-          savedCount++;
-          if (statusSpan) statusSpan.textContent = '⏳ ড্রাইভে ফাইল লেখা হচ্ছে... (' + bn(savedCount) + '/' + bn(classAudios.length) + ')';
-        }
-
-        driveBtn.disabled = false;
-        driveBtn.classList.add('is-saved');
-        driveBtn.textContent = '✅ ড্রাইভে সুরক্ষিত (' + bn(classAudios.length) + 'টি অডিও)';
-        if (statusSpan) {
-          statusSpan.innerHTML = '🎉 <strong>' + dirHandle.name + '/' + classFolderName + '</strong> ফোল্ডারে ক্লাসের সব অডিও সরাসরি সেভ হয়েছে! আপনি ডিলিট না করা পর্যন্ত কখনোই মুছবে না।';
-        }
-      } catch (err) {
-        driveBtn.disabled = false;
-        console.warn('Drive save error:', err);
-        if (err && err.name === 'AbortError') {
-          if (statusSpan) statusSpan.textContent = 'ফোল্ডার সিলেকশন বাতিল করা হয়েছে।';
-        } else {
-          alert('ড্রাইভ ফোল্ডারে সেভ করতে সমস্যা হয়েছে। জিপ ডাউনলোড বাটন ব্যবহার করতে পারেন।');
-          updateClassAudioStatus();
-        }
-      }
+  if (delMiniBtn) {
+    delMiniBtn.addEventListener('click', function() {
+      if (!confirm('এই ক্লাসের ব্রাউজারে সেভ করা অডিও মুছে ফেলতে চান?')) return;
+      deleteClassFromDB(classId).then(function() {
+        if (statusEl) statusEl.textContent = 'মুছে ফেলা হয়েছে।';
+        if (dlBtn) dlBtn.classList.remove('is-saved');
+        paintSavedState();
+      });
     });
   }
 
-  // 2. Save all audios to permanent IndexedDB
-  if (saveBtn) {
-    saveBtn.addEventListener('click', function() {
-      saveBtn.disabled = true;
-      if (statusSpan) statusSpan.textContent = '⏳ অডিও ডাউনলোড করে স্থায়ী মেমরিতে সংরক্ষণ করা হচ্ছে... (০/' + bn(classAudios.length) + ')';
+  if (dlBtn) {
+    dlBtn.addEventListener('click', function() {
+      getStoredSetting('download_pref').then(function(pref) {
+        pref = pref || 'browser';
+        var origText = dlBtn.textContent;
+        dlBtn.disabled = true;
 
-      var done = 0;
-      Promise.all(classAudios.map(function(item) {
-        return getStoredAudioBlob(item.url).then(function(existingBlob) {
-          if (existingBlob) {
-            done++;
-            if (statusSpan) statusSpan.textContent = '⏳ মেমরিতে সংরক্ষণ হচ্ছে... (' + bn(done) + '/' + bn(classAudios.length) + ')';
+        function progress(done) {
+          if (statusEl) statusEl.textContent = '⏳ ' + bn(done) + '/' + bn(classAudios.length) + ' সেভ হচ্ছে...';
+        }
+
+        var task;
+        if (pref === 'drive') {
+          if (!('showDirectoryPicker' in window)) {
+            alert('আপনার ব্রাউজারে ড্রাইভ সেভ সাপোর্ট নেই। সেটিংসে গিয়ে জিপ ডাউনলোড বেছে নিন।');
+            dlBtn.disabled = false;
             return;
           }
-          return fetch(item.url).then(function(res) {
-            if (!res.ok) throw new Error('HTTP ' + res.status);
-            return res.blob();
-          }).then(function(blob) {
-            return saveAudioBlobToDB({ url: item.url, name: item.name, blob: blob }, classId);
-          }).then(function() {
-            done++;
-            if (statusSpan) statusSpan.textContent = '⏳ মেমরিতে সংরক্ষণ হচ্ছে... (' + bn(done) + '/' + bn(classAudios.length) + ')';
-          }).catch(function(err) {
-            console.warn('Audio fetch failed for:', item.url, err);
+          task = saveClassToDrive(classId, classFolderName, classAudios, progress).then(function() {
+            if (statusEl) statusEl.textContent = '🎉 ড্রাইভ ফোল্ডারে সেভ হয়েছে!';
           });
-        });
-      })).then(function() {
-        saveBtn.disabled = false;
-        updateClassAudioStatus();
-      });
-    });
-  }
-
-  // 3. Download as ZIP Folder (.zip)
-  if (zipBtn) {
-    zipBtn.addEventListener('click', function() {
-      zipBtn.disabled = true;
-      var origText = zipBtn.textContent;
-      zipBtn.textContent = '⏳ জিপ তৈরি হচ্ছে...';
-      if (statusSpan) statusSpan.textContent = '⏳ অডিও সংগ্রহ করে জিপ তৈরি হচ্ছে... (০/' + bn(classAudios.length) + ')';
-
-      var collected = 0;
-      var filePromises = classAudios.map(function(item) {
-        return getStoredAudioBlob(item.url).then(function(cachedBlob) {
-          if (cachedBlob) {
-            return cachedBlob.arrayBuffer().then(function(ab) {
-              collected++;
-              if (statusSpan) statusSpan.textContent = '⏳ ফাইল সংগ্রহ হচ্ছে... (' + bn(collected) + '/' + bn(classAudios.length) + ')';
-              return { name: classFolderName + '/' + item.name, data: ab };
-            });
-          }
-          return fetch(item.url).then(function(res) {
-            if (!res.ok) throw new Error('HTTP ' + res.status);
-            return res.arrayBuffer();
-          }).then(function(ab) {
-            collected++;
-            if (statusSpan) statusSpan.textContent = '⏳ ফাইল সংগ্রহ হচ্ছে... (' + bn(collected) + '/' + bn(classAudios.length) + ')';
-            return { name: classFolderName + '/' + item.name, data: ab };
+        } else if (pref === 'zip') {
+          task = saveClassAsZip(classFolderName, classAudios, progress).then(function(name) {
+            if (statusEl) statusEl.textContent = '🎉 ' + name + ' ডাউনলোড হয়েছে!';
           });
+        } else {
+          task = saveClassToBrowser(classId, classAudios, progress).then(function() {
+            if (statusEl) statusEl.textContent = '🔒 ব্রাউজার মেমরিতে সেভ হয়েছে — অফলাইনে চলবে।';
+          });
+        }
+
+        task.then(function() {
+          dlBtn.disabled = false;
+          dlBtn.classList.add('is-saved');
+          paintSavedState();
         }).catch(function(err) {
-          console.warn('Failed for zip:', item.url, err);
-          return null;
+          console.warn('Download failed:', err);
+          dlBtn.disabled = false;
+          dlBtn.textContent = origText;
+          if (err && err.name === 'AbortError') {
+            if (statusEl) statusEl.textContent = 'বাতিল করা হয়েছে।';
+          } else {
+            if (statusEl) statusEl.textContent = 'সেভ করতে সমস্যা হয়েছে। আবার চেষ্টা করুন।';
+          }
         });
-      });
-
-      Promise.all(filePromises).then(function(results) {
-        var validFiles = results.filter(Boolean);
-        if (!validFiles.length) {
-          alert('কোনো অডিও ফাইল ডাউনলোড করা যায়নি। ইন্টারনেট সংযোগ চেক করুন।');
-          zipBtn.disabled = false;
-          zipBtn.textContent = origText;
-          updateClassAudioStatus();
-          return;
-        }
-
-        var zipBlob = buildZipArchive(validFiles);
-        var zipUrl = URL.createObjectURL(zipBlob);
-        var a = document.createElement('a');
-        a.href = zipUrl;
-        a.download = 'Noor_Dwip_' + classFolderName + '_Audio.zip';
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        setTimeout(function() { URL.revokeObjectURL(zipUrl); }, 60000);
-
-        zipBtn.disabled = false;
-        zipBtn.textContent = origText;
-        if (statusSpan) {
-          statusSpan.innerHTML = '🎉 <strong>' + a.download + '</strong> আপনার ডিভাইসে সেভ হয়েছে! এটি এক্সট্রাক্ট করে স্থায়ী ফোল্ডারে রাখুন।';
-        }
-      });
-    });
-  }
-
-  // 4. Delete from permanent IndexedDB
-  if (delBtn) {
-    delBtn.addEventListener('click', function() {
-      if (!confirm('আপনি কি এই ক্লাসের মেমরিতে সংরক্ষিত অডিও মুছে ফেলতে চান?')) return;
-      deleteClassFromDB(classId).then(function() {
-        updateClassAudioStatus();
       });
     });
   }
 }
 
+// Settings page: download type/location + font size + accent color.
+var dlTypeGroup = document.getElementById('downloadTypeGroup');
+if (dlTypeGroup) {
+  var driveRow = document.getElementById('driveLocationRow');
+  var driveStatus = document.getElementById('driveLocationStatus');
+  var pickFolderBtn = document.getElementById('pickDriveFolderBtn');
+
+  function paintDlType(val) {
+    [].forEach.call(dlTypeGroup.querySelectorAll('input[name="dlType"]'), function(r) { r.checked = (r.value === val); });
+    if (driveRow) driveRow.hidden = (val !== 'drive');
+  }
+  getStoredSetting('download_pref').then(function(v) { paintDlType(v || 'browser'); });
+
+  dlTypeGroup.addEventListener('change', function(e) {
+    if (!e.target || e.target.name !== 'dlType') return;
+    saveStoredSetting('download_pref', e.target.value);
+    paintDlType(e.target.value);
+  });
+
+  function paintDriveStatus() {
+    getStoredSetting('user_drive_dir_name').then(function(name) {
+      if (driveStatus) driveStatus.textContent = name ? ('বর্তমান ফোল্ডার: ' + name) : 'কোনো ফোল্ডার বেছে নেওয়া হয়নি।';
+    });
+  }
+  paintDriveStatus();
+
+  if (pickFolderBtn) {
+    pickFolderBtn.addEventListener('click', function() {
+      if (!('showDirectoryPicker' in window)) {
+        alert('আপনার ব্রাউজারে এই ফিচার সাপোর্ট নেই।');
+        return;
+      }
+      getOrRequestDriveFolder(true).then(function() { paintDriveStatus(); }).catch(function(err) {
+        if (!err || err.name !== 'AbortError') console.warn('Folder pick failed:', err);
+      });
+    });
+  }
+}
+
+var fsGroup = document.getElementById('fontSizeGroup');
+if (fsGroup) {
+  var savedFs = null;
+  try { savedFs = localStorage.getItem('nd-fontsize'); } catch(e) {}
+  var fsBtns = [].slice.call(fsGroup.querySelectorAll('button'));
+  fsBtns.forEach(function(b) {
+    if (savedFs ? b.dataset.fs === savedFs : b.dataset.fs === '17.5') b.classList.add('on');
+    b.addEventListener('click', function() {
+      fsBtns.forEach(function(x) { x.classList.remove('on'); });
+      b.classList.add('on');
+      document.documentElement.style.setProperty('--user-fs', b.dataset.fs + 'px');
+      try { localStorage.setItem('nd-fontsize', b.dataset.fs); } catch(e) {}
+    });
+  });
+}
+
+var accGroup = document.getElementById('accentGroup');
+if (accGroup) {
+  var savedAcc = '';
+  try { savedAcc = localStorage.getItem('nd-accent') || ''; } catch(e) {}
+  var swatches = [].slice.call(accGroup.querySelectorAll('.swatch'));
+  swatches.forEach(function(b) {
+    if (b.dataset.accent === savedAcc) b.classList.add('on');
+    b.addEventListener('click', function() {
+      swatches.forEach(function(x) { x.classList.remove('on'); });
+      b.classList.add('on');
+      if (b.dataset.accent) document.documentElement.setAttribute('data-accent', b.dataset.accent);
+      else document.documentElement.removeAttribute('data-accent');
+      try { localStorage.setItem('nd-accent', b.dataset.accent); } catch(e) {}
+    });
+  });
+}
+
 // ---- theme ----
 var root=document.documentElement, KEY='nd-theme';
 try{var t=localStorage.getItem(KEY); if(t) root.setAttribute('data-theme',t);}catch(e){}
+try{var savedFontSize=localStorage.getItem('nd-fontsize'); if(savedFontSize) root.style.setProperty('--user-fs',savedFontSize+'px');}catch(e){}
+try{var savedAccent=localStorage.getItem('nd-accent'); if(savedAccent) root.setAttribute('data-accent',savedAccent);}catch(e){}
 var tb=document.getElementById('themeBtn');
 if(tb) tb.addEventListener('click',function(){
   var cur=root.getAttribute('data-theme');
