@@ -700,37 +700,30 @@ function buildClass(c) {
         return;
       }
 
+      // Speaker is still classified (drives the storyteller's per-line pause
+      // timing in app.js) but the visible name chip is dropped everywhere --
+      // flowing storybook paragraphs read more natural than a script.
       let speaker = 'narrator';
-      let tagLabel = 'গল্পকথক';
 
       if (l.includes('বাদ দে তো') || l.includes('শত্রু') || l.includes('মাথার ভেতর') || l.includes('ওয়াসওয়াসা')) {
         speaker = 'waswasa';
-        tagLabel = 'ছায়া';
       } else if (l.includes('তাসমিয়া') || l.includes('মারইয়াম')) {
         speaker = 'tasmiya';
-        tagLabel = 'তাসমিয়া';
       } else if (l.includes('দাদা') || l.includes('আবুল হোসেন')) {
         speaker = 'dada';
-        tagLabel = 'দাদা';
       } else if (l.includes('নানা') || l.includes('আবু বক্কার') || l.includes('আবু বকর সরদার')) {
         speaker = 'nana';
-        tagLabel = 'নানা';
       } else if (l.includes('নানি') || l.includes('তাহুরা বেগম')) {
         speaker = 'nani';
-        tagLabel = 'নানি';
       } else if (l.includes('আম্মু') || l.includes('ফাতেমা')) {
         speaker = 'ammu';
-        tagLabel = 'আম্মু';
       } else if (l.includes('আব্বু') || l.includes('রেজওয়ানুল')) {
         speaker = 'abbu';
-        tagLabel = 'আব্বু';
       } else if (l.includes('মাহদী বলল') || l.includes('মাহদী জিজ্ঞেস করল') || l.startsWith('"নানা,') || l.startsWith('"দাদা,') || l.startsWith('"আছে নানা')) {
         speaker = 'mahdi';
-        tagLabel = 'মাহদী';
       }
 
       out.push(`<p class="story-seg" data-seg="${segIdx++}" data-speaker="${speaker}" tabindex="0">
-        <span class="seg-speaker-tag ${speaker}-tag">${tagLabel}</span>
         <span class="seg-content">${inline(l, rel, ctx)}</span>
       </p>`);
     });
