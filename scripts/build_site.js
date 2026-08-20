@@ -664,68 +664,17 @@ function buildClass(c) {
   </header>`);
 
   if (ex.hook) {
-    out.push(ex.noStoryAudio ? `<section class="story">
+    out.push(`<section class="story">
       <div class="story-head-bar">
         <h2>🗺️ আজকের অভিযান</h2>
       </div>
-      <div class="story-body">` : `<section class="story story-interactive" id="classStorySection">
-      <div class="story-head-bar">
-        <h2>🗺️ আজকের অভিযান</h2>
-        <div class="story-audio-bar">
-          <button class="btn story-play-btn" type="button" id="storyPlayBtn" aria-label="গল্প শুনুন">
-            <span class="st-ic">🎧</span> <span class="st-txt">গল্প শুনুন (স্টোরিটেলার)</span>
-          </button>
-          <div class="story-speed-ctrl" id="storySpeedCtrl">
-            <button class="sp-btn" type="button" data-spd="0.8">০.৮x</button>
-            <button class="sp-btn on" type="button" data-spd="1.0">১.০x</button>
-            <button class="sp-btn" type="button" data-spd="1.2">১.২x</button>
-          </div>
-        </div>
-      </div>
-      <div class="story-listening-status" id="storyStatusNote" hidden>
-        <span class="pulse-dot"></span> <span class="status-msg">স্টোরিটেলার গল্প শোনাচ্ছে... যেকোনো লাইনে ক্লিক করে সরাসরি শুনতে পারেন</span>
-      </div>
-      <div class="story-body" id="storyBody">`);
+      <div class="story-body">`);
 
-    let segIdx = 0;
     ex.hook.forEach((l) => {
       if (l.trim() === '---') { out.push('<hr class="dream" data-label="স্বপ্ন">'); return; }
       if (l.startsWith('> ')) { out.push(`<blockquote>${inline(l.slice(2), rel, ctx)}</blockquote>`); return; }
       if (l.startsWith('# ')) { out.push(`<h3 class="big-note">${inline(l.slice(2), rel, ctx)}</h3>`); return; }
-
-      // Plain flowing-paragraph mode: no speaker chip, no per-line click-to-play --
-      // just a storybook paragraph with dialogue woven into the prose.
-      if (ex.noStoryAudio) {
-        out.push(`<p class="story-seg">${inline(l, rel, ctx)}</p>`);
-        return;
-      }
-
-      // Speaker is still classified (drives the storyteller's per-line pause
-      // timing in app.js) but the visible name chip is dropped everywhere --
-      // flowing storybook paragraphs read more natural than a script.
-      let speaker = 'narrator';
-
-      if (l.includes('বাদ দে তো') || l.includes('শত্রু') || l.includes('মাথার ভেতর') || l.includes('ওয়াসওয়াসা')) {
-        speaker = 'waswasa';
-      } else if (l.includes('তাসমিয়া') || l.includes('মারইয়াম')) {
-        speaker = 'tasmiya';
-      } else if (l.includes('দাদা') || l.includes('আবুল হোসেন')) {
-        speaker = 'dada';
-      } else if (l.includes('নানা') || l.includes('আবু বক্কার') || l.includes('আবু বকর সরদার')) {
-        speaker = 'nana';
-      } else if (l.includes('নানি') || l.includes('তাহুরা বেগম')) {
-        speaker = 'nani';
-      } else if (l.includes('আম্মু') || l.includes('ফাতেমা')) {
-        speaker = 'ammu';
-      } else if (l.includes('আব্বু') || l.includes('রেজওয়ানুল')) {
-        speaker = 'abbu';
-      } else if (l.includes('মাহদী বলল') || l.includes('মাহদী জিজ্ঞেস করল') || l.startsWith('"নানা,') || l.startsWith('"দাদা,') || l.startsWith('"আছে নানা')) {
-        speaker = 'mahdi';
-      }
-
-      out.push(`<p class="story-seg" data-seg="${segIdx++}" data-speaker="${speaker}" tabindex="0">
-        <span class="seg-content">${inline(l, rel, ctx)}</span>
-      </p>`);
+      out.push(`<p class="story-seg">${inline(l, rel, ctx)}</p>`);
     });
     out.push('</div></section>');
   }
@@ -2036,47 +1985,11 @@ ul.check li::before{content:"☐ ";color:var(--mut)}
 .audio-status{margin-top:.65rem;font-size:.83rem;color:var(--mut);line-height:1.45}
 .audio-status strong{color:var(--fg)}
 
-/* ---- Interactive Storyteller & Auto-Scroll Styles ---- */
-.story-interactive{position:relative}
+/* ---- Story Section ---- */
 .story-head-bar{display:flex;align-items:center;justify-content:space-between;gap:.8rem;flex-wrap:wrap;margin-bottom:1rem}
 .story-head-bar h2{margin:0}
-.story-audio-bar{display:flex;align-items:center;gap:.5rem;flex-wrap:wrap}
-.story-play-btn{background:linear-gradient(135deg,var(--acc),var(--acc2));color:#fff;
-  font-weight:700;font-size:.88rem;padding:.48rem 1rem;border-radius:24px;border:none;
-  cursor:pointer;display:inline-flex;align-items:center;gap:.4rem;box-shadow:0 3px 10px rgba(0,0,0,.12);
-  transition:all .2s ease}
-.story-play-btn:hover{transform:translateY(-1px);box-shadow:0 5px 14px rgba(0,0,0,.18)}
-.story-play-btn.playing{background:#e11d48;animation:storyPulse 1.5s infinite}
-@keyframes storyPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.03);box-shadow:0 0 14px rgba(225,29,72,.4)}}
-.story-speed-ctrl{display:inline-flex;background:var(--chip);border:1px solid var(--line);border-radius:18px;padding:2px}
-.sp-btn{background:none;border:none;padding:.2rem .5rem;font-size:.75rem;font-weight:600;
-  color:var(--mut);border-radius:14px;cursor:pointer;transition:all .15s ease}
-.sp-btn.on{background:var(--card);color:var(--acc);box-shadow:0 1px 4px rgba(0,0,0,.08)}
-.story-listening-status{background:color-mix(in srgb,var(--acc2) 12%,transparent);
-  border:1px solid color-mix(in srgb,var(--acc2) 28%,transparent);border-radius:10px;
-  padding:.45rem .8rem;font-size:.82rem;color:var(--fg);display:flex;align-items:center;gap:.5rem;margin-bottom:1rem}
-.pulse-dot{width:8px;height:8px;background:var(--acc2);border-radius:50%;animation:dotPulse 1s infinite alternate}
-@keyframes dotPulse{from{opacity:.4;transform:scale(.8)}to{opacity:1;transform:scale(1.3)}}
 .story-body{position:relative}
-.story-seg{padding:.65rem .9rem;margin:.5rem 0;border-radius:12px;border:1px solid transparent;
-  transition:all .25s ease;cursor:pointer;position:relative;line-height:1.7}
-.story-seg:hover{background:var(--chip);border-color:var(--line)}
-.story-seg.active-story-seg{background:color-mix(in srgb,var(--acc2) 18%,var(--card));
-  border:1px solid var(--acc2);box-shadow:0 4px 16px rgba(0,0,0,.06);transform:scale(1.015);
-  transition:all .2s cubic-bezier(.2,.8,.2,1)}
-.seg-speaker-tag{display:inline-block;font-size:.72rem;font-weight:700;padding:.12rem .5rem;
-  border-radius:10px;margin-inline-end:.5rem;vertical-align:middle;text-transform:uppercase;letter-spacing:.02em}
-.narrator-tag{background:color-mix(in srgb,var(--mut) 15%,transparent);color:var(--mut)}
-.mahdi-tag{background:color-mix(in srgb,#3b82f6 18%,transparent);color:#2563eb}
-.tasmiya-tag{background:color-mix(in srgb,#ec4899 18%,transparent);color:#db2777}
-.dada-tag{background:color-mix(in srgb,#059669 18%,transparent);color:#059669}
-.nana-tag{background:color-mix(in srgb,#d97706 18%,transparent);color:#d97706}
-.nani-tag{background:color-mix(in srgb,#8b5cf6 18%,transparent);color:#7c3aed}
-.ammu-tag{background:color-mix(in srgb,#14b8a6 18%,transparent);color:#0d9488}
-.abbu-tag{background:color-mix(in srgb,#6366f1 18%,transparent);color:#4f46e5}
-.waswasa-tag{background:color-mix(in srgb,#64748b 25%,transparent);color:#475569;font-style:italic}
-.active-story-seg .seg-speaker-tag{animation:tagGlow 1.2s infinite alternate}
-@keyframes tagGlow{from{filter:brightness(1)}to{filter:brightness(1.25)}}
+.story-seg{padding:.65rem .9rem;margin:.5rem 0;border-radius:12px;line-height:1.7}
 
 /* ---- tables ---- */
 .tbl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain;
@@ -2318,20 +2231,10 @@ table.index td{padding:.4em .6em}
   }
   .audio-status{font-size:.8rem;line-height:1.4}
 
-  /* Story Section & Interactive Storyteller on Mobile */
+  /* Story Section on Mobile */
   .story-head-bar{flex-direction:column;align-items:stretch;gap:.7rem;margin-bottom:.8rem}
   .story-head-bar h2{font-size:1.15rem;margin:0}
-  .story-audio-bar{display:flex;align-items:center;justify-content:space-between;gap:.5rem;width:100%}
-  .story-play-btn{flex:1;min-height:44px;font-size:.84rem;padding:.5rem .8rem;justify-content:center}
-  .story-speed-ctrl{min-height:44px;display:flex;align-items:center;padding:3px}
-  .sp-btn{min-height:38px;min-width:38px;padding:.3rem .55rem;font-size:.78rem}
-  .story-listening-status{font-size:.78rem;padding:.5rem .75rem;line-height:1.4}
-  
-  /* Story Segments & Tap targets */
-  .story-seg{padding:.75rem .85rem;margin:.55rem 0;font-size:.98rem;line-height:1.85;border-radius:12px;
-    -webkit-tap-highlight-color:transparent}
-  .story-seg.active-story-seg{transform:none;border-width:2px}
-  .seg-speaker-tag{font-size:.72rem;padding:.15rem .5rem;margin-bottom:.25rem;display:inline-block}
+  .story-seg{padding:.75rem .85rem;margin:.55rem 0;font-size:.98rem;line-height:1.85;border-radius:12px}
 
   /* Inline and Ayah play buttons on mobile */
   .play-btn{min-height:44px;min-width:44px;display:inline-flex;align-items:center;justify-content:center}
@@ -3336,157 +3239,6 @@ if (classPanel) {
     });
   }
 }
-
-// ===== Storyteller Interactive Read-Along Engine (Real MP3 Audio + Auto-Scroll) =====
-(function initStoryPlayer() {
-  var storySec = document.getElementById('classStorySection');
-  if (!storySec) return;
-
-  var playBtn = document.getElementById('storyPlayBtn');
-  var speedCtrl = document.getElementById('storySpeedCtrl');
-  var statusNote = document.getElementById('storyStatusNote');
-  var segs = [].slice.call(storySec.querySelectorAll('.story-seg'));
-  if (!segs.length) return;
-
-  var isPlaying = false;
-  var currentIdx = 0;
-  var currentSpeed = 1.0;
-  var storyAudioElem = new Audio();
-  var userScrolling = false;
-  var userScrollTimer = null;
-  var pauseTimer = null;
-
-  function markUserScroll() {
-    userScrolling = true;
-    clearTimeout(userScrollTimer);
-    userScrollTimer = setTimeout(function() { userScrolling = false; }, 4000);
-  }
-  window.addEventListener('wheel', markUserScroll, { passive: true });
-  window.addEventListener('touchstart', markUserScroll, { passive: true });
-
-  if (speedCtrl) {
-    speedCtrl.addEventListener('click', function(e) {
-      var btn = e.target.closest('.sp-btn');
-      if (!btn) return;
-      [].forEach.call(speedCtrl.querySelectorAll('.sp-btn'), function(b){ b.classList.remove('on'); });
-      btn.classList.add('on');
-      currentSpeed = parseFloat(btn.getAttribute('data-spd') || '1.0');
-      if (storyAudioElem) {
-        storyAudioElem.playbackRate = currentSpeed;
-      }
-    });
-  }
-
-  function setActiveSeg(idx) {
-    segs.forEach(function(s, i) {
-      if (i === idx) {
-        s.classList.add('active-story-seg');
-        if (!userScrolling) {
-          s.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }
-      } else {
-        s.classList.remove('active-story-seg');
-      }
-    });
-  }
-
-  function stopStory() {
-    isPlaying = false;
-    clearTimeout(pauseTimer);
-    if (storyAudioElem) {
-      storyAudioElem.pause();
-      storyAudioElem.src = '';
-    }
-    if (playBtn) {
-      playBtn.classList.remove('playing');
-      playBtn.querySelector('.st-txt').textContent = 'গল্প শুনুন (স্টোরিটেলার)';
-    }
-    if (statusNote) statusNote.hidden = true;
-    segs.forEach(function(s){ s.classList.remove('active-story-seg'); });
-  }
-
-  function getCleanText(elem) {
-    var contentElem = elem.querySelector('.seg-content');
-    var raw = contentElem ? contentElem.innerText : elem.innerText;
-    return raw.replace(/[\(\*\_\#\>]/g, '').trim();
-  }
-
-  function playSegment(idx) {
-    if (!isPlaying || idx >= segs.length) {
-      stopStory();
-      return;
-    }
-    currentIdx = idx;
-    var seg = segs[idx];
-    setActiveSeg(idx);
-
-    var text = getCleanText(seg);
-    if (!text) {
-      playSegment(idx + 1);
-      return;
-    }
-
-    // Google Neural Bengali TTS stream url
-    var ttsUrl = 'https://translate.google.com/translate_tts?ie=UTF-8&q=' + encodeURIComponent(text) + '&tl=bn&client=tw-ob';
-
-    storyAudioElem.src = ttsUrl;
-    storyAudioElem.playbackRate = currentSpeed;
-
-    storyAudioElem.onended = function() {
-      if (!isPlaying) return;
-      var speaker = seg.getAttribute('data-speaker') || 'narrator';
-      var pauseMs = (speaker === 'waswasa' || speaker === 'dada') ? 600 : 350;
-      pauseTimer = setTimeout(function() {
-        if (isPlaying) playSegment(idx + 1);
-      }, pauseMs / currentSpeed);
-    };
-
-    storyAudioElem.onerror = function(err) {
-      console.warn('Audio play error, skipping to next:', err);
-      if (isPlaying) {
-        pauseTimer = setTimeout(function() {
-          if (isPlaying) playSegment(idx + 1);
-        }, 800);
-      }
-    };
-
-    var playPromise = storyAudioElem.play();
-    if (playPromise !== undefined) {
-      playPromise.catch(function(error) {
-        console.warn('Playback prevented or failed:', error);
-      });
-    }
-  }
-
-  if (playBtn) {
-    playBtn.addEventListener('click', function() {
-      if (isPlaying) {
-        stopStory();
-      } else {
-        isPlaying = true;
-        playBtn.classList.add('playing');
-        playBtn.querySelector('.st-txt').textContent = 'বিরতি (পজ)';
-        if (statusNote) statusNote.hidden = false;
-        playSegment(currentIdx || 0);
-      }
-    });
-  }
-
-  segs.forEach(function(seg, i) {
-    seg.addEventListener('click', function() {
-      currentIdx = i;
-      if (!isPlaying) {
-        isPlaying = true;
-        if (playBtn) {
-          playBtn.classList.add('playing');
-          playBtn.querySelector('.st-txt').textContent = 'বিরতি (পজ)';
-        }
-        if (statusNote) statusNote.hidden = false;
-      }
-      playSegment(i);
-    });
-  });
-})();
 
 // ---- theme ----
 var root=document.documentElement, KEY='nd-theme';
