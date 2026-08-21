@@ -230,6 +230,24 @@ DUAS.forEach((d, i) => {
   });
 });
 
+// A word that only ever appears in prose (never in an ayah, grammar family
+// table, or dua) still gets a lexicon entry -- and therefore a linked word
+// page -- from the scans below. Without this, that page's pron/meaning line
+// renders blank, because nothing else ever populates e.pron/e.bn for it.
+// The prose always carries a **AR** *(pron — meaning)* gloss at the point of
+// first use (the book's house style), so recover it from there instead.
+function backfillGlossFromProse(e, tok, line) {
+  if (e.pron && e.bn) return;
+  const escaped = tok.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const glossRe = new RegExp(`\\*{0,2}${escaped}\\*{0,2}\\s*\\*?\\(([^)—]+)(?:—\\s*([^)]+))?\\)`);
+  const m = line.match(glossRe);
+  if (!m) return;
+  const pron = m[1].trim();
+  const meaning = m[2] ? m[2].trim() : '';
+  if (!e.pron && pron) e.pron = pron;
+  if (!e.bn) e.bn = meaning || pron;
+}
+
 // 3c. from story hooks, tajweed, and passage stories -- so every Arabic word is in lexicon
 Object.values(meta.EXERCISES || {}).forEach((ex) => {
   (ex.hook || []).forEach((l) => {
@@ -239,6 +257,7 @@ Object.values(meta.EXERCISES || {}).forEach((ex) => {
       if (!e.audioUrl) {
         e.audioUrl = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(tok)}&tl=ar&client=tw-ob`;
       }
+      backfillGlossFromProse(e, tok, l);
     });
   });
 });
@@ -251,6 +270,7 @@ Object.values(meta.PASSAGE_STORY || {}).forEach((st) => {
       if (!e.audioUrl) {
         e.audioUrl = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(tok)}&tl=ar&client=tw-ob`;
       }
+      backfillGlossFromProse(e, tok, l);
     });
   });
 });
