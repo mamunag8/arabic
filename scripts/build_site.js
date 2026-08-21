@@ -1226,17 +1226,6 @@ const ISLAND_GIFTS = [
     </div>
   </div>
 
-  <section class="q-today" id="todayCard" data-w-src="assets/words.json" data-d-src="assets/duas.json" hidden>
-    <div class="qs-head">🌤️ আজকের জন্য</div>
-    <a class="td-cls" id="tdClass" href="class/1.html"></a>
-    <div class="td-words" id="tdWords"></div>
-    <div class="td-dua" id="tdDua" hidden>
-      <p class="td-dua-ar ar quran"></p>
-      <p class="td-dua-pron"></p>
-      <button class="play-btn" type="button" data-audio="" title="উচ্চারণ শুনুন" aria-label="উচ্চারণ শুনুন">🔊</button>
-    </div>
-  </section>
-
   <div class="q-shield">
     <div class="qs-head">🛡️ ঢালের টুকরো <span id="shieldCount">০/৬</span></div>
     <div class="qs-row">${meta.ISLANDS.map((i) => `<span class="sp" data-sp="${i.n}">${bn(i.n)}</span>`).join('')}</div>
@@ -1421,6 +1410,15 @@ ${rows}
 <header class="page-head"><h1>🧠 অনুশীলনের ঘর</h1>
 <p class="lead">তুমি এ পর্যন্ত যত শব্দ শিখেছ, সব এখানে। যত ক্লাস শেষ করবে, ঝুড়ি তত বড় হবে।</p>
 </header>
+<section class="q-today" id="todayCard" data-w-src="assets/words.json" data-d-src="assets/duas.json" hidden>
+  <div class="qs-head">🌤️ আজকের জন্য</div>
+  <div class="td-words" id="tdWords"></div>
+  <div class="td-dua" id="tdDua" hidden>
+    <p class="td-dua-ar ar quran"></p>
+    <p class="td-dua-pron"></p>
+    <button class="play-btn" type="button" data-audio="" title="উচ্চারণ শুনুন" aria-label="উচ্চারণ শুনুন">🔊</button>
+  </div>
+</section>
 <section class="practice" id="hub" data-src="assets/words.json">
   <p class="pr-count muted" id="hubCount">শব্দ গোনা হচ্ছে…</p>
   <div class="pr-tabs" role="tablist">
@@ -1837,7 +1835,6 @@ ${ACCOUNT.css}
   font-size:.82rem;color:var(--mut);margin:.3rem 0}
 .q-today{margin-top:1.1rem;background:var(--bg);border:1px solid var(--line);
   border-radius:var(--rad);padding:.8rem .9rem}
-.td-cls{display:block;font-size:.92rem;font-weight:700;color:var(--acc);margin:.2rem 0 .5rem}
 .td-words{display:flex;gap:.4rem;flex-wrap:wrap;margin-bottom:.3rem}
 .td-word{display:flex;align-items:center;gap:.15rem;background:var(--chip);
   border-radius:999px;padding:.25rem .55rem .25rem .7rem;font-size:.9rem}
@@ -2492,39 +2489,6 @@ if(ring){
   else if(done.length<total) ql.textContent='তুমি '+bn(done.length)+'টি ক্লাস শেষ করেছ। বাকি '+bn(total-done.length)+'টি।';
   else ql.textContent='ছয় দ্বীপ, ১২০ ক্লাস — সব শেষ। এখন শেখানোর পালা।';
 
-  // ---- today card: one class + a few review words + one dua. No streak,
-  // no "you were gone N days" -- just today's three things, same rotation
-  // whether this is day one or day fifty. ----
-  var tc=document.getElementById('todayCard');
-  if(tc && nextN<=total){
-    var todaySeed=(function(){ var d=new Date(); return d.getFullYear()*372+d.getMonth()*31+d.getDate(); })();
-    var tcCls=document.getElementById('tdClass');
-    tcCls.textContent='📘 আজকের ক্লাস — '+bn(nextN);
-    tcCls.href='class/'+nextN+'.html';
-    tc.hidden=false;
-    fetch(tc.getAttribute('data-w-src')).then(function(r){return r.json();}).then(function(words){
-      var seen=words.filter(function(w){ return done.indexOf(w.c)>-1; });
-      if(!seen.length) return;
-      var picks=[], n=Math.min(5,seen.length), start=todaySeed%seen.length;
-      for(var i=0;i<n;i++) picks.push(seen[(start+i*7)%seen.length]);
-      var wrap=document.getElementById('tdWords');
-      wrap.innerHTML='<span class="td-lbl">🔁 ঝালাই করো: </span>'+picks.map(function(w){
-        return '<span class="td-word"><span class="ar">'+w.ar+'</span>'+
-          (w.audio?'<button class="play-btn" type="button" data-audio="'+w.audio+'" title="উচ্চারণ শুনুন" aria-label="উচ্চারণ শুনুন">🔊</button>':'')+
-          '</span>';
-      }).join('');
-    }).catch(function(){});
-    fetch(tc.getAttribute('data-d-src')).then(function(r){return r.json();}).then(function(duas){
-      if(!duas.length) return;
-      var d=duas[todaySeed%duas.length];
-      var box=document.getElementById('tdDua');
-      box.hidden=false;
-      box.querySelector('.td-dua-ar').textContent=d.ar;
-      box.querySelector('.td-dua-pron').textContent='🗣️ '+d.pron;
-      box.querySelector('.play-btn').setAttribute('data-audio',d.audio);
-    }).catch(function(){});
-  }
-
   // per-island: progress, state, shield piece, gift, and open/closed
   var shield=0, gifts=0;
   [].forEach.call(document.querySelectorAll('.island'),function(sec){
@@ -2583,6 +2547,40 @@ if(ring){
   if(rs) rs.addEventListener('click',function(){
     if(confirm('সব অগ্রগতি মুছে নতুন করে শুরু করবে?')){ saveP({done:[]}); location.reload(); }
   });
+}
+
+// ---- today card (practice page): a few review words + one dua, only from
+// classes already finished -- nothing here gets ahead of the child. No
+// streak, no "you were gone N days" -- same rotation whether this is day
+// one or day fifty. ----
+var tc=document.getElementById('todayCard');
+if(tc){
+  var tcDone=loadP().done;
+  if(tcDone.length){
+    var todaySeed=(function(){ var d=new Date(); return d.getFullYear()*372+d.getMonth()*31+d.getDate(); })();
+    tc.hidden=false;
+    fetch(tc.getAttribute('data-w-src')).then(function(r){return r.json();}).then(function(words){
+      var seen=words.filter(function(w){ return tcDone.indexOf(w.c)>-1; });
+      if(!seen.length) return;
+      var picks=[], n=Math.min(5,seen.length), start=todaySeed%seen.length;
+      for(var i=0;i<n;i++) picks.push(seen[(start+i*7)%seen.length]);
+      var wrap=document.getElementById('tdWords');
+      wrap.innerHTML='<span class="td-lbl">🔁 ঝালাই করো: </span>'+picks.map(function(w){
+        return '<span class="td-word"><span class="ar">'+w.ar+'</span>'+
+          (w.audio?'<button class="play-btn" type="button" data-audio="'+w.audio+'" title="উচ্চারণ শুনুন" aria-label="উচ্চারণ শুনুন">🔊</button>':'')+
+          '</span>';
+      }).join('');
+    }).catch(function(){});
+    fetch(tc.getAttribute('data-d-src')).then(function(r){return r.json();}).then(function(duas){
+      if(!duas.length) return;
+      var d=duas[todaySeed%duas.length];
+      var box=document.getElementById('tdDua');
+      box.hidden=false;
+      box.querySelector('.td-dua-ar').textContent=d.ar;
+      box.querySelector('.td-dua-pron').textContent='🗣️ '+d.pron;
+      box.querySelector('.play-btn').setAttribute('data-audio',d.audio);
+    }).catch(function(){});
+  }
 }
 
 // ---- class page: finish button ----
