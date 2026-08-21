@@ -402,6 +402,7 @@ function page({ title, desc, body, rel, cls = '', active = '', jsonLd = null }) 
   // a fixed bottom tab bar on phones (thumbs reach the bottom, not the top).
   const nav = [
     ['', 'index.html', '🗺️', 'মানচিত্র'],
+    ['practice', 'practice.html', '🧠', 'অনুশীলন'],
     ['words', 'words.html', '🧺', 'শব্দ'],
     ['duas', 'duas.html', '🤲', 'দুআ'],
     ['search', 'search.html', '🔍', 'খোঁজো'],
