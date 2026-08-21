@@ -428,13 +428,16 @@ function page({ title, desc, body, rel, cls = '', active = '', jsonLd = null }) 
 <meta property="og:type" content="book">
 <meta property="og:url" content="__CANONICAL__">
 <link rel="canonical" href="__CANONICAL__">
+<link rel="manifest" href="${rel}manifest.webmanifest">
+<link rel="icon" href="${rel}assets/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="${rel}assets/icon.svg">
 ${jsonLd ? `<script type="application/ld+json">${JSON.stringify(jsonLd)}</script>` : ''}
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+Bengali:wght@400;600;700&family=Amiri+Quran&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="${rel}assets/style.css?v=__AV__">
 </head>
-<body class="${cls}">
+<body class="${cls}" data-rel="${rel}">
 <a class="skip" href="#main">মূল অংশে যাও</a>
 <header class="top">
   <a class="brand" href="${rel}index.html"><span class="mark">🌙</span> <span class="bt">${SITE_TITLE}</span></a>
@@ -520,6 +523,18 @@ function memoryLadder(a, rel) {
 </section>`;
 }
 
+function scrambleGame(a) {
+  const words = a.words.map((w) => w.arabic);
+  if (words.length < 2 || words.length > 12) return '';
+  return `<div class="scramble" data-scramble='${JSON.stringify(words).replace(/'/g, '&#39;')}'>
+  <p class="scr-label">🧩 শব্দ সাজাও — সঠিক ক্রমে ট্যাপ করো</p>
+  <div class="scr-target" aria-live="polite"></div>
+  <div class="scr-pool"></div>
+  <p class="scr-fb" hidden></p>
+  <button class="mini scr-reset" type="button" hidden>🔄 আবার সাজাও</button>
+</div>`;
+}
+
 function ayahBlock(a, i, rel) {
   const aAudio = a.audioUrl || ayahAudioUrl(a.passage.chapter, a.n);
   return `<article class="ayah" id="a${a.key.replace(':', '-')}">
@@ -535,6 +550,7 @@ function ayahBlock(a, i, rel) {
 <h5>শব্দে শব্দে বুঝি</h5>
 ${wordTable(a.words, rel, a)}
 ${memoryLadder(a, rel)}
+${scrambleGame(a)}
 </article>`;
 }
 
@@ -859,7 +875,10 @@ function buildClass(c) {
     <li>ঘুমানোর আগে একবার পড়েছি</li>
   </ul>
   ${ex.badge ? `<div class="badge">${inline(ex.badge, rel, ctx)}</div>` : ''}
-  <div class="done-box" data-cls="${c.index}" data-total="${plan.classes.length}">
+  <div class="done-box" data-cls="${c.index}" data-total="${plan.classes.length}"
+    data-isl-n="${island.n}" data-isl-emoji="${island.emoji}" data-isl-name="${island.name}"
+    data-isl-from="${plan.classes.find((cc) => cc.week === island.weeks[0]).index}"
+    data-isl-to="${plan.classes.filter((cc) => cc.week === island.weeks[1]).slice(-1)[0].index}">
     <button class="btn done-btn" type="button">✅ ক্লাস ${bn(c.index)} শেষ করলাম</button>
     <p class="done-msg" hidden></p>
   </div></section>`);
@@ -1206,6 +1225,17 @@ const ISLAND_GIFTS = [
     </div>
   </div>
 
+  <section class="q-today" id="todayCard" data-w-src="assets/words.json" data-d-src="assets/duas.json" hidden>
+    <div class="qs-head">🌤️ আজকের জন্য</div>
+    <a class="td-cls" id="tdClass" href="class/1.html"></a>
+    <div class="td-words" id="tdWords"></div>
+    <div class="td-dua" id="tdDua" hidden>
+      <p class="td-dua-ar ar quran"></p>
+      <p class="td-dua-pron"></p>
+      <button class="play-btn" type="button" data-audio="" title="উচ্চারণ শুনুন" aria-label="উচ্চারণ শুনুন">🔊</button>
+    </div>
+  </section>
+
   <div class="q-shield">
     <div class="qs-head">🛡️ ঢালের টুকরো <span id="shieldCount">০/৬</span></div>
     <div class="qs-row">${meta.ISLANDS.map((i) => `<span class="sp" data-sp="${i.n}">${bn(i.n)}</span>`).join('')}</div>
@@ -1376,6 +1406,16 @@ ${rows}
   });
   write('assets/words.json', JSON.stringify(pool));
 
+  // today card on the home page picks one dua per day from this pool
+  const duaPool = DUAS.map((d) => ({
+    ar: d.arabic,
+    pron: d.pron,
+    bn: d.meaning,
+    ref: d.ref,
+    audio: `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(d.arabic)}&tl=ar&client=tw-ob`,
+  }));
+  write('assets/duas.json', JSON.stringify(duaPool));
+
   const body = `
 <header class="page-head"><h1>🧠 অনুশীলনের ঘর</h1>
 <p class="lead">তুমি এ পর্যন্ত যত শব্দ শিখেছ, সব এখানে। যত ক্লাস শেষ করবে, ঝুড়ি তত বড় হবে।</p>
@@ -1386,6 +1426,8 @@ ${rows}
     <button class="pr-tab on" type="button" data-tool="cards" role="tab">🃏 ফ্ল্যাশ কার্ড</button>
     <button class="pr-tab" type="button" data-tool="pairs" role="tab">🧩 জোড়া মেলাও</button>
     <button class="pr-tab" type="button" data-tool="quiz" role="tab">🎯 চ্যালেঞ্জ</button>
+    <button class="pr-tab" type="button" data-tool="review" role="tab">🔁 আজকের রিভিউ</button>
+    <button class="pr-tab" type="button" data-tool="teach" role="tab">🧑‍🏫 তাসমিয়াকে শেখাও</button>
   </div>
   <div class="pr-scope">
     <label><input type="radio" name="scope" value="all" checked> সব শেখা শব্দ</label>
@@ -1792,6 +1834,17 @@ ${ACCOUNT.css}
 .btn.big{font-size:1.05rem;padding:.75rem 1.5rem}
 .qs-head{display:flex;justify-content:space-between;align-items:center;
   font-size:.82rem;color:var(--mut);margin:.3rem 0}
+.q-today{margin-top:1.1rem;background:var(--bg);border:1px solid var(--line);
+  border-radius:var(--rad);padding:.8rem .9rem}
+.td-cls{display:block;font-size:.92rem;font-weight:700;color:var(--acc);margin:.2rem 0 .5rem}
+.td-words{display:flex;gap:.4rem;flex-wrap:wrap;margin-bottom:.3rem}
+.td-word{display:flex;align-items:center;gap:.15rem;background:var(--chip);
+  border-radius:999px;padding:.25rem .55rem .25rem .7rem;font-size:.9rem}
+.td-word .ar{font-size:1rem}
+.td-dua{margin-top:.5rem;padding-top:.5rem;border-top:1px dashed var(--line);
+  display:flex;align-items:center;gap:.5rem;flex-wrap:wrap}
+.td-dua-ar{margin:0;font-size:1.1rem;flex:1 1 auto}
+.td-dua-pron{margin:0;font-size:.82rem;color:var(--mut);flex:1 1 100%}
 .q-shield,.q-shelf{margin-top:1.1rem}
 .qs-row,.shelf{display:flex;gap:.4rem;flex-wrap:wrap}
 .sp{display:flex;align-items:center;justify-content:center;width:2.4rem;height:2.4rem;
@@ -1885,7 +1938,25 @@ ${ACCOUNT.css}
 /* class node states */
 
 /* finish button */
-.done-box{margin-top:1rem}
+.done-box{margin-top:1rem;position:relative}
+@keyframes badgePop{
+  0%{transform:translateY(0) scale(.6);opacity:0}
+  30%{transform:translateY(-8px) scale(1.2);opacity:1}
+  100%{transform:translateY(-38px) scale(1);opacity:0}
+}
+.badge-pop{position:absolute;top:0;left:1.2rem;pointer-events:none;font-size:1.7rem;
+  animation:badgePop 1.1s ease forwards}
+.isl-cele-ov{position:fixed;inset:0;z-index:999;display:flex;align-items:center;justify-content:center;
+  padding:1rem;background:color-mix(in srgb,var(--bg) 85%,transparent);
+  animation:ndFadeIn .2s ease}
+.isl-cele-card{background:var(--card);border:1px solid var(--line);border-radius:var(--rad);
+  padding:2rem 1.6rem;max-width:22rem;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.25);
+  animation:ndCardPop .4s cubic-bezier(.34,1.56,.64,1)}
+.isl-cele-emoji{font-size:3.2rem;display:block;margin-bottom:.4rem}
+.isl-cele-card h3{margin:.2em 0}
+.isl-cele-card p{color:var(--mut);font-size:.92rem;margin:.4em 0 1.2em}
+@keyframes ndFadeIn{from{opacity:0}to{opacity:1}}
+@keyframes ndCardPop{0%{transform:scale(.7);opacity:0}60%{transform:scale(1.05)}100%{transform:scale(1);opacity:1}}
 .done-btn.is-done{background:var(--chip);color:var(--fg);cursor:default}
 .done-btn.pop{animation:pop .6s ease}
 @keyframes pop{0%{transform:scale(1)}35%{transform:scale(1.08)}100%{transform:scale(1)}}
@@ -1980,6 +2051,21 @@ input[type=checkbox],input[type=radio]{width:20px;height:20px;accent-color:var(-
 .qz-fb{margin:.6rem 0 0;font-size:.9rem}
 .qz-fb.ok{color:var(--acc)}
 .qz-fb.no{color:var(--acc2)}
+
+.scramble{margin-top:1rem;background:var(--bg);border:1px solid var(--line);
+  border-radius:var(--rad);padding:.8rem .9rem}
+.scr-label{margin:0 0 .5rem;font-size:.9rem;font-weight:700;color:var(--acc)}
+.scr-target{display:flex;flex-wrap:wrap;gap:.35rem;min-height:2.8rem;margin-bottom:.6rem;
+  border:1px dashed var(--line);border-radius:10px;padding:.4rem}
+.scr-slot{background:var(--chip);border-radius:8px;padding:.3rem .6rem;font-size:1.15rem}
+.scr-pool{display:flex;flex-wrap:wrap;gap:.4rem}
+.scr-word{font:inherit;font-size:1.15rem;background:var(--card);border:1px solid var(--line);
+  border-radius:8px;padding:.4rem .7rem;cursor:pointer;min-height:44px}
+.scr-word:hover{border-color:var(--acc)}
+.scr-word.used{opacity:.25;pointer-events:none}
+.scr-fb{margin:.6rem 0 0;font-size:.9rem}
+.scr-fb.ok{color:var(--acc)}
+.scr-fb.no{color:var(--acc2)}
 .qz-end{text-align:center}
 
 /* ---- home ---- */
@@ -2381,6 +2467,7 @@ function isDone(n){ return loadP().done.indexOf(n)>-1; }
 function markDone(n){ var p=loadP(); if(p.done.indexOf(n)<0){ p.done.push(n); p.done.sort(function(a,b){return a-b;}); saveP(p);} return p; }
 var BN='০১২৩৪৫৬৭৮৯';
 function bn(x){ return String(x).replace(/[0-9]/g,function(d){return BN[+d];}); }
+function buzz(ms){ try{ if(navigator.vibrate) navigator.vibrate(ms); }catch(e){} }
 
 // ---- home: quest dashboard ----
 var ring=document.getElementById('ringFg');
@@ -2403,6 +2490,39 @@ if(ring){
   if(done.length===0) ql.textContent='১২০টি ক্লাসের অভিযান। এক এক করে এগোও — কেউ তোমার সাথে দৌড় দিচ্ছে না।';
   else if(done.length<total) ql.textContent='তুমি '+bn(done.length)+'টি ক্লাস শেষ করেছ। বাকি '+bn(total-done.length)+'টি।';
   else ql.textContent='ছয় দ্বীপ, ১২০ ক্লাস — সব শেষ। এখন শেখানোর পালা।';
+
+  // ---- today card: one class + a few review words + one dua. No streak,
+  // no "you were gone N days" -- just today's three things, same rotation
+  // whether this is day one or day fifty. ----
+  var tc=document.getElementById('todayCard');
+  if(tc && nextN<=total){
+    var todaySeed=(function(){ var d=new Date(); return d.getFullYear()*372+d.getMonth()*31+d.getDate(); })();
+    var tcCls=document.getElementById('tdClass');
+    tcCls.textContent='📘 আজকের ক্লাস — '+bn(nextN);
+    tcCls.href='class/'+nextN+'.html';
+    tc.hidden=false;
+    fetch(tc.getAttribute('data-w-src')).then(function(r){return r.json();}).then(function(words){
+      var seen=words.filter(function(w){ return done.indexOf(w.c)>-1; });
+      if(!seen.length) return;
+      var picks=[], n=Math.min(5,seen.length), start=todaySeed%seen.length;
+      for(var i=0;i<n;i++) picks.push(seen[(start+i*7)%seen.length]);
+      var wrap=document.getElementById('tdWords');
+      wrap.innerHTML='<span class="td-lbl">🔁 ঝালাই করো: </span>'+picks.map(function(w){
+        return '<span class="td-word"><span class="ar">'+w.ar+'</span>'+
+          (w.audio?'<button class="play-btn" type="button" data-audio="'+w.audio+'" title="উচ্চারণ শুনুন" aria-label="উচ্চারণ শুনুন">🔊</button>':'')+
+          '</span>';
+      }).join('');
+    }).catch(function(){});
+    fetch(tc.getAttribute('data-d-src')).then(function(r){return r.json();}).then(function(duas){
+      if(!duas.length) return;
+      var d=duas[todaySeed%duas.length];
+      var box=document.getElementById('tdDua');
+      box.hidden=false;
+      box.querySelector('.td-dua-ar').textContent=d.ar;
+      box.querySelector('.td-dua-pron').textContent='🗣️ '+d.pron;
+      box.querySelector('.play-btn').setAttribute('data-audio',d.audio);
+    }).catch(function(){});
+  }
 
   // per-island: progress, state, shield piece, gift, and open/closed
   var shield=0, gifts=0;
@@ -2481,9 +2601,35 @@ if(db){
   paint();
   btn.addEventListener('click',function(){
     if(isDone(cn)) return;
+    var from=+db.getAttribute('data-isl-from'), to=+db.getAttribute('data-isl-to');
+    var before=loadP().done, wasComplete=true;
+    for(var i=from;i<=to;i++){ if(i!==cn && before.indexOf(i)<0){ wasComplete=false; break; } }
+
     markDone(cn); paint();
     btn.classList.add('pop');
     setTimeout(function(){ btn.classList.remove('pop'); },600);
+    buzz(15);
+
+    var bp=document.createElement('span');
+    bp.className='badge-pop'; bp.textContent='🏅'; bp.setAttribute('aria-hidden','true');
+    db.appendChild(bp);
+    setTimeout(function(){ bp.remove(); },1100);
+
+    if(wasComplete){
+      buzz([15,60,15,60,30]);
+      var ov=document.createElement('div');
+      ov.className='isl-cele-ov';
+      ov.innerHTML='<div class="isl-cele-card">'+
+        '<span class="isl-cele-emoji">'+db.getAttribute('data-isl-emoji')+'</span>'+
+        '<h3>দ্বীপ '+bn(db.getAttribute('data-isl-n'))+' জয়!</h3>'+
+        '<p>'+db.getAttribute('data-isl-name')+' — পুরো দ্বীপ শেষ। ঢালের একটা টুকরো তোমার হয়ে গেল। 🛡️</p>'+
+        '<button class="btn" type="button">চালিয়ে যাও</button></div>';
+      document.body.appendChild(ov);
+      function closeOv(){ ov.remove(); }
+      ov.addEventListener('click',function(e){ if(e.target===ov) closeOv(); });
+      ov.querySelector('button').addEventListener('click',closeOv);
+    }
+
     if(window.__ndPushProgress) window.__ndPushProgress();
     if(window.__ndMaybeNudge) window.__ndMaybeNudge();
   });
@@ -2572,7 +2718,7 @@ if(pr){
         document.getElementById('fcActs').hidden=false;
       });
       document.getElementById('fcAgain').addEventListener('click',function(){ again.push(order[at]); at++; draw(); });
-      document.getElementById('fcKnow').addEventListener('click',function(){ at++; draw(); });
+      document.getElementById('fcKnow').addEventListener('click',function(){ buzz(10); at++; draw(); });
     }
     draw();
   }
@@ -2602,6 +2748,7 @@ if(pr){
           pick.classList.remove('sel'); pick.classList.add('done'); b.classList.add('done');
           pick.disabled=true; b.disabled=true; matched++; pick=null;
           fb.hidden=false; fb.className='qz-fb ok'; fb.textContent='মিলে গেছে! ✨';
+          buzz(matched===n?[10,40,10,40,20]:10);
           if(matched===n){ fb.textContent='🎉 সব কটা জোড়া মিলেছে!'; }
         } else {
           var a=pick; a.classList.add('no'); b.classList.add('no');
@@ -2641,6 +2788,7 @@ if(pr){
         if(b.textContent===q.a){
           b.classList.add('ok');
           if(tries===0) right++;
+          buzz(10);
           fb.hidden=false; fb.className='qz-fb ok'; fb.textContent='ঠিক! ✨';
           [].forEach.call(body.querySelectorAll('.qz-o'),function(x){x.disabled=true;});
           setTimeout(function(){ at++; render(); },800);
@@ -2659,7 +2807,97 @@ if(pr){
   render();
   }
 
-  var TOOLS={cards:cards,pairs:pairs,quiz:quiz};
+  // ---- tool 4: SRS review ("আজকের রিভিউ") ----
+  // lightweight SM-2-lite scheduler: per-word interval index into
+  // [1,3,7,16,35] days, stored in its own localStorage key (kept separate
+  // from nd-progress so this never interferes with completion state).
+  var SRS_KEY='nd-srs-${BOOK_ID}', SRS_DAY=86400000, SRS_INTERVALS=[1,3,7,16,35];
+  function loadSrs(){ try{ return JSON.parse(localStorage.getItem(SRS_KEY))||{}; }catch(e){ return {}; } }
+  function saveSrs(s){ try{ localStorage.setItem(SRS_KEY, JSON.stringify(s)); }catch(e){} }
+  function wKey(w){ return w.ar+'|'+w.bn; }
+  var srsPool=deck; // hub's apply() widens this to every learned word, not just today's 20-card slice
+  function srsDue(){
+    var s=loadSrs(), now=Date.now();
+    return srsPool.filter(function(w){ var r=s[wKey(w)]; return !r || r.due<=now; });
+  }
+  function review(){
+    var due=srsDue().slice(0,20), at=0;
+    if(!due.length){
+      body.innerHTML='<div class="qz-end"><p class="big-note">🎉 আজকের রিভিউ শেষ!</p>'+
+        '<p class="muted">সব শব্দ পরের নির্ধারিত দিনের জন্য সময়সূচিতে আছে। কাল আবার এসো।</p>'+
+        '<button class="btn ghost" type="button" id="srsReset">🔄 রিভিউ সময়সূচি রিসেট করো</button></div>';
+      document.getElementById('srsReset').addEventListener('click',function(){ saveSrs({}); review(); });
+      return;
+    }
+    function draw(){
+      if(at>=due.length){
+        body.innerHTML='<div class="qz-end"><p class="big-note">🎉 আজকের '+bn(due.length)+'টা শব্দ রিভিউ হয়ে গেছে!</p>'+
+          '<p class="muted">যেগুলো "জানি" বলেছ সেগুলো পরের নির্ধারিত দিনে ফিরে আসবে। যেগুলো "আবার" বলেছ, কাল আবার আসবে।</p></div>';
+        return;
+      }
+      var c=due[at], side=0, s=loadSrs(), k=wKey(c), rec=s[k]||{idx:-1};
+      body.innerHTML='<div class="fc-top"><span class="qz-n">'+bn(at+1)+'/'+bn(due.length)+'</span>'+
+        '<span class="mini">ইন্টারভাল: '+(rec.idx>=0?bn(SRS_INTERVALS[rec.idx])+' দিন':'নতুন')+'</span></div>'+
+        '<button class="fcard" type="button" id="rc"><span class="ar huge">'+c.ar+'</span>'+
+        '<small class="fc-hint">চাপ দাও উল্টাতে</small></button>'+
+        '<div class="fc-acts" hidden id="rcActs">'+
+        '<button class="btn ghost" type="button" id="rcAgain">🔁 আবার (কাল আসবে)</button>'+
+        '<button class="btn" type="button" id="rcKnow">✅ জানি</button></div>';
+      document.getElementById('rc').addEventListener('click',function(){
+        if(side) return; side=1;
+        this.innerHTML='<span class="fc-bn">'+c.bn+'</span>';
+        this.classList.add('flipped');
+        document.getElementById('rcActs').hidden=false;
+      });
+      document.getElementById('rcAgain').addEventListener('click',function(){
+        var s2=loadSrs(); s2[k]={idx:0,due:Date.now()+SRS_DAY}; saveSrs(s2); at++; draw();
+      });
+      document.getElementById('rcKnow').addEventListener('click',function(){
+        buzz(10);
+        var s2=loadSrs(); var nextIdx=Math.min((s2[k]?s2[k].idx:-1)+1, SRS_INTERVALS.length-1);
+        s2[k]={idx:nextIdx,due:Date.now()+SRS_INTERVALS[nextIdx]*SRS_DAY}; saveSrs(s2);
+        at++; draw();
+      });
+    }
+    draw();
+  }
+
+  // ---- tool 5: "তাসমিয়াকে শেখাও" ----
+  // mirrors Class 102 (teaching Nani to read) -- the book's own claim that you
+  // learn a thing best by teaching it. Same deck as cards(), reversed: the
+  // meaning comes first, the child says the Arabic aloud, then checks
+  // themself against the real word and its audio.
+  function teach(){
+    var order=deck.map(function(_,i){return i;}), at=0, side=0;
+    function draw(){
+      if(at>=order.length){
+        body.innerHTML='<div class="qz-end"><p class="big-note">🎉 তুমি আজ '+bn(order.length)+'টা শব্দ তাসমিয়াকে শিখিয়ে দিলে!</p>'+
+          '<p class="muted">"তুমি পড়তে শিখেছ। এবার শিখেছ বুঝতে। এখন শিখিয়েছও।"</p>'+
+          '<button class="btn ghost" type="button" id="tAgain">🔁 আবার শেখাও</button></div>';
+        document.getElementById('tAgain').addEventListener('click',teach); return;
+      }
+      var c=deck[order[at]]; side=0;
+      body.innerHTML='<p class="muted sm">তাসমিয়া জিজ্ঞেস করল, "এই শব্দটা আরবিতে কী?"</p>'+
+        '<div class="fc-top"><span class="qz-n">'+bn(at+1)+'/'+bn(order.length)+'</span></div>'+
+        '<button class="fcard" type="button" id="tc"><span class="fc-bn">'+c.bn+'</span>'+
+        '<small class="fc-hint">আগে জোরে বলো, তারপর চাপ দাও মেলাতে</small></button>'+
+        '<div class="fc-acts" hidden id="tActs">'+
+        '<button class="btn ghost" type="button" id="tAgainWord">🔁 আবার শুনি</button>'+
+        '<button class="btn" type="button" id="tDone">✅ শিখিয়ে দিয়েছি</button></div>';
+      document.getElementById('tc').addEventListener('click',function(){
+        if(side) return; side=1;
+        var audioBtn=c.audio?'<button class="play-btn" type="button" data-audio="'+c.audio+'" title="উচ্চারণ শুনুন" aria-label="উচ্চারণ শুনুন">🔊</button>':'';
+        this.innerHTML='<span class="ar huge">'+c.ar+'</span>'+audioBtn;
+        this.classList.add('flipped');
+        document.getElementById('tActs').hidden=false;
+      });
+      document.getElementById('tAgainWord').addEventListener('click',function(){ draw(); });
+      document.getElementById('tDone').addEventListener('click',function(){ buzz(10); at++; draw(); });
+    }
+    draw();
+  }
+
+  var TOOLS={cards:cards,pairs:pairs,quiz:quiz,review:review,teach:teach};
   function current(){ var t=pr.querySelector('.pr-tab.on'); return t?t.getAttribute('data-tool'):'cards'; }
   [].forEach.call(pr.querySelectorAll('.pr-tab'),function(t){
     t.addEventListener('click',function(){
@@ -2683,11 +2921,11 @@ if(pr){
         var picked=all.filter(function(w){return set[w.c];});
         // deterministic spread so the deck is not just the first classes
         picked.sort(function(a,b){ return ((a.c*7)%97)-((b.c*7)%97) || a.ar.localeCompare(b.ar); });
-        deck=picked.slice(0,20); qs=makeQuiz(deck);
+        deck=picked.slice(0,20); qs=makeQuiz(deck); srsPool=picked;
         var hc=document.getElementById('hubCount');
         if(hc) hc.textContent = done.length===0
           ? 'এখনো কোনো ক্লাস শেষ করোনি। একটা ক্লাস শেষ করলেই এখানে শব্দ জমতে শুরু করবে।'
-          : bn(picked.length)+'টি শব্দ জমেছে '+bn(use.length)+'টি ক্লাস থেকে। আজকের ডেকে '+bn(deck.length)+'টি।';
+          : bn(picked.length)+'টি শব্দ জমেছে '+bn(use.length)+'টি ক্লাস থেকে। আজকের ডেকে '+bn(deck.length)+'টি। আজকের রিভিউর জন্য প্রস্তুত: '+bn(srsDue().length)+'টি।';
         if(!deck.length){ body.innerHTML='<p class="big-note">🌱 ঝুড়ি এখনো খালি।</p><p class="muted">প্রথম ক্লাসটা শেষ করে এসো — তারপর এখানে খেলা যাবে।</p>'; return; }
         TOOLS[current()]();
       }
@@ -3364,6 +3602,45 @@ document.querySelectorAll('[data-ladder]').forEach(function(l){
   });
 });
 
+// ---- ayah word-order game ----
+document.querySelectorAll('.scramble').forEach(function(box){
+  var words; try{ words=JSON.parse(box.getAttribute('data-scramble')); }catch(e){ return; }
+  if(!words || words.length<2) return;
+  var target=box.querySelector('.scr-target'), pool=box.querySelector('.scr-pool'),
+      fb=box.querySelector('.scr-fb'), resetBtn=box.querySelector('.scr-reset');
+  function shuffled(){
+    var arr=words.map(function(w,i){return {w:w,i:i};}), out=[], seed=arr.length*7+13;
+    while(arr.length){ seed=(seed*9301+49297)%233280; out.push(arr.splice(seed%arr.length,1)[0]); }
+    return out;
+  }
+  function render(){
+    var placed=[];
+    target.innerHTML=''; pool.innerHTML=''; fb.hidden=true; resetBtn.hidden=true;
+    shuffled().forEach(function(item){
+      var b=document.createElement('button');
+      b.type='button'; b.className='scr-word'; b.textContent=item.w;
+      b.addEventListener('click',function(){
+        if(b.disabled) return;
+        b.disabled=true; b.classList.add('used');
+        placed.push(item.i);
+        var s=document.createElement('span'); s.className='scr-slot'; s.textContent=item.w;
+        target.appendChild(s);
+        if(placed.length===words.length){
+          var ok=placed.every(function(v,idx){return v===idx;});
+          fb.hidden=false;
+          fb.className='scr-fb '+(ok?'ok':'no');
+          fb.textContent=ok?'🎉 ঠিক ক্রমে সাজিয়েছ!':'ক্রমটা এখনো ঠিক হয়নি — আরেকবার চেষ্টা করো।';
+          buzz(ok?[10,40,10,40,20]:10);
+          resetBtn.hidden=false;
+        }
+      });
+      pool.appendChild(b);
+    });
+  }
+  resetBtn.addEventListener('click',render);
+  render();
+});
+
 // ---- normalise for search: strip Arabic diacritics, unify alef ----
 function norm(s){
   return String(s||'').normalize('NFC')
@@ -3422,6 +3699,14 @@ if(q){
   }
   var tmr; q.addEventListener('input',function(){clearTimeout(tmr);tmr=setTimeout(run,110);});
   var pre=new URLSearchParams(location.search).get('q'); if(pre){q.value=pre;}
+}
+
+// ---- PWA: cache-on-visit so already-opened pages work with no signal ----
+if('serviceWorker' in navigator){
+  window.addEventListener('load',function(){
+    var rel=document.body.getAttribute('data-rel')||'';
+    navigator.serviceWorker.register(rel+'sw.js').catch(function(){});
+  });
 }
 })();
 `);
@@ -3484,6 +3769,89 @@ writtenPages.forEach((p) => {
   const html = fs.readFileSync(p, 'utf8');
   if (html.includes('__AV__')) fs.writeFileSync(p, html.split('__AV__').join(assetVersion));
 });
+
+// ---------------------------------------------------------------------------
+// PWA: manifest + service worker, so a village with no signal can still open
+// pages the child already visited. Caches on visit rather than precaching
+// all 1,700 pages -- that's 42MB, too much to force on a phone up front.
+// ---------------------------------------------------------------------------
+fs.writeFileSync(path.join(OUT, 'assets', 'icon.svg'), `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192">
+<rect width="192" height="192" rx="36" fill="#1b6b5a"/>
+<text x="96" y="122" font-size="104" text-anchor="middle">🌙</text>
+</svg>`);
+
+fs.writeFileSync(path.join(OUT, 'manifest.webmanifest'), JSON.stringify({
+  name: SITE_TITLE,
+  short_name: SITE_TITLE,
+  description: SITE_TAG,
+  start_url: '.',
+  scope: '.',
+  display: 'standalone',
+  background_color: '#fbf9f4',
+  theme_color: '#1b6b5a',
+  lang: 'bn',
+  icons: [{ src: 'assets/icon.svg', sizes: 'any', type: 'image/svg+xml', purpose: 'any maskable' }],
+}, null, 2));
+
+fs.writeFileSync(path.join(OUT, 'offline.html'), page({
+  title: 'অফলাইন', rel: '',
+  body: `<header class="page-head"><h1>📡 ইন্টারনেট নেই</h1>
+<p class="lead">এই পাতাটা আগে খোলা হয়নি বলে সেভ হয়নি। ইন্টারনেট এলে একবার খুলে রাখলে পরের বার অফলাইনেও পড়া যাবে।</p>
+<a class="btn big" href="index.html">🗺️ মানচিত্রে ফিরে যাও</a></header>`,
+}).split('__CANONICAL__').join(BOOK_URL_PREFIX).split('__AV__').join(assetVersion));
+
+fs.writeFileSync(path.join(OUT, 'sw.js'), `
+// Cache-on-visit: whatever page the child has already opened keeps working
+// without a signal. Nothing is downloaded up front except the app shell.
+var CACHE='nd-shell-${assetVersion}';
+var SHELL=['index.html','assets/style.css?v=${assetVersion}','assets/app.js?v=${assetVersion}','offline.html'];
+
+self.addEventListener('install', function(e){
+  self.skipWaiting();
+  e.waitUntil(caches.open(CACHE).then(function(c){ return c.addAll(SHELL); }).catch(function(){}));
+});
+
+self.addEventListener('activate', function(e){
+  e.waitUntil(Promise.all([
+    caches.keys().then(function(keys){
+      return Promise.all(keys.filter(function(k){ return k.indexOf('nd-shell-')===0 && k!==CACHE; })
+        .map(function(k){ return caches.delete(k); }));
+    }),
+    self.clients.claim(),
+  ]));
+});
+
+self.addEventListener('fetch', function(e){
+  var url = new URL(e.request.url);
+  if (url.origin !== location.origin) return; // audio etc. stay untouched
+  if (e.request.method !== 'GET') return;
+
+  var isPage = e.request.mode === 'navigate' || (e.request.headers.get('accept')||'').indexOf('text/html') > -1;
+  if (isPage) {
+    e.respondWith(
+      fetch(e.request).then(function(res){
+        var copy = res.clone();
+        caches.open(CACHE).then(function(c){ c.put(e.request, copy); });
+        return res;
+      }).catch(function(){
+        return caches.match(e.request).then(function(hit){ return hit || caches.match('offline.html'); });
+      })
+    );
+    return;
+  }
+
+  // assets/json/etc: cache-first, refresh in the background
+  e.respondWith(
+    caches.match(e.request).then(function(hit){
+      var fetchPromise = fetch(e.request).then(function(res){
+        caches.open(CACHE).then(function(c){ c.put(e.request, res.clone()); });
+        return res;
+      }).catch(function(){ return hit; });
+      return hit || fetchPromise;
+    })
+  );
+});
+`);
 
 const bytes = files.reduce((s, f) => s + fs.statSync(f).size, 0);
 
