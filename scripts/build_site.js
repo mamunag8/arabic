@@ -384,7 +384,6 @@ function page({ title, desc, body, rel, cls = '', active = '', jsonLd = null }) 
     ['', 'index.html', '🗺️', 'মানচিত্র'],
     ['words', 'words.html', '🧺', 'শব্দ'],
     ['duas', 'duas.html', '🤲', 'দুআ'],
-    ['settings', 'settings.html', '⚙️', 'সেটিংস'],
     ['search', 'search.html', '🔍', 'খোঁজো'],
     ['refs', 'refs.html', '📚', 'সূত্র'],
   ].map(([k, href, icon, label]) =>
@@ -422,6 +421,7 @@ ${jsonLd ? `<script type="application/ld+json">${JSON.stringify(jsonLd)}</script
   <nav class="nav nav-top" aria-label="প্রধান মেনু">${nav}</nav>
   <div class="hdr-r">
     <button class="theme" id="acctBtn" aria-label="লগইন / প্রোফাইল">👤</button>
+    <a class="theme${active === 'settings' ? ' is-in' : ''}" href="${rel}settings.html" aria-label="সেটিংস">⚙️</a>
     <button class="theme" id="themeBtn" aria-label="থিম বদলাও">🌗</button>
   </div>
 </header>
@@ -1726,7 +1726,8 @@ hr{border:0;border-top:1px solid var(--line);margin:2em 0}
 .nav-top a:hover,.nav-top a.on{background:var(--chip);color:var(--fg)}
 .hdr-r{grid-column:3;grid-row:1;justify-self:end;display:flex;gap:.4rem}
 .theme{background:none;border:1px solid var(--line);border-radius:9px;
-  cursor:pointer;font-size:1rem;min-width:44px;min-height:44px;color:var(--fg)}
+  cursor:pointer;font-size:1rem;min-width:44px;min-height:44px;color:var(--fg);
+  display:inline-flex;align-items:center;justify-content:center;text-decoration:none}
 .theme.is-in{border-color:var(--acc);color:var(--acc)}
 
 /* bottom tab bar — hidden on desktop, shown at the mobile breakpoint */
