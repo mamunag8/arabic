@@ -635,16 +635,27 @@ function buildClass(c) {
   scanForAudios(gram);
   scanForAudios(story);
 
+  // Google's TTS endpoint sends no CORS headers, so fetch()-based saving
+  // (browser storage / drive folder / zip) can never read its response --
+  // only Quran.com's own CDN audio (ayah + word-by-word recitation) can
+  // actually be saved offline. Keep the TTS fallback for live playback
+  // elsewhere, but don't offer it here where it would just fail every time.
+  const downloadableAudioItems = classAudioItems.filter(
+    (item) => !item.url.startsWith('https://translate.google.com/')
+  );
+  const skippedAudioCount = classAudioItems.length - downloadableAudioItems.length;
+
   const classTitle = ex.title || (passage && passage.name) || 'উইকলি চ্যাম্পিয়ন';
 
   out.push(`<header class="class-head i${island.n}">
     <p class="eyebrow">${island.emoji} ${island.name} · সপ্তাহ ${bn(c.week)} · ${c.type === 'revision' ? 'রিভিশন' : passage.name}${c.part ? ` (পর্ব ${bn(c.part.k)}/${bn(c.part.of)})` : ''}</p>
     <h1><span class="cnum">ক্লাস ${bn(c.index)}</span>${classTitle}</h1>
-    ${(classAudioItems.length && !ex.noStoryAudio) ? `
-    <div class="audio-mini" id="classAudioPanel" data-class-id="${c.index}" data-class-name="Class_${String(c.index).padStart(3, '0')}" data-class-audios='${JSON.stringify(classAudioItems)}'>
-      <button class="btn audio-dl-btn" type="button" id="classDlBtn">📥 অডিও ডাউনলোড (${bn(classAudioItems.length)}টি ফাইল)</button>
+    ${(downloadableAudioItems.length && !ex.noStoryAudio) ? `
+    <div class="audio-mini" id="classAudioPanel" data-class-id="${c.index}" data-class-name="Class_${String(c.index).padStart(3, '0')}" data-class-audios='${JSON.stringify(downloadableAudioItems)}'>
+      <button class="btn audio-dl-btn" type="button" id="classDlBtn">📥 অডিও ডাউনলোড (${bn(downloadableAudioItems.length)}টি ফাইল)</button>
       <span class="audio-mini-status" id="classDlStatus"></span>
       <button class="audio-mini-del" type="button" id="classDlDelBtn" hidden>🗑️ মুছুন</button>
+      ${skippedAudioCount ? `<span class="audio-mini-hint">🌐 আরও ${bn(skippedAudioCount)}টি শব্দের উচ্চারণ শুধু অনলাইনে চলবে</span>` : ''}
       <a class="audio-mini-settings" href="${rel}settings.html">⚙️ ডাউনলোড সেটিংস</a>
     </div>` : ''}
   </header>`);
@@ -2022,6 +2033,7 @@ ul.check li::before{content:"☐ ";color:var(--mut)}
 .audio-dl-btn:hover{background:var(--acc);color:#fff}
 .audio-dl-btn.is-saved{background:color-mix(in srgb,#059669 16%,transparent);color:#059669;border-color:#059669}
 .audio-mini-status{font-size:.83rem;color:var(--mut)}
+.audio-mini-hint{font-size:.78rem;color:var(--mut);flex-basis:100%}
 .audio-mini-settings{margin-inline-start:auto;font-size:.8rem;color:var(--mut);text-decoration:none;white-space:nowrap}
 .audio-mini-settings:hover{color:var(--acc);text-decoration:underline}
 
@@ -3032,25 +3044,34 @@ document.addEventListener('click', function(e) {
 // (drive folder / browser storage / zip) chosen once on settings.html and
 // read from there via getStoredSetting('download_pref').
 function saveClassToBrowser(classId, classAudios, onProgress) {
-  var done = 0;
+  var savedCount = 0;
+  var failedCount = 0;
   return Promise.all(classAudios.map(function(item) {
     return getStoredAudioBlob(item.url).then(function(existingBlob) {
-      if (existingBlob) { done++; onProgress(done); return; }
+      if (existingBlob) { savedCount++; onProgress(savedCount, failedCount); return; }
       return fetch(item.url).then(function(res) {
         if (!res.ok) throw new Error('HTTP ' + res.status);
         return res.blob();
       }).then(function(blob) {
         return saveAudioBlobToDB({ url: item.url, name: item.name, blob: blob }, classId);
-      }).then(function() { done++; onProgress(done); })
-        .catch(function(err) { console.warn('Audio fetch failed for:', item.url, err); });
+      }).then(function() { savedCount++; onProgress(savedCount, failedCount); })
+        .catch(function(err) {
+          console.warn('Audio fetch failed for:', item.url, err);
+          failedCount++;
+          onProgress(savedCount, failedCount);
+        });
     });
-  }));
+  })).then(function() {
+    if (savedCount === 0) throw new Error('NO_FILES');
+    return { savedCount: savedCount, failedCount: failedCount };
+  });
 }
 
 function saveClassToDrive(classId, classFolderName, classAudios, onProgress) {
   return getOrRequestDriveFolder(false).then(function(dirHandle) {
     if (!dirHandle) throw new Error('NO_DIR');
     var savedCount = 0;
+    var failedCount = 0;
     var chain = Promise.resolve();
     classAudios.forEach(function(item) {
       chain = chain.then(function() {
@@ -3067,11 +3088,18 @@ function saveClassToDrive(classId, classFolderName, classAudios, onProgress) {
           return writeAudioFileToDrive(dirHandle, classFolderName, item.name, blob);
         }).then(function() {
           savedCount++;
-          onProgress(savedCount);
+          onProgress(savedCount, failedCount, classAudios.length);
+        }).catch(function(err) {
+          console.warn('Drive save failed for:', item.url, err);
+          failedCount++;
+          onProgress(savedCount, failedCount, classAudios.length);
         });
       });
     });
-    return chain.then(function() { return dirHandle; });
+    return chain.then(function() {
+      if (savedCount === 0) throw new Error('NO_FILES');
+      return { dirHandle: dirHandle, savedCount: savedCount, failedCount: failedCount };
+    });
   });
 }
 
@@ -3158,8 +3186,9 @@ if (classPanel) {
         var origText = dlBtn.textContent;
         dlBtn.disabled = true;
 
-        function progress(done) {
-          if (statusEl) statusEl.textContent = '⏳ ' + bn(done) + '/' + bn(classAudios.length) + ' সেভ হচ্ছে...';
+        function progress(done, failed) {
+          var doneCount = done + (failed || 0);
+          if (statusEl) statusEl.textContent = '⏳ ' + bn(doneCount) + '/' + bn(classAudios.length) + ' সেভ হচ্ছে...';
         }
 
         var task;
@@ -3169,16 +3198,24 @@ if (classPanel) {
             dlBtn.disabled = false;
             return;
           }
-          task = saveClassToDrive(classId, classFolderName, classAudios, progress).then(function() {
-            if (statusEl) statusEl.textContent = '🎉 ড্রাইভ ফোল্ডারে সেভ হয়েছে!';
+          task = saveClassToDrive(classId, classFolderName, classAudios, progress).then(function(result) {
+            if (statusEl) {
+              statusEl.textContent = result.failedCount
+                ? '🎉 ড্রাইভ ফোল্ডারে সেভ হয়েছে! (' + bn(result.failedCount) + 'টি ফাইল সেভ হয়নি, নেট সংযোগ চেক করে আবার চেষ্টা করুন)'
+                : '🎉 ড্রাইভ ফোল্ডারে সেভ হয়েছে!';
+            }
           });
         } else if (pref === 'zip') {
           task = saveClassAsZip(classFolderName, classAudios, progress).then(function(name) {
             if (statusEl) statusEl.textContent = '🎉 ' + name + ' ডাউনলোড হয়েছে!';
           });
         } else {
-          task = saveClassToBrowser(classId, classAudios, progress).then(function() {
-            if (statusEl) statusEl.textContent = '🔒 ব্রাউজার মেমরিতে সেভ হয়েছে — অফলাইনে চলবে।';
+          task = saveClassToBrowser(classId, classAudios, progress).then(function(result) {
+            if (statusEl) {
+              statusEl.textContent = result.failedCount
+                ? '🔒 ব্রাউজার মেমরিতে সেভ হয়েছে — অফলাইনে চলবে। (' + bn(result.failedCount) + 'টি ফাইল সেভ হয়নি, আবার চেষ্টা করলে বাকিগুলো সেভ হবে)'
+                : '🔒 ব্রাউজার মেমরিতে সেভ হয়েছে — অফলাইনে চলবে।';
+            }
           });
         }
 
@@ -3192,6 +3229,8 @@ if (classPanel) {
           dlBtn.textContent = origText;
           if (err && err.name === 'AbortError') {
             if (statusEl) statusEl.textContent = 'বাতিল করা হয়েছে।';
+          } else if (err && err.message === 'NO_FILES') {
+            if (statusEl) statusEl.textContent = 'কোনো অডিও ফাইল ডাউনলোড করা যায়নি। ইন্টারনেট সংযোগ চেক করে আবার চেষ্টা করুন।';
           } else {
             if (statusEl) statusEl.textContent = 'সেভ করতে সমস্যা হয়েছে। আবার চেষ্টা করুন।';
           }
